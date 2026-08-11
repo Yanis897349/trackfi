@@ -16,6 +16,7 @@ import { Card, CardContent } from "@trackfi/ui/components/card"
 import { Switch } from "@trackfi/ui/components/switch"
 
 import { FormMessage } from "../components/auth-shell"
+import { FeatureFlagsLoadingState } from "../components/feature-flags-loading-state"
 import { apiFetch, getSession } from "../lib/api"
 import { humanizeError } from "../lib/errors"
 
@@ -64,6 +65,8 @@ function FeatureFlagsRoute() {
   const waitlistFlag = query.data?.flags.find(
     (flag) => flag.key === "waitlist_mode"
   )
+
+  if (query.isLoading) return <FeatureFlagsLoadingState />
 
   return (
     <section className="mx-auto w-full max-w-4xl space-y-6">

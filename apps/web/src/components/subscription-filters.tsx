@@ -10,8 +10,8 @@ import {
 } from "@trackfi/ui/components/select"
 
 import {
-  displayLabel,
-  subscriptionCategories,
+  subscriptionCategoryFilterOptions,
+  subscriptionFilterOptions,
   type SubscriptionCategory,
   type SubscriptionFilter,
 } from "../lib/subscriptions"
@@ -44,6 +44,7 @@ export function SubscriptionFilters({
         />
       </div>
       <Select
+        items={subscriptionFilterOptions}
         value={status}
         onValueChange={(value) => value && onStatusChange(value)}
       >
@@ -51,16 +52,15 @@ export function SubscriptionFilters({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {(["current", "active", "paused", "archived", "all"] as const).map(
-            (option) => (
-              <SelectItem key={option} value={option}>
-                {displayLabel(option)}
-              </SelectItem>
-            )
-          )}
+          {subscriptionFilterOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
       <Select
+        items={subscriptionCategoryFilterOptions}
         value={category}
         onValueChange={(value) => value && onCategoryChange(value)}
       >
@@ -68,10 +68,9 @@ export function SubscriptionFilters({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="all">All categories</SelectItem>
-          {subscriptionCategories.map((option) => (
-            <SelectItem key={option} value={option}>
-              {displayLabel(option)}
+          {subscriptionCategoryFilterOptions.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
             </SelectItem>
           ))}
         </SelectContent>

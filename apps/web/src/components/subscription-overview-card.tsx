@@ -42,7 +42,12 @@ export function SubscriptionOverviewCard() {
       </CardHeader>
       <CardContent>
         {query.isLoading ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div
+            className="grid grid-cols-2 gap-3"
+            role="status"
+            aria-label="Loading subscription overview"
+            aria-busy="true"
+          >
             <Skeleton className="h-14" />
             <Skeleton className="h-14" />
           </div>

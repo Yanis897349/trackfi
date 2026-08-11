@@ -19,6 +19,21 @@ export const subscriptionCategories = [
 ] as const
 export const subscriptionStatuses = ["active", "paused", "archived"] as const
 
+export const subscriptionCadenceOptions = subscriptionCadences.map((value) => ({
+  value,
+  label: displayLabel(value),
+}))
+export const subscriptionCategoryOptions = subscriptionCategories.map(
+  (value) => ({ value, label: displayLabel(value) })
+)
+export const subscriptionCategoryFilterOptions = [
+  { value: "all" as const, label: "All categories" },
+  ...subscriptionCategoryOptions,
+]
+export const subscriptionFilterOptions = (
+  ["current", "active", "paused", "archived", "all"] as const
+).map((value) => ({ value, label: displayLabel(value) }))
+
 export type SubscriptionCadence = (typeof subscriptionCadences)[number]
 export type SubscriptionCategory = (typeof subscriptionCategories)[number]
 export type SubscriptionStatus = (typeof subscriptionStatuses)[number]

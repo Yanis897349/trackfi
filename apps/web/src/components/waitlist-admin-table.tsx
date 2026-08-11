@@ -25,6 +25,7 @@ import {
 
 import { formatDate } from "../lib/date"
 import type { WaitlistEntry, WaitlistStatus } from "../lib/waitlist"
+import { WaitlistAdminTableSkeleton } from "./waitlist-admin-table-skeleton"
 
 interface WaitlistAdminTableProps {
   entries: WaitlistEntry[]
@@ -119,16 +120,9 @@ export function WaitlistAdminTable({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
+          <TableBody aria-busy={isLoading}>
             {isLoading ? (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  Loading waitlist…
-                </TableCell>
-              </TableRow>
+              <WaitlistAdminTableSkeleton />
             ) : table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>

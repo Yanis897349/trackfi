@@ -3,10 +3,46 @@
 import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
+import { AnimatePresence, motion, type HTMLMotionProps } from "motion/react"
 
 import { cn } from "@trackfi/ui/lib/utils"
+import { useControlledOpen } from "@trackfi/ui/hooks/use-controlled-open"
+import { spring } from "@trackfi/ui/lib/springs"
 
-const Select = SelectPrimitive.Root
+const SelectOpenContext = React.createContext<{
+  mounted: boolean
+  open: boolean
+  setMounted(): void
+}>({ mounted: false, open: false, setMounted() {} })
+
+function Select<Value, Multiple extends boolean | undefined = false>({
+  open: controlledOpen,
+  defaultOpen,
+  onOpenChange,
+  ...props
+}: SelectPrimitive.Root.Props<Value, Multiple>) {
+  const [mounted, setMounted] = React.useState(false)
+  const markMounted = React.useCallback(() => setMounted(true), [])
+  const [open, handleOpenChange] = useControlledOpen({
+    open: controlledOpen,
+    defaultOpen,
+    onOpenChange,
+  })
+  const contextValue = React.useMemo(
+    () => ({ mounted, open, setMounted: markMounted }),
+    [markMounted, mounted, open]
+  )
+
+  return (
+    <SelectOpenContext.Provider value={contextValue}>
+      <SelectPrimitive.Root
+        open={open}
+        onOpenChange={handleOpenChange}
+        {...props}
+      />
+    </SelectOpenContext.Provider>
+  )
+}
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
@@ -66,31 +102,76 @@ function SelectContent({
     SelectPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
   >) {
-  return (
-    <SelectPrimitive.Portal>
-      <SelectPrimitive.Positioner
-        side={side}
-        sideOffset={sideOffset}
-        align={align}
-        alignOffset={alignOffset}
-        alignItemWithTrigger={alignItemWithTrigger}
-        className="isolate z-50"
-      >
-        <SelectPrimitive.Popup
-          data-slot="select-content"
-          className={cn(
-            "relative z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-y-auto rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
-            className
-          )}
-          {...props}
-        >
-          <SelectScrollUpButton />
-          <SelectPrimitive.List>{children}</SelectPrimitive.List>
-          <SelectScrollDownButton />
-        </SelectPrimitive.Popup>
-      </SelectPrimitive.Positioner>
-    </SelectPrimitive.Portal>
+  const { mounted, open, setMounted } = React.useContext(SelectOpenContext)
+  const portalMounted = open || mounted
+  const positionerRef = React.useCallback(
+    (node: HTMLDivElement | null) => {
+      if (node) setMounted()
+    },
+    [setMounted]
   )
+
+  return (
+    <AnimatePresence>
+      {portalMounted && (
+        <SelectPrimitive.Portal>
+          <SelectPrimitive.Positioner
+            ref={positionerRef}
+            side={side}
+            sideOffset={sideOffset}
+            align={align}
+            alignOffset={alignOffset}
+            alignItemWithTrigger={alignItemWithTrigger}
+            className="isolate z-50"
+          >
+            <SelectPrimitive.Popup
+              data-slot="select-content"
+              className={cn(
+                "relative z-50 max-h-(--available-height) w-(--anchor-width) min-w-36 origin-(--transform-origin) overflow-y-auto rounded-lg bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10",
+                className
+              )}
+              render={(renderProps, state) => (
+                <motion.div
+                  {...(renderProps as unknown as HTMLMotionProps<"div">)}
+                  initial={mounted ? false : selectHiddenState(state.side)}
+                  animate={
+                    state.open
+                      ? { opacity: 1, scale: 1, x: 0, y: 0 }
+                      : selectHiddenState(state.side)
+                  }
+                  exit={{
+                    ...selectHiddenState(state.side),
+                    transition: spring.fast.exit,
+                  }}
+                  transition={state.open ? spring.fast : spring.fast.exit}
+                />
+              )}
+              {...props}
+            >
+              <SelectScrollUpButton />
+              <SelectPrimitive.List>{children}</SelectPrimitive.List>
+              <SelectScrollDownButton />
+            </SelectPrimitive.Popup>
+          </SelectPrimitive.Positioner>
+        </SelectPrimitive.Portal>
+      )}
+    </AnimatePresence>
+  )
+}
+
+function selectHiddenState(
+  side:
+    "none" | "top" | "right" | "bottom" | "left" | "inline-start" | "inline-end"
+) {
+  if (side === "top") return { opacity: 0, scale: 0.96, x: 0, y: 4 }
+  if (side === "bottom") return { opacity: 0, scale: 0.96, x: 0, y: -4 }
+  if (side === "left" || side === "inline-start") {
+    return { opacity: 0, scale: 0.96, x: 4, y: 0 }
+  }
+  if (side === "right" || side === "inline-end") {
+    return { opacity: 0, scale: 0.96, x: -4, y: 0 }
+  }
+  return { opacity: 0, scale: 0.96, x: 0, y: 0 }
 }
 
 function SelectItem({

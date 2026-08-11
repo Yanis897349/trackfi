@@ -15,8 +15,7 @@ import {
 } from "@trackfi/ui/components/select"
 
 import {
-  displayLabel,
-  subscriptionCadences,
+  subscriptionCadenceOptions,
   type Subscription,
   type SubscriptionCadence,
   type SubscriptionInput,
@@ -71,6 +70,7 @@ export function SubscriptionForm({
           <Field>
             <FieldLabel>Cadence</FieldLabel>
             <Select
+              items={subscriptionCadenceOptions}
               value={form.values.cadence}
               onValueChange={(value) =>
                 form.setValue("cadence", value as SubscriptionCadence)
@@ -80,9 +80,9 @@ export function SubscriptionForm({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {subscriptionCadences.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {displayLabel(option)}
+                {subscriptionCadenceOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>

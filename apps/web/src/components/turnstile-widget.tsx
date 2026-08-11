@@ -1,4 +1,6 @@
-import { useEffect, useId, useRef } from "react"
+import { useEffect, useId, useRef, useState } from "react"
+
+import { Skeleton } from "@trackfi/ui/components/skeleton"
 
 import { TURNSTILE_SITE_KEY } from "../lib/api"
 
@@ -47,6 +49,10 @@ export function TurnstileWidget({
 }) {
   const id = useId()
   const containerRef = useRef<HTMLDivElement>(null)
+  const [loadedKey, setLoadedKey] = useState<number | null>(
+    import.meta.env.MODE === "test" ? resetKey : null
+  )
+  const loaded = loadedKey === resetKey
 
   useEffect(() => {
     if (import.meta.env.MODE === "test") {
@@ -65,8 +71,12 @@ export function TurnstileWidget({
           callback: onTokenChange,
           "expired-callback": () => onTokenChange(""),
         })
+        setLoadedKey(resetKey)
       })
-      .catch(() => onTokenChange(""))
+      .catch(() => {
+        setLoadedKey(resetKey)
+        onTokenChange("")
+      })
 
     return () => {
       cancelled = true
@@ -75,11 +85,17 @@ export function TurnstileWidget({
   }, [onTokenChange, resetKey])
 
   return (
-    <div
-      id={id}
-      ref={containerRef}
-      className="min-h-[65px]"
-      aria-label="Security check"
-    />
+    <div className="relative min-h-[65px]" aria-busy={!loaded}>
+      {!loaded && (
+        <div
+          className="absolute inset-0"
+          role="status"
+          aria-label="Loading security check"
+        >
+          <Skeleton className="h-[65px] w-[300px] max-w-full" />
+        </div>
+      )}
+      <div id={id} ref={containerRef} aria-label="Security check" />
+    </div>
   )
 }
