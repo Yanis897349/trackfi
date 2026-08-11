@@ -384,37 +384,6 @@ describe("Trackfi API", () => {
     expect(untrusted.headers.get("access-control-allow-origin")).toBeNull()
   })
 
-  it("protects the brand logo proxy and validates domains", async () => {
-    const unauthorized = await exports.default.fetch(
-      new Request("https://trackfi.test/api/brands/logo?domain=example.com")
-    )
-    expect(unauthorized.status).toBe(401)
-
-    const cookie = await createUserSession()
-    const invalid = await userApi(
-      "/api/brands/logo?domain=https%3A%2F%2Fexample.com",
-      cookie
-    )
-    expect(invalid.status).toBe(400)
-    await expect(invalid.json()).resolves.toEqual({ error: "invalid_domain" })
-  })
-
-  it("redirects the browser to Brandfetch with the configured client ID", async () => {
-    const cookie = await createUserSession()
-    const domain = `brand-${crypto.randomUUID()}.example`
-
-    const response = await userApi(
-      `/api/brands/logo?domain=${encodeURIComponent(domain)}`,
-      cookie,
-      { redirect: "manual" }
-    )
-
-    expect(response.status).toBe(302)
-    expect(response.headers.get("location")).toBe(
-      `https://cdn.brandfetch.io/domain/${domain}/w/80/h/80/fallback/404/type/icon?c=brandfetch-test-client-id`
-    )
-  })
-
   it("surfaces Resend delivery failures", async () => {
     vi.stubGlobal(
       "fetch",
@@ -972,16 +941,11 @@ async function createUserSession() {
 function userApi(
   path: string,
   cookie: string,
-  options?: {
-    method?: string
-    body?: unknown
-    redirect?: RequestRedirect
-  }
+  options?: { method?: string; body?: unknown }
 ) {
   return exports.default.fetch(
     new Request(`https://trackfi.test${path}`, {
       method: options?.method ?? "GET",
-      ...(options?.redirect ? { redirect: options.redirect } : {}),
       headers: {
         Cookie: cookie,
         Origin: "http://localhost:5173",

@@ -7,7 +7,6 @@ export interface Bindings {
   APP_ORIGIN?: string
   AUTH_BASE_URL?: string
   BETTER_AUTH_SECRET?: string
-  BRANDFETCH_CLIENT_ID?: string
   EMAIL_FROM?: string
   RESEND_API_KEY?: string
   TURNSTILE_SECRET_KEY?: string

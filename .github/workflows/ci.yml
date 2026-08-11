@@ -83,9 +83,15 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build web application
-        run: pnpm --filter @trackfi/web build
+        run: |
+          if [ -z "$VITE_BRANDFETCH_CLIENT_ID" ]; then
+            echo "::error::BRANDFETCH_CLIENT_ID repository variable is required"
+            exit 1
+          fi
+          pnpm --filter @trackfi/web build
         env:
           VITE_API_URL: ${{ vars.TRACKFI_API_URL }}
+          VITE_BRANDFETCH_CLIENT_ID: ${{ vars.BRANDFETCH_CLIENT_ID }}
           VITE_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
 
       - name: Deploy Pages application
