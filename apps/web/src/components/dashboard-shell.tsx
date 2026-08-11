@@ -55,7 +55,7 @@ export function DashboardShell({
         <SidebarHeader className="h-14 justify-center border-b">
           <Link
             to="/dashboard"
-            className="flex items-center gap-2 overflow-hidden px-2 font-semibold"
+            className="flex items-center gap-2 overflow-hidden px-2 font-semibold group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground">
               T
