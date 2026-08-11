@@ -8,6 +8,7 @@ export default defineConfig(
     "**/dist/**",
     "**/node_modules/**",
     "**/routeTree.gen.ts",
+    "**/.wrangler/**",
     "**/worker-configuration.d.ts",
   ]),
   eslint.configs.recommended,

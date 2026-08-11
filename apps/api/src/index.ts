@@ -1,24 +1,33 @@
 import { Hono } from "hono"
+import { cors } from "hono/cors"
 
-const app = new Hono<{ Bindings: CloudflareBindings }>()
+import { getAppOrigin } from "./config"
+import { registerAdminFeatureFlagRoutes } from "./routes/admin-feature-flags"
+import { registerAdminWaitlistRoutes } from "./routes/admin-waitlist"
+import { registerAuthRoutes } from "./routes/auth"
+import { registerPublicRoutes } from "./routes/public"
+import type { AppEnv } from "./types"
 
-app.get("/health", (context) => {
-  context.header("Cache-Control", "no-store")
+const app = new Hono<AppEnv>()
 
-  return context.json({
-    status: "ok",
-    service: "trackfi-api",
+app.use(
+  "/api/*",
+  cors({
+    origin: (origin, context) =>
+      origin === getAppOrigin(context.env) ? origin : null,
+    allowHeaders: ["Content-Type", "X-Invite-Token", "X-Turnstile-Token"],
+    allowMethods: ["GET", "POST", "PATCH", "OPTIONS"],
+    credentials: true,
+    maxAge: 600,
   })
-})
-
-app.notFound((context) =>
-  context.json(
-    {
-      error: "not_found",
-    },
-    404
-  )
 )
+
+registerPublicRoutes(app)
+registerAuthRoutes(app)
+registerAdminWaitlistRoutes(app)
+registerAdminFeatureFlagRoutes(app)
+
+app.notFound((context) => context.json({ error: "not_found" }, 404))
 
 export { app }
 export default app

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "vite --host 0.0.0.0",
+    "dev": "vite --host 0.0.0.0 --port ${WEB_PORT:-5173}",
     "lint": "eslint .",
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
@@ -15,10 +15,14 @@
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-router": "^1.170.25",
+    "@tanstack/react-table": "^8.21.3",
     "@trackfi/ui": "workspace:*",
+    "better-auth": "^1.6.26",
+    "lucide-react": "^1.31.0",
     "motion": "^13.1.0",
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.0",

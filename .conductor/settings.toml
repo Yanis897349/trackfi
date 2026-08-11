@@ -6,7 +6,7 @@ run_mode = "concurrent"
 
 [scripts.run.dev]
 available_in = [ "local" ]
-command = 'WEB_PORT="$CONDUCTOR_PORT" API_PORT="$((CONDUCTOR_PORT + 1))" mise exec -- pnpm dev'
+command = 'mise exec -- pnpm db:migrate:local && WEB_PORT="$CONDUCTOR_PORT" API_PORT="$((CONDUCTOR_PORT + 1))" mise exec -- pnpm dev'
 default = true
 icon = "play"
 
@@ -17,4 +17,3 @@ icon = "test-tube"
 [scripts.run.check]
 command = "mise exec -- pnpm check"
 icon = "circle-check"
-

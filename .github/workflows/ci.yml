@@ -49,6 +49,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Apply D1 migrations
+        run: pnpm db:migrate:remote
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
       - name: Deploy Worker API
         run: pnpm deploy:api
         env:
@@ -78,6 +84,9 @@ jobs:
 
       - name: Build web application
         run: pnpm --filter @trackfi/web build
+        env:
+          VITE_API_URL: ${{ vars.TRACKFI_API_URL }}
+          VITE_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
 
       - name: Deploy Pages application
         run: pnpm deploy:web
