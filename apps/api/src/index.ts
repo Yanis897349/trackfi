@@ -5,7 +5,6 @@ import { getAppOrigin } from "./config"
 import { registerAdminFeatureFlagRoutes } from "./routes/admin-feature-flags"
 import { registerAdminWaitlistRoutes } from "./routes/admin-waitlist"
 import { registerAuthRoutes } from "./routes/auth"
-import { registerBrandLogoRoute } from "./routes/brand-logo"
 import { registerPublicRoutes } from "./routes/public"
 import { registerSettingsRoutes } from "./routes/settings"
 import { registerSubscriptionRoutes } from "./routes/subscriptions"
@@ -27,7 +26,6 @@ app.use(
 
 registerPublicRoutes(app)
 registerAuthRoutes(app)
-registerBrandLogoRoute(app)
 registerAdminWaitlistRoutes(app)
 registerAdminFeatureFlagRoutes(app)
 registerSettingsRoutes(app)

@@ -22,9 +22,9 @@ The normal local ports are:
 
 The application starts in waitlist mode. Cloudflare's documented Turnstile test
 keys are included in the example files, but you should replace the auth secret,
-admin email, and Resend settings. An email listed in `ADMIN_EMAILS` is
-automatically approved after joining the waitlist and receives the first admin
-invitation.
+Brandfetch client ID, admin email, and Resend settings. An email listed in
+`ADMIN_EMAILS` is automatically approved after joining the waitlist and
+receives the first admin invitation.
 
 Local D1 data lives under `apps/api/.wrangler` and is isolated per Conductor
 workspace. The Conductor Development action also assigns distinct web and API
@@ -66,10 +66,16 @@ GitHub Actions runs checks on every pull request and push. Production deployment
    keys.
 5. Verify a Resend sending domain and choose a sender such as
    `Trackfi <hello@updates.example.com>`.
-6. Configure Worker secrets. Add them with `wrangler secret put`:
+6. Configure Worker secrets on the production `trackfi-api` Worker (not as
+   GitHub Actions secrets). From the repository root, add each one with:
 
-   - Secrets: `BETTER_AUTH_SECRET`, `BRANDFETCH_CLIENT_ID`, `RESEND_API_KEY`,
-     `TURNSTILE_SECRET_KEY`
+   ```sh
+   mise exec -- pnpm --filter @trackfi/api exec wrangler secret put BETTER_AUTH_SECRET
+   mise exec -- pnpm --filter @trackfi/api exec wrangler secret put RESEND_API_KEY
+   mise exec -- pnpm --filter @trackfi/api exec wrangler secret put TURNSTILE_SECRET_KEY
+   ```
+
+   - Secrets: `BETTER_AUTH_SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`
 
    The non-secret production values `APP_ORIGIN`, `AUTH_BASE_URL`, `EMAIL_FROM`,
    and `ADMIN_EMAILS` are versioned in `apps/api/wrangler.jsonc`. Update that
@@ -84,14 +90,16 @@ GitHub Actions runs checks on every pull request and push. Production deployment
 9. Add these repository Actions variables:
 
    - `CLOUDFLARE_DEPLOY_ENABLED=true`
+   - `BRANDFETCH_CLIENT_ID` set to the public Brandfetch client ID
    - `TRACKFI_API_URL` set to the public Worker origin
    - `TURNSTILE_SITE_KEY` set to the public widget key
 
-The authenticated brand-logo route redirects browsers to Brandfetch's Logo API
-so Brandfetch receives the application origin required by its hotlinking policy.
-The client ID is browser-visible by design but remains outside the web bundle.
-When Brandfetch is unavailable or has no matching logo, Trackfi falls back to
-service initials without disabling subscription features.
+The web build exposes the public Brandfetch client ID as
+`VITE_BRANDFETCH_CLIENT_ID` and loads logos directly from Brandfetch's Logo API.
+This lets Brandfetch receive the application origin required by its hotlinking
+policy without an extra Worker request. When Brandfetch is unavailable or has
+no matching logo, Trackfi falls back to service initials without disabling
+subscription features.
 
 After checks pass on `main`, CI applies pending D1 migrations, deploys the
 `trackfi-api` Worker, and uploads `apps/web/dist` to the `trackfi-web` Pages
@@ -117,5 +125,6 @@ pnpm --filter @trackfi/web build
 - `D1_ERROR: no such table` means local or remote migrations have not been applied.
 - Authentication configuration errors usually mean `BETTER_AUTH_SECRET`, `APP_ORIGIN`, or `AUTH_BASE_URL` is missing or has the wrong origin.
 - Resend requires a verified sender domain in production; `onboarding@resend.dev` is only suitable for initial testing.
+- Missing brand logos usually mean the `BRANDFETCH_CLIENT_ID` GitHub Actions variable was absent when the web application was built.
 - If a Conductor service reports a busy port, start it through the Development action so it receives the workspace's allocated ports.
 - If deployment is skipped, verify the repository variable is exactly `CLOUDFLARE_DEPLOY_ENABLED=true` and the production environment contains both Cloudflare secrets.

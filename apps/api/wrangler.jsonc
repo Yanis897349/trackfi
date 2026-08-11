@@ -15,7 +15,6 @@
   "secrets": {
     "required": [
       "BETTER_AUTH_SECRET",
-      "BRANDFETCH_CLIENT_ID",
       "RESEND_API_KEY",
       "TURNSTILE_SECRET_KEY",
     ],
