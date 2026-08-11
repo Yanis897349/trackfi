@@ -20,6 +20,11 @@
       "TURNSTILE_SECRET_KEY",
     ],
   },
+  "kv_namespaces": [
+    {
+      "binding": "BRAND_LOGO_CACHE",
+    },
+  ],
   "d1_databases": [
     {
       "binding": "DB",

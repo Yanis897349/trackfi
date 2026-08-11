@@ -438,6 +438,21 @@ describe("Trackfi API", () => {
       `https://cdn.brandfetch.io/domain/${domain}/w/80/h/80/fallback/404/type/icon?c=brandfetch-test-client-id`
     )
     expect(outboundRequests[0]?.headers.get("authorization")).toBeNull()
+
+    const cached = await userApi(
+      `/api/brands/logo?domain=${encodeURIComponent(domain)}`,
+      cookie
+    )
+    expect(cached.status).toBe(200)
+    expect(cached.headers.get("content-type")).toBe("image/png")
+    expect(cached.headers.get("etag")).toBe('"brand-icon"')
+    expect(cached.headers.get("cache-control")).toBe(
+      "public, max-age=86400, s-maxage=604800"
+    )
+    expect(new TextDecoder().decode(await cached.arrayBuffer())).toBe(
+      "image-bytes"
+    )
+    expect(outboundRequests).toHaveLength(1)
   })
 
   it("does not follow Brandfetch redirects to an untrusted host", async () => {
