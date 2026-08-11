@@ -54,74 +54,113 @@ export function findSubscriptionRow(
 export async function createSubscriptionRow(
   database: D1Database,
   userId: string,
-  data: SubscriptionCreateInput
+  data: SubscriptionCreateInput,
+  currency: string
 ) {
   const id = crypto.randomUUID()
   const now = new Date().toISOString()
-  await database
-    .prepare(
-      `INSERT INTO subscriptions
+  await database.batch([
+    database
+      .prepare(
+        `INSERT INTO subscriptions
         (id, user_id, name, amount_minor, cadence, billing_anchor, category,
           website_url, notes, status, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)`
-    )
-    .bind(
-      id,
-      userId,
-      data.name,
-      data.amountMinor,
-      data.cadence,
-      data.billingAnchor,
-      data.category,
-      data.websiteUrl || null,
-      data.notes || null,
-      now,
-      now
-    )
-    .run()
+      )
+      .bind(
+        id,
+        userId,
+        data.name,
+        data.amountMinor,
+        data.cadence,
+        data.billingAnchor,
+        data.category,
+        data.websiteUrl || null,
+        data.notes || null,
+        now,
+        now
+      ),
+    subscriptionSpendSnapshotStatement(database, userId, currency, now),
+  ])
   return (await findSubscriptionRow(database, userId, id))!
 }
 
 export async function updateSubscriptionRow(
   database: D1Database,
   existing: SubscriptionRow,
-  data: SubscriptionUpdateInput
+  data: SubscriptionUpdateInput,
+  currency: string
 ) {
   const updatedAt = new Date().toISOString()
-  await database
-    .prepare(
-      `UPDATE subscriptions SET name = ?, amount_minor = ?, cadence = ?,
+  await database.batch([
+    database
+      .prepare(
+        `UPDATE subscriptions SET name = ?, amount_minor = ?, cadence = ?,
         billing_anchor = ?, category = ?, website_url = ?, notes = ?,
         status = ?, updated_at = ? WHERE id = ? AND user_id = ?`
-    )
-    .bind(
-      data.name ?? existing.name,
-      data.amountMinor ?? existing.amount_minor,
-      data.cadence ?? existing.cadence,
-      data.billingAnchor ?? existing.billing_anchor,
-      data.category ?? existing.category,
-      data.websiteUrl === undefined
-        ? existing.website_url
-        : data.websiteUrl || null,
-      data.notes === undefined ? existing.notes : data.notes || null,
-      data.status ?? existing.status,
-      updatedAt,
-      existing.id,
-      existing.user_id
-    )
-    .run()
+      )
+      .bind(
+        data.name ?? existing.name,
+        data.amountMinor ?? existing.amount_minor,
+        data.cadence ?? existing.cadence,
+        data.billingAnchor ?? existing.billing_anchor,
+        data.category ?? existing.category,
+        data.websiteUrl === undefined
+          ? existing.website_url
+          : data.websiteUrl || null,
+        data.notes === undefined ? existing.notes : data.notes || null,
+        data.status ?? existing.status,
+        updatedAt,
+        existing.id,
+        existing.user_id
+      ),
+    subscriptionSpendSnapshotStatement(
+      database,
+      existing.user_id,
+      currency,
+      updatedAt
+    ),
+  ])
   return (await findSubscriptionRow(database, existing.user_id, existing.id))!
 }
 
 export function deleteSubscriptionRow(
   database: D1Database,
   userId: string,
-  id: string
+  id: string,
+  currency: string
+) {
+  const now = new Date().toISOString()
+  return database.batch([
+    database
+      .prepare("DELETE FROM subscriptions WHERE id = ? AND user_id = ?")
+      .bind(id, userId),
+    subscriptionSpendSnapshotStatement(database, userId, currency, now),
+  ])
+}
+
+export function subscriptionSpendSnapshotStatement(
+  database: D1Database,
+  userId: string,
+  currency: string,
+  recordedAt = new Date().toISOString()
 ) {
   return database
-    .prepare("DELETE FROM subscriptions WHERE id = ? AND user_id = ?")
-    .bind(id, userId)
-    .run()
+    .prepare(
+      `INSERT INTO subscription_spend_snapshots
+        (id, user_id, currency, monthly_equivalent_minor, recorded_at)
+      SELECT ?, ?, ?, CAST(ROUND(COALESCE(SUM(
+        CASE cadence
+          WHEN 'weekly' THEN amount_minor * 52
+          WHEN 'monthly' THEN amount_minor * 12
+          WHEN 'quarterly' THEN amount_minor * 4
+          WHEN 'semiannual' THEN amount_minor * 2
+          ELSE amount_minor
+        END
+      ), 0) / 12.0) AS INTEGER), ?
+      FROM subscriptions WHERE user_id = ? AND status = 'active'`
+    )
+    .bind(crypto.randomUUID(), userId, currency, recordedAt, userId)
 }
 
 export function serializeSubscription(row: SubscriptionRow, asOf: string) {

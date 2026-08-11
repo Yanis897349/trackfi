@@ -18,6 +18,7 @@ import verificationsMigration from "../migrations/20260811140300_create_verifica
 import waitlistMigration from "../migrations/20260811140600_create_waitlist_entries.sql?raw"
 import userSettingsMigration from "../migrations/20260811140700_create_user_settings.sql?raw"
 import subscriptionsMigration from "../migrations/20260811140800_create_subscriptions.sql?raw"
+import subscriptionSnapshotsMigration from "../migrations/20260811140900_create_subscription_spend_snapshots.sql?raw"
 import { createAuth } from "../src/auth"
 import { sendInvitation } from "../src/email"
 import { sha256 } from "../src/security"
@@ -33,6 +34,7 @@ const migrationQueries = [
   waitlistMigration,
   userSettingsMigration,
   subscriptionsMigration,
+  subscriptionSnapshotsMigration,
 ].flatMap((sql) =>
   sql
     .split(";")
@@ -433,6 +435,11 @@ describe("Trackfi API", () => {
       subscription: { id: string; status: string }
     }>()
     expect(createdBody.subscription.status).toBe("active")
+    const subscriptionOwner = await env.DB.prepare(
+      "SELECT user_id FROM subscriptions WHERE id = ?"
+    )
+      .bind(createdBody.subscription.id)
+      .first<{ user_id: string }>()
 
     const summary = await userApi(
       "/api/subscriptions/summary?asOf=2024-02-01",
@@ -446,8 +453,20 @@ describe("Trackfi API", () => {
         annualEquivalentMinor: 12000,
         upcomingCount: 1,
         upcoming: [{ nextRenewalDate: "2024-02-29" }],
+        monthlyComparison: null,
       },
     })
+
+    const snapshots = await env.DB.prepare(
+      `SELECT monthly_equivalent_minor FROM subscription_spend_snapshots
+      WHERE user_id = (SELECT user_id FROM subscriptions WHERE id = ?)
+      ORDER BY recorded_at`
+    )
+      .bind(createdBody.subscription.id)
+      .all<{ monthly_equivalent_minor: number }>()
+    expect(
+      snapshots.results.map((snapshot) => snapshot.monthly_equivalent_minor)
+    ).toEqual([0, 1000])
 
     const paused = await userApi(
       `/api/subscriptions/${createdBody.subscription.id}`,
@@ -506,6 +525,22 @@ describe("Trackfi API", () => {
         )
       ).status
     ).toBe(204)
+
+    const mutationSnapshots = await env.DB.prepare(
+      `SELECT currency, monthly_equivalent_minor
+      FROM subscription_spend_snapshots
+      WHERE user_id = ?
+      ORDER BY rowid`
+    )
+      .bind(subscriptionOwner!.user_id)
+      .all<{ currency: string; monthly_equivalent_minor: number }>()
+    expect(mutationSnapshots.results).toEqual([
+      { currency: "EUR", monthly_equivalent_minor: 0 },
+      { currency: "EUR", monthly_equivalent_minor: 1000 },
+      { currency: "EUR", monthly_equivalent_minor: 0 },
+      { currency: "JPY", monthly_equivalent_minor: 0 },
+      { currency: "JPY", monthly_equivalent_minor: 0 },
+    ])
   })
 
   it("keeps subscription records isolated between users", async () => {
@@ -523,7 +558,12 @@ describe("Trackfi API", () => {
       .subscription.id
 
     const otherList = await userApi("/api/subscriptions", otherCookie)
-    await expect(otherList.json()).resolves.toEqual({ subscriptions: [] })
+    await expect(otherList.json()).resolves.toEqual({
+      subscriptions: [],
+      page: 1,
+      pageSize: 25,
+      total: 0,
+    })
     expect(
       (
         await userApi(`/api/subscriptions/${id}`, otherCookie, {
@@ -584,6 +624,142 @@ describe("Trackfi API", () => {
     expect(
       (await userApi("/api/subscriptions?status=unknown", cookie)).status
     ).toBe(400)
+    expect(
+      (await userApi("/api/subscriptions?cadence=daily", cookie)).status
+    ).toBe(400)
+    expect((await userApi("/api/subscriptions?page=0", cookie)).status).toBe(
+      400
+    )
+    expect(
+      (await userApi("/api/subscriptions/calendar?month=2024-13", cookie))
+        .status
+    ).toBe(400)
+    expect(
+      (await userApi("/api/subscriptions/calendar?month=0000-01", cookie))
+        .status
+    ).toBe(400)
+  })
+
+  it("paginates subscriptions and returns every renewal in a calendar grid", async () => {
+    const cookie = await createUserSession()
+    await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "EUR" },
+    })
+    await userApi("/api/subscriptions", cookie, {
+      method: "POST",
+      body: subscriptionBody({
+        name: "Weekly service",
+        amountMinor: 500,
+        cadence: "weekly",
+        billingAnchor: "2024-08-31",
+      }),
+    })
+    await userApi("/api/subscriptions", cookie, {
+      method: "POST",
+      body: subscriptionBody({
+        name: "Outside-month service",
+        amountMinor: 1000,
+        cadence: "monthly",
+        billingAnchor: "2024-10-02",
+        category: "finance",
+      }),
+    })
+
+    await expect(
+      (
+        await userApi(
+          "/api/subscriptions?status=active&cadence=weekly&page=1&pageSize=1&asOf=2024-09-01",
+          cookie
+        )
+      ).json()
+    ).resolves.toMatchObject({
+      page: 1,
+      pageSize: 1,
+      total: 1,
+      subscriptions: [{ name: "Weekly service" }],
+    })
+
+    const response = await userApi(
+      "/api/subscriptions/calendar?month=2024-09",
+      cookie
+    )
+    const calendarBody = await response.json<{
+      calendar: {
+        renewals: Array<{ name: string; renewalDate: string }>
+      }
+    }>()
+    expect(calendarBody).toMatchObject({
+      calendar: {
+        month: "2024-09",
+        rangeStart: "2024-08-26",
+        rangeEnd: "2024-10-06",
+        renewalCount: 7,
+        totalMinor: 4000,
+        monthTotalMinor: 2000,
+        categoryCount: 2,
+      },
+    })
+    expect(calendarBody.calendar.renewals[0]).toMatchObject({
+      name: "Weekly service",
+      renewalDate: "2024-08-31",
+    })
+    expect(calendarBody.calendar.renewals).toContainEqual(
+      expect.objectContaining({
+        name: "Outside-month service",
+        renewalDate: "2024-10-02",
+      })
+    )
+  })
+
+  it("compares commitment snapshots and resets history across currencies", async () => {
+    const cookie = await createUserSession()
+    await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "EUR" },
+    })
+    const created = await userApi("/api/subscriptions", cookie, {
+      method: "POST",
+      body: subscriptionBody(),
+    })
+    const createdBody = await created.json<{
+      subscription: { id: string }
+    }>()
+    const user = await env.DB.prepare(
+      "SELECT user_id FROM subscriptions WHERE id = ?"
+    )
+      .bind(createdBody.subscription.id)
+      .first<{ user_id: string }>()
+    await env.DB.prepare(
+      `INSERT INTO subscription_spend_snapshots
+        (id, user_id, currency, monthly_equivalent_minor, recorded_at)
+      VALUES (?, ?, 'EUR', 500, ?)`
+    )
+      .bind(
+        crypto.randomUUID(),
+        user!.user_id,
+        new Date(Date.now() - 45 * 86_400_000).toISOString()
+      )
+      .run()
+
+    await expect(
+      (await userApi("/api/subscriptions/summary", cookie)).json()
+    ).resolves.toMatchObject({
+      summary: {
+        monthlyEquivalentMinor: 1000,
+        monthlyComparison: { previousMonthlyEquivalentMinor: 500 },
+      },
+    })
+
+    await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "JPY", confirmRelabel: true },
+    })
+    await expect(
+      (await userApi("/api/subscriptions/summary", cookie)).json()
+    ).resolves.toMatchObject({
+      summary: { monthlyComparison: null },
+    })
   })
 
   it("returns 404 for unknown routes", async () => {

@@ -66,7 +66,7 @@ export function WaitlistPage() {
           </p>
 
           {submitted ? (
-            <div className="mt-9 flex max-w-md items-start gap-3 rounded-xl border bg-card p-4">
+            <div className="mt-9 flex max-w-md items-start gap-3 rounded-lg border bg-card p-4">
               <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <CheckIcon className="size-3.5" />
               </span>

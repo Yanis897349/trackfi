@@ -40,12 +40,11 @@ describe("SubscriptionForm", () => {
       expect.objectContaining({ billingAnchor: "2024-01-30" })
     )
 
-    fireEvent.change(screen.getByLabelText("Next billing date"), {
-      target: { value: "2024-03-15" },
-    })
+    fireEvent.click(screen.getByLabelText("Next billing date"))
+    fireEvent.click(screen.getByRole("button", { name: /February 15th/ }))
     fireEvent.submit(form)
     expect(onSubmit).toHaveBeenLastCalledWith(
-      expect.objectContaining({ billingAnchor: "2024-03-15" })
+      expect.objectContaining({ billingAnchor: "2024-02-15" })
     )
   })
 })

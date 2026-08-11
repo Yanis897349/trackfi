@@ -32,7 +32,7 @@ export function SubscriptionActions({
 }) {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
+      <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
         <MoreHorizontalIcon />
         <span className="sr-only">Actions for {subscription.name}</span>
       </DropdownMenuTrigger>

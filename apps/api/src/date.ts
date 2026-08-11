@@ -46,3 +46,24 @@ export function daysInUtcMonth(year: number, month: number) {
 export function todayDateOnly() {
   return formatDateOnly(new Date())
 }
+
+export function subtractUtcCalendarMonth(value: Date) {
+  const targetMonth = value.getUTCMonth() - 1
+  const targetYear = value.getUTCFullYear() + Math.floor(targetMonth / 12)
+  const normalizedMonth = ((targetMonth % 12) + 12) % 12
+  const targetDay = Math.min(
+    value.getUTCDate(),
+    daysInUtcMonth(targetYear, normalizedMonth)
+  )
+  return new Date(
+    Date.UTC(
+      targetYear,
+      normalizedMonth,
+      targetDay,
+      value.getUTCHours(),
+      value.getUTCMinutes(),
+      value.getUTCSeconds(),
+      value.getUTCMilliseconds()
+    )
+  )
+}

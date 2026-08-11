@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@trackfi/ui/components/card"
+import { Card, CardContent, CardFooter } from "@trackfi/ui/components/card"
 import { Skeleton } from "@trackfi/ui/components/skeleton"
 import {
   Table,
@@ -24,24 +24,28 @@ export function SubscriptionListSkeleton({
       aria-hidden={announce ? undefined : "true"}
     >
       <Card className="hidden py-0 md:block">
-        <Table>
+        <Table className="text-[13px]">
           <TableHeader>
             <TableRow>
               <TableHead className="pl-4">Service</TableHead>
-              <TableHead>Cost</TableHead>
-              <TableHead>Next renewal</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>
+              <TableHead className="w-[150px]">Category</TableHead>
+              <TableHead className="w-[180px]">Cost</TableHead>
+              <TableHead className="w-[170px]">Next renewal</TableHead>
+              <TableHead className="w-[120px]">Status</TableHead>
+              <TableHead className="w-16">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {Array.from({ length: 4 }, (_, index) => (
-              <TableRow key={index}>
+            {Array.from({ length: 3 }, (_, index) => (
+              <TableRow key={index} className="h-[72px]">
                 <TableCell className="pl-4">
                   <Skeleton className="h-4 w-32" />
                   <Skeleton className="mt-2 h-3 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-20" />
                 </TableCell>
                 <TableCell>
                   <Skeleton className="h-4 w-24" />
@@ -59,6 +63,13 @@ export function SubscriptionListSkeleton({
             ))}
           </TableBody>
         </Table>
+        <CardFooter className="h-14 justify-between bg-card px-4 py-0">
+          <Skeleton className="h-3 w-28" />
+          <div className="flex gap-1.5">
+            <Skeleton className="size-8" />
+            <Skeleton className="size-8" />
+          </div>
+        </CardFooter>
       </Card>
       <div className="grid gap-3 md:hidden">
         {Array.from({ length: 3 }, (_, index) => (

@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react"
 import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { App } from "./app"
@@ -295,11 +301,15 @@ describe("Trackfi web application", () => {
         level: 2,
       })
     ).toBeInTheDocument()
-    expect(await screen.findByText("Monthly equivalent")).toBeInTheDocument()
+    expect(await screen.findByText("Monthly spend")).toBeInTheDocument()
     expect(screen.getAllByText("Design software").length).toBeGreaterThan(0)
     expect(
-      screen.getByRole("button", { name: "Add subscription" })
+      screen.getByPlaceholderText("Search subscriptions...")
     ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Add subscription" }))
+    expect(
+      await screen.findByRole("dialog", { name: "Add subscription" })
+    ).toHaveClass("top-1/2", "left-1/2")
   })
 
   it("uses a contextual skeleton while subscriptions load", async () => {
@@ -319,6 +329,35 @@ describe("Trackfi web application", () => {
       0
     )
     expect(document.querySelector(".animate-spin")).not.toBeInTheDocument()
+  })
+
+  it("renders the renewal calendar and its adjacent-range agenda", async () => {
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      subscriptions: [subscriptionFixture()],
+    })
+    const { queryClient, router } = createTestRouter(
+      "/dashboard/subscriptions/calendar"
+    )
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Renewal calendar",
+        level: 2,
+      })
+    ).toBeInTheDocument()
+    expect(
+      await screen.findByRole("link", { name: "Back to subscriptions" })
+    ).toHaveAttribute("href", "/dashboard/subscriptions")
+    expect(
+      within(screen.getByRole("grid")).getByRole("button", {
+        name: "Preview Design software",
+      })
+    ).toBeInTheDocument()
+    expect(screen.getAllByText("Design software").length).toBeGreaterThan(0)
   })
 
   it("uses a contextual skeleton while settings load", async () => {
@@ -426,19 +465,51 @@ function mockApi({
       else if (url.includes("/api/auth/get-session")) body = session
       else if (url.includes("/api/settings")) {
         body = { settings: { currency, updatedAt: null } }
+      } else if (url.includes("/api/subscriptions/calendar")) {
+        body = {
+          calendar: {
+            month: "2026-08",
+            rangeStart: "2026-07-27",
+            rangeEnd: "2026-09-06",
+            currency,
+            renewalCount: subscriptions.length,
+            totalMinor: subscriptions.length ? 1000 : 0,
+            categoryCount: subscriptions.length ? 1 : 0,
+            monthTotalMinor: subscriptions.length ? 1000 : 0,
+            renewals: subscriptions.map((subscription) => ({
+              id: `${subscription.id}:${subscription.nextRenewalDate}`,
+              subscriptionId: subscription.id,
+              name: subscription.name,
+              amountMinor: subscription.amountMinor,
+              cadence: subscription.cadence,
+              category: subscription.category,
+              websiteUrl: subscription.websiteUrl,
+              renewalDate: subscription.nextRenewalDate,
+            })),
+          },
+        }
       } else if (url.includes("/api/subscriptions/summary")) {
         body = {
           summary: {
             currency,
             activeCount: subscriptions.length,
+            pausedCount: 0,
+            activeCategoryCount: subscriptions.length ? 1 : 0,
             monthlyEquivalentMinor: subscriptions.length ? 1000 : 0,
             annualEquivalentMinor: subscriptions.length ? 12000 : 0,
             upcomingCount: subscriptions.length,
+            upcomingTotalMinor: subscriptions.length ? 1000 : 0,
             upcoming: subscriptions,
+            monthlyComparison: null,
           },
         }
       } else if (url.includes("/api/subscriptions")) {
-        body = { subscriptions }
+        body = {
+          subscriptions,
+          page: 1,
+          pageSize: 3,
+          total: subscriptions.length,
+        }
       } else if (url.includes("/api/invitations/validate")) {
         if (invitation) body = invitation
         else {
