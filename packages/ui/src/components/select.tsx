@@ -9,11 +9,7 @@ import { cn } from "@trackfi/ui/lib/utils"
 import { useControlledOpen } from "@trackfi/ui/hooks/use-controlled-open"
 import { spring } from "@trackfi/ui/lib/springs"
 
-const SelectOpenContext = React.createContext<{
-  mounted: boolean
-  open: boolean
-  setMounted(): void
-}>({ mounted: false, open: false, setMounted() {} })
+const SelectOpenContext = React.createContext(false)
 
 function Select<Value, Multiple extends boolean | undefined = false>({
   open: controlledOpen,
@@ -21,20 +17,14 @@ function Select<Value, Multiple extends boolean | undefined = false>({
   onOpenChange,
   ...props
 }: SelectPrimitive.Root.Props<Value, Multiple>) {
-  const [mounted, setMounted] = React.useState(false)
-  const markMounted = React.useCallback(() => setMounted(true), [])
   const [open, handleOpenChange] = useControlledOpen({
     open: controlledOpen,
     defaultOpen,
     onOpenChange,
   })
-  const contextValue = React.useMemo(
-    () => ({ mounted, open, setMounted: markMounted }),
-    [markMounted, mounted, open]
-  )
 
   return (
-    <SelectOpenContext.Provider value={contextValue}>
+    <SelectOpenContext.Provider value={open}>
       <SelectPrimitive.Root
         open={open}
         onOpenChange={handleOpenChange}
@@ -102,21 +92,13 @@ function SelectContent({
     SelectPrimitive.Positioner.Props,
     "align" | "alignOffset" | "side" | "sideOffset" | "alignItemWithTrigger"
   >) {
-  const { mounted, open, setMounted } = React.useContext(SelectOpenContext)
-  const portalMounted = open || mounted
-  const positionerRef = React.useCallback(
-    (node: HTMLDivElement | null) => {
-      if (node) setMounted()
-    },
-    [setMounted]
-  )
+  const open = React.useContext(SelectOpenContext)
 
   return (
     <AnimatePresence>
-      {portalMounted && (
+      {open && (
         <SelectPrimitive.Portal>
           <SelectPrimitive.Positioner
-            ref={positionerRef}
             side={side}
             sideOffset={sideOffset}
             align={align}
@@ -133,17 +115,13 @@ function SelectContent({
               render={(renderProps, state) => (
                 <motion.div
                   {...(renderProps as unknown as HTMLMotionProps<"div">)}
-                  initial={mounted ? false : selectHiddenState(state.side)}
-                  animate={
-                    state.open
-                      ? { opacity: 1, scale: 1, x: 0, y: 0 }
-                      : selectHiddenState(state.side)
-                  }
+                  initial={selectHiddenState(state.side)}
+                  animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
                   exit={{
                     ...selectHiddenState(state.side),
                     transition: spring.fast.exit,
                   }}
-                  transition={state.open ? spring.fast : spring.fast.exit}
+                  transition={spring.fast}
                 />
               )}
               {...props}

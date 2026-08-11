@@ -84,6 +84,7 @@ describe("shared overlay motion", () => {
 
   it("keeps select labels and menu actions functional", async () => {
     const onAction = vi.fn()
+    const onSelectAnimationStart = vi.fn()
     render(
       <MotionConfig reducedMotion="user">
         <Select
@@ -96,7 +97,7 @@ describe("shared overlay motion", () => {
           <SelectTrigger aria-label="Cadence">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent onAnimationStart={onSelectAnimationStart}>
             <SelectItem value="monthly">Monthly</SelectItem>
             <SelectItem value="yearly">Yearly</SelectItem>
           </SelectContent>
@@ -119,6 +120,17 @@ describe("shared overlay motion", () => {
     fireEvent.pointerDown(yearly, { pointerType: "mouse" })
     fireEvent.click(yearly)
     expect(cadence).toHaveTextContent("Yearly")
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("option", { name: "Yearly" })
+      ).not.toBeInTheDocument()
+    )
+
+    onSelectAnimationStart.mockClear()
+    fireEvent.click(cadence)
+    await screen.findByRole("option", { name: "Monthly" })
+    await waitFor(() => expect(onSelectAnimationStart).toHaveBeenCalled())
+    fireEvent.click(cadence)
 
     fireEvent.click(screen.getByRole("button", { name: "Open menu" }))
     fireEvent.click(await screen.findByRole("menuitem", { name: "Edit" }))
