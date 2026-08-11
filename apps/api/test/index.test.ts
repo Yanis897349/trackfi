@@ -574,6 +574,55 @@ describe("Trackfi API", () => {
     ).toBe(404)
   })
 
+  it("preserves subscription metadata when archiving and restoring", async () => {
+    const cookie = await createUserSession()
+    await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "EUR" },
+    })
+    const created = await userApi("/api/subscriptions", cookie, {
+      method: "POST",
+      body: subscriptionBody(),
+    })
+    const id = (await created.json<{ subscription: { id: string } }>())
+      .subscription.id
+
+    const archived = await userApi(`/api/subscriptions/${id}`, cookie, {
+      method: "PATCH",
+      body: { status: "archived" },
+    })
+    await expect(archived.json()).resolves.toMatchObject({
+      subscription: {
+        status: "archived",
+        websiteUrl: "https://example.com",
+        notes: "Team plan",
+      },
+    })
+    await expect(
+      (await userApi("/api/subscriptions?status=archived", cookie)).json()
+    ).resolves.toMatchObject({
+      subscriptions: [
+        {
+          id,
+          websiteUrl: "https://example.com",
+          notes: "Team plan",
+        },
+      ],
+    })
+
+    const restored = await userApi(`/api/subscriptions/${id}`, cookie, {
+      method: "PATCH",
+      body: { status: "active" },
+    })
+    await expect(restored.json()).resolves.toMatchObject({
+      subscription: {
+        status: "active",
+        websiteUrl: "https://example.com",
+        notes: "Team plan",
+      },
+    })
+  })
+
   it("validates subscription inputs and protects regular-user mutations", async () => {
     expect(
       (

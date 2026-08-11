@@ -34,17 +34,24 @@ const websiteSchema = z
     }
   })
 
-export const subscriptionCreateSchema = z.object({
+const subscriptionFields = {
   name: z.string().trim().min(1).max(100),
   amountMinor: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   cadence: z.enum(subscriptionCadences),
   billingAnchor: z.string().refine(isDateOnly),
   category: z.enum(subscriptionCategories),
-  websiteUrl: websiteSchema.optional().default(""),
-  notes: z.string().trim().max(2000).optional().default(""),
+  websiteUrl: websiteSchema,
+  notes: z.string().trim().max(2000),
+}
+
+export const subscriptionCreateSchema = z.object({
+  ...subscriptionFields,
+  websiteUrl: subscriptionFields.websiteUrl.optional().default(""),
+  notes: subscriptionFields.notes.optional().default(""),
 })
 
-export const subscriptionUpdateSchema = subscriptionCreateSchema
+export const subscriptionUpdateSchema = z
+  .object(subscriptionFields)
   .partial()
   .extend({ status: z.enum(subscriptionStatuses).optional() })
   .refine((value) => Object.keys(value).length > 0)
