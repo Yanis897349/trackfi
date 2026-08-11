@@ -49,9 +49,16 @@ describe("Trackfi subscription application", () => {
       screen.getByPlaceholderText("Search subscriptions...")
     ).toBeInTheDocument()
     fireEvent.click(screen.getByRole("button", { name: "Add subscription" }))
-    expect(
-      await screen.findByRole("dialog", { name: "Add subscription" })
-    ).toHaveClass("top-1/2", "left-1/2")
+    const dialog = await screen.findByRole("dialog", {
+      name: "Add subscription",
+    })
+    expect(dialog).toHaveClass("top-1/2", "left-1/2")
+    expect(dialog.querySelector('[data-slot="dialog-footer"]')).toHaveClass(
+      "sm:h-[72px]"
+    )
+    expect(dialog.querySelector('[data-slot="dialog-footer"]')).not.toHaveClass(
+      "h-[72px]"
+    )
   })
 
   it("uses a contextual skeleton while subscriptions load", async () => {

@@ -680,6 +680,17 @@ describe("Trackfi API", () => {
       subscriptions: [{ name: "Weekly service" }],
     })
 
+    await expect(
+      (
+        await userApi("/api/subscriptions/summary?asOf=2024-09-01", cookie)
+      ).json()
+    ).resolves.toMatchObject({
+      summary: {
+        upcomingCount: 1,
+        upcomingTotalMinor: 2000,
+      },
+    })
+
     const response = await userApi(
       "/api/subscriptions/calendar?month=2024-09",
       cookie
@@ -730,17 +741,26 @@ describe("Trackfi API", () => {
     )
       .bind(createdBody.subscription.id)
       .first<{ user_id: string }>()
+    const daysAgo = (days: number) =>
+      new Date(Date.now() - days * 86_400_000).toISOString()
     await env.DB.prepare(
-      `INSERT INTO subscription_spend_snapshots
+      `UPDATE subscription_spend_snapshots SET recorded_at = ?
+      WHERE user_id = ?`
+    )
+      .bind(daysAgo(60), user!.user_id)
+      .run()
+    await env.DB.batch([
+      env.DB.prepare(
+        `INSERT INTO subscription_spend_snapshots
         (id, user_id, currency, monthly_equivalent_minor, recorded_at)
       VALUES (?, ?, 'EUR', 500, ?)`
-    )
-      .bind(
-        crypto.randomUUID(),
-        user!.user_id,
-        new Date(Date.now() - 45 * 86_400_000).toISOString()
-      )
-      .run()
+      ).bind(crypto.randomUUID(), user!.user_id, daysAgo(45)),
+      env.DB.prepare(
+        `INSERT INTO subscription_spend_snapshots
+        (id, user_id, currency, monthly_equivalent_minor, recorded_at)
+      VALUES (?, ?, 'JPY', 50, ?)`
+      ).bind(crypto.randomUUID(), user!.user_id, daysAgo(90)),
+    ])
 
     await expect(
       (await userApi("/api/subscriptions/summary", cookie)).json()

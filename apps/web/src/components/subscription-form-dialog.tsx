@@ -54,7 +54,7 @@ export function SubscriptionFormDialog({
             onSubmit={onSubmit}
           />
         </div>
-        <DialogFooter className="h-[72px] bg-transparent">
+        <DialogFooter className="bg-transparent sm:h-[72px]">
           <Button
             type="button"
             variant="outline"

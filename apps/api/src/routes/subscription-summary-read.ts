@@ -11,7 +11,11 @@ import {
   listSubscriptionRows,
   serializeSubscription,
 } from "../subscription-database"
-import { annualEquivalentMinor, monthlyEquivalentMinor } from "../subscriptions"
+import {
+  annualEquivalentMinor,
+  monthlyEquivalentMinor,
+  renewalDatesInRange,
+} from "../subscriptions"
 import type { AppEnv } from "../types"
 
 export function registerSubscriptionSummaryRoute(app: Hono<AppEnv>) {
@@ -50,28 +54,44 @@ export function registerSubscriptionSummaryRoute(app: Hono<AppEnv>) {
       .sort((left, right) =>
         left.nextRenewalDate.localeCompare(right.nextRenewalDate)
       )
+    const upcomingTotalMinor = subscriptions.reduce(
+      (total, subscription) =>
+        total +
+        renewalDatesInRange(
+          subscription.billingAnchor,
+          subscription.cadence,
+          asOf,
+          through
+        ).length *
+          subscription.amountMinor,
+      0
+    )
     const comparisonAt = subtractUtcCalendarMonth(new Date()).toISOString()
     let monthlyComparison: { previousMonthlyEquivalentMinor: number } | null =
       null
     if (settings?.currency) {
-      const [previous, currencyDiscontinuity] = await Promise.all([
-        context.env.DB.prepare(
-          `SELECT monthly_equivalent_minor FROM subscription_spend_snapshots
+      const previous = await context.env.DB.prepare(
+        `SELECT monthly_equivalent_minor, recorded_at
+          FROM subscription_spend_snapshots
           WHERE user_id = ? AND currency = ? AND recorded_at <= ?
           ORDER BY recorded_at DESC LIMIT 1`
-        )
-          .bind(user.id, settings.currency, comparisonAt)
-          .first<{ monthly_equivalent_minor: number }>(),
-        context.env.DB.prepare(
+      )
+        .bind(user.id, settings.currency, comparisonAt)
+        .first<{
+          monthly_equivalent_minor: number
+          recorded_at: string
+        }>()
+      if (previous) {
+        const currencyDiscontinuity = await context.env.DB.prepare(
           `SELECT 1 AS changed FROM subscription_spend_snapshots
-          WHERE user_id = ? AND currency != ? AND recorded_at > ? LIMIT 1`
+            WHERE user_id = ? AND currency != ? AND recorded_at > ? LIMIT 1`
         )
-          .bind(user.id, settings.currency, comparisonAt)
-          .first<{ changed: number }>(),
-      ])
-      if (previous && !currencyDiscontinuity) {
-        monthlyComparison = {
-          previousMonthlyEquivalentMinor: previous.monthly_equivalent_minor,
+          .bind(user.id, settings.currency, previous.recorded_at)
+          .first<{ changed: number }>()
+        if (!currencyDiscontinuity) {
+          monthlyComparison = {
+            previousMonthlyEquivalentMinor: previous.monthly_equivalent_minor,
+          }
         }
       }
     }
@@ -89,10 +109,7 @@ export function registerSubscriptionSummaryRoute(app: Hono<AppEnv>) {
         monthlyEquivalentMinor: monthlyMinor,
         annualEquivalentMinor: annualMinor,
         upcomingCount: upcoming.length,
-        upcomingTotalMinor: upcoming.reduce(
-          (total, subscription) => total + subscription.amountMinor,
-          0
-        ),
+        upcomingTotalMinor,
         upcoming,
         monthlyComparison,
       },
