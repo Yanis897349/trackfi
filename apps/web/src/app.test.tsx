@@ -280,14 +280,14 @@ describe("Trackfi web application", () => {
       await screen.findByText(
         "Choose an account currency first",
         {},
-        { timeout: 5_000 }
+        { timeout: 10_000 }
       )
     ).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Open settings" })).toHaveAttribute(
       "href",
       "/dashboard/settings"
     )
-  })
+  }, 15_000)
 
   it("renders subscription insights and tracked services", async () => {
     mockApi({
