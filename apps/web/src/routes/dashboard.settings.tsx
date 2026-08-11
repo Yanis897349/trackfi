@@ -33,11 +33,8 @@ import {
   SelectValue,
 } from "@trackfi/ui/components/select"
 
-import {
-  ModuleError,
-  ModuleHeader,
-  ModuleLoading,
-} from "../components/module-layout"
+import { ModuleError, ModuleHeader } from "../components/module-layout"
+import { SettingsLoadingState } from "../components/settings-loading-state"
 import { apiFetch } from "../lib/api"
 import { humanizeError } from "../lib/errors"
 import { settingsQueryOptions, supportedCurrencies } from "../lib/settings"
@@ -50,6 +47,14 @@ function SettingsRoute() {
   const queryClient = useQueryClient()
   const query = useQuery(settingsQueryOptions())
   const currencies = useMemo(() => supportedCurrencies(), [])
+  const currencyOptions = useMemo(
+    () =>
+      currencies.map((option) => ({
+        value: option.code,
+        label: `${option.name} (${option.code})`,
+      })),
+    [currencies]
+  )
   const [currencyOverride, setCurrencyOverride] = useState<string | null>(null)
   const currency = currencyOverride ?? query.data?.settings.currency ?? ""
   const [message, setMessage] = useState("")
@@ -82,7 +87,7 @@ function SettingsRoute() {
     },
   })
 
-  if (query.isLoading) return <ModuleLoading label="Loading settings" />
+  if (query.isLoading) return <SettingsLoadingState />
   if (query.isError) return <ModuleError retry={() => void query.refetch()} />
 
   return (
@@ -99,6 +104,7 @@ function SettingsRoute() {
           <Field>
             <FieldLabel>Currency</FieldLabel>
             <Select
+              items={currencyOptions}
               value={currency || null}
               onValueChange={(value) => {
                 setCurrencyOverride(String(value))
@@ -109,9 +115,9 @@ function SettingsRoute() {
                 <SelectValue placeholder="Choose a currency" />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
-                {currencies.map((option) => (
-                  <SelectItem key={option.code} value={option.code}>
-                    {option.name} ({option.code})
+                {currencyOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>

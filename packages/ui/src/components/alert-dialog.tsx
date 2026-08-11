@@ -1,11 +1,36 @@
 import * as React from "react"
 import { AlertDialog as AlertDialogPrimitive } from "@base-ui/react/alert-dialog"
+import { AnimatePresence, motion, type HTMLMotionProps } from "motion/react"
 
 import { cn } from "@trackfi/ui/lib/utils"
 import { Button } from "@trackfi/ui/components/button"
+import { useControlledOpen } from "@trackfi/ui/hooks/use-controlled-open"
+import { spring } from "@trackfi/ui/lib/springs"
 
-function AlertDialog({ ...props }: AlertDialogPrimitive.Root.Props) {
-  return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
+const AlertDialogOpenContext = React.createContext(false)
+
+function AlertDialog({
+  open: controlledOpen,
+  defaultOpen,
+  onOpenChange,
+  ...props
+}: AlertDialogPrimitive.Root.Props) {
+  const [open, handleOpenChange] = useControlledOpen({
+    open: controlledOpen,
+    defaultOpen,
+    onOpenChange,
+  })
+
+  return (
+    <AlertDialogOpenContext.Provider value={open}>
+      <AlertDialogPrimitive.Root
+        data-slot="alert-dialog"
+        open={open}
+        onOpenChange={handleOpenChange}
+        {...props}
+      />
+    </AlertDialogOpenContext.Provider>
+  )
 }
 
 function AlertDialogTrigger({ ...props }: AlertDialogPrimitive.Trigger.Props) {
@@ -15,8 +40,18 @@ function AlertDialogTrigger({ ...props }: AlertDialogPrimitive.Trigger.Props) {
 }
 
 function AlertDialogPortal({ ...props }: AlertDialogPrimitive.Portal.Props) {
+  const open = React.useContext(AlertDialogOpenContext)
+
   return (
-    <AlertDialogPrimitive.Portal data-slot="alert-dialog-portal" {...props} />
+    <AnimatePresence>
+      {open && (
+        <AlertDialogPrimitive.Portal
+          data-slot="alert-dialog-portal"
+          {...props}
+          keepMounted
+        />
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -28,8 +63,17 @@ function AlertDialogOverlay({
     <AlertDialogPrimitive.Backdrop
       data-slot="alert-dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-black/10 supports-backdrop-filter:backdrop-blur-xs",
         className
+      )}
+      render={(renderProps) => (
+        <motion.div
+          {...(renderProps as unknown as HTMLMotionProps<"div">)}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, transition: spring.fast.exit }}
+          transition={spring.fast}
+        />
       )}
       {...props}
     />
@@ -50,8 +94,23 @@ function AlertDialogContent({
         data-slot="alert-dialog-content"
         data-size={size}
         className={cn(
-          "group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid w-full -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none data-[size=default]:max-w-xs data-[size=sm]:max-w-xs data-[size=default]:sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid w-full gap-4 rounded-xl bg-popover p-4 text-popover-foreground ring-1 ring-foreground/10 outline-none data-[size=default]:max-w-xs data-[size=sm]:max-w-xs data-[size=default]:sm:max-w-sm",
           className
+        )}
+        render={(renderProps) => (
+          <motion.div
+            {...(renderProps as unknown as HTMLMotionProps<"div">)}
+            initial={{ opacity: 0, scale: 0.96, x: "-50%", y: "-50%" }}
+            animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
+            exit={{
+              opacity: 0,
+              scale: 0.96,
+              x: "-50%",
+              y: "-50%",
+              transition: spring.moderate.exit,
+            }}
+            transition={spring.moderate}
+          />
         )}
         {...props}
       />

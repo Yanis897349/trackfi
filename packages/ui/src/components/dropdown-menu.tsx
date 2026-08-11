@@ -2,16 +2,53 @@
 
 import * as React from "react"
 import { Menu as MenuPrimitive } from "@base-ui/react/menu"
+import { AnimatePresence, motion, type HTMLMotionProps } from "motion/react"
 
 import { cn } from "@trackfi/ui/lib/utils"
+import { useControlledOpen } from "@trackfi/ui/hooks/use-controlled-open"
+import { spring } from "@trackfi/ui/lib/springs"
 import { ChevronRightIcon, CheckIcon } from "lucide-react"
 
-function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
-  return <MenuPrimitive.Root data-slot="dropdown-menu" {...props} />
+const DropdownMenuOpenContext = React.createContext(false)
+
+function DropdownMenu<Payload>({
+  open: controlledOpen,
+  defaultOpen,
+  onOpenChange,
+  ...props
+}: MenuPrimitive.Root.Props<Payload>) {
+  const [open, handleOpenChange] = useControlledOpen({
+    open: controlledOpen,
+    defaultOpen,
+    onOpenChange,
+  })
+
+  return (
+    <DropdownMenuOpenContext.Provider value={open}>
+      <MenuPrimitive.Root
+        data-slot="dropdown-menu"
+        open={open}
+        onOpenChange={handleOpenChange}
+        {...props}
+      />
+    </DropdownMenuOpenContext.Provider>
+  )
 }
 
 function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
-  return <MenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />
+  const open = React.useContext(DropdownMenuOpenContext)
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <MenuPrimitive.Portal
+          data-slot="dropdown-menu-portal"
+          {...props}
+          keepMounted
+        />
+      )}
+    </AnimatePresence>
+  )
 }
 
 function DropdownMenuTrigger({ ...props }: MenuPrimitive.Trigger.Props) {
@@ -31,7 +68,7 @@ function DropdownMenuContent({
     "align" | "alignOffset" | "side" | "sideOffset"
   >) {
   return (
-    <MenuPrimitive.Portal>
+    <DropdownMenuPortal>
       <MenuPrimitive.Positioner
         className="isolate z-50 outline-none"
         align={align}
@@ -42,13 +79,25 @@ function DropdownMenuContent({
         <MenuPrimitive.Popup
           data-slot="dropdown-menu-content"
           className={cn(
-            "z-50 max-h-(--available-height) w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:overflow-hidden data-closed:fade-out-0 data-closed:zoom-out-95",
+            "z-50 max-h-(--available-height) w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-lg bg-popover p-1 text-popover-foreground shadow-md ring-1 ring-foreground/10 outline-none data-closed:overflow-hidden",
             className
+          )}
+          render={(renderProps, state) => (
+            <motion.div
+              {...(renderProps as unknown as HTMLMotionProps<"div">)}
+              initial={anchoredPopupHiddenState(state.side)}
+              animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+              exit={{
+                ...anchoredPopupHiddenState(state.side),
+                transition: spring.fast.exit,
+              }}
+              transition={state.instant ? { duration: 0 } : spring.fast}
+            />
           )}
           {...props}
         />
       </MenuPrimitive.Positioner>
-    </MenuPrimitive.Portal>
+    </DropdownMenuPortal>
   )
 }
 
@@ -99,8 +148,28 @@ function DropdownMenuItem({
   )
 }
 
-function DropdownMenuSub({ ...props }: MenuPrimitive.SubmenuRoot.Props) {
-  return <MenuPrimitive.SubmenuRoot data-slot="dropdown-menu-sub" {...props} />
+function DropdownMenuSub({
+  open: controlledOpen,
+  defaultOpen,
+  onOpenChange,
+  ...props
+}: MenuPrimitive.SubmenuRoot.Props) {
+  const [open, handleOpenChange] = useControlledOpen({
+    open: controlledOpen,
+    defaultOpen,
+    onOpenChange,
+  })
+
+  return (
+    <DropdownMenuOpenContext.Provider value={open}>
+      <MenuPrimitive.SubmenuRoot
+        data-slot="dropdown-menu-sub"
+        open={open}
+        onOpenChange={handleOpenChange}
+        {...props}
+      />
+    </DropdownMenuOpenContext.Provider>
+  )
 }
 
 function DropdownMenuSubTrigger({
@@ -139,7 +208,7 @@ function DropdownMenuSubContent({
     <DropdownMenuContent
       data-slot="dropdown-menu-sub-content"
       className={cn(
-        "w-auto min-w-[96px] rounded-lg bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-foreground/10 duration-100 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+        "w-auto min-w-[96px] rounded-lg bg-popover p-1 text-popover-foreground shadow-lg ring-1 ring-foreground/10",
         className
       )}
       align={align}
@@ -149,6 +218,17 @@ function DropdownMenuSubContent({
       {...props}
     />
   )
+}
+
+function anchoredPopupHiddenState(
+  side: "top" | "right" | "bottom" | "left" | "inline-start" | "inline-end"
+) {
+  if (side === "top") return { opacity: 0, scale: 0.96, x: 0, y: 4 }
+  if (side === "bottom") return { opacity: 0, scale: 0.96, x: 0, y: -4 }
+  if (side === "left" || side === "inline-start") {
+    return { opacity: 0, scale: 0.96, x: 4, y: 0 }
+  }
+  return { opacity: 0, scale: 0.96, x: -4, y: 0 }
 }
 
 function DropdownMenuCheckboxItem({

@@ -32,6 +32,9 @@ describe("SubscriptionForm", () => {
     )
     const form = container.querySelector("form")!
 
+    expect(screen.getByLabelText("Cadence")).toHaveTextContent("Monthly")
+    expect(screen.getByLabelText("Category")).toHaveTextContent("Software")
+
     fireEvent.submit(form)
     expect(onSubmit).toHaveBeenLastCalledWith(
       expect.objectContaining({ billingAnchor: "2024-01-30" })

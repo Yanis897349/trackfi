@@ -49,7 +49,6 @@ export function useSubscriptions() {
       }),
     onSuccess: async () => {
       setSheetOpen(false)
-      setEditing(null)
       await refresh()
     },
     onError: (error) => setMessage(humanizeError(error)),
@@ -95,6 +94,8 @@ export function useSubscriptions() {
       settings.data?.settings.currency ?? summary.data?.summary.currency,
     closeSheet(open: boolean) {
       setSheetOpen(open)
+    },
+    finishSheetChange(open: boolean) {
       if (!open) setEditing(null)
     },
     confirmDelete() {

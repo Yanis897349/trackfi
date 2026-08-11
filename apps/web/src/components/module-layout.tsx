@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { AlertCircleIcon, LoaderCircleIcon } from "lucide-react"
+import { AlertCircleIcon } from "lucide-react"
 
 import { Button } from "@trackfi/ui/components/button"
 import {
@@ -27,19 +27,6 @@ export function ModuleHeader({
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
       {action}
-    </div>
-  )
-}
-
-export function ModuleLoading({
-  label = "Loading module",
-}: {
-  label?: string
-}) {
-  return (
-    <div className="flex min-h-48 items-center justify-center text-sm text-muted-foreground">
-      <LoaderCircleIcon className="mr-2 size-4 animate-spin motion-reduce:animate-none" />
-      {label}…
     </div>
   )
 }

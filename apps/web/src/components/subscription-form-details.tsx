@@ -10,8 +10,7 @@ import {
 import { Textarea } from "@trackfi/ui/components/textarea"
 
 import {
-  displayLabel,
-  subscriptionCategories,
+  subscriptionCategoryOptions,
   type SubscriptionCategory,
 } from "../lib/subscriptions"
 
@@ -35,6 +34,7 @@ export function SubscriptionFormDetails({
       <Field>
         <FieldLabel>Category</FieldLabel>
         <Select
+          items={subscriptionCategoryOptions}
           value={category}
           onValueChange={(value) =>
             onCategoryChange(value as SubscriptionCategory)
@@ -44,9 +44,9 @@ export function SubscriptionFormDetails({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {subscriptionCategories.map((option) => (
-              <SelectItem key={option} value={option}>
-                {displayLabel(option)}
+            {subscriptionCategoryOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
               </SelectItem>
             ))}
           </SelectContent>

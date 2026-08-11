@@ -3,20 +3,18 @@ import { PlusIcon } from "lucide-react"
 
 import { Button } from "@trackfi/ui/components/button"
 
-import {
-  ModuleError,
-  ModuleHeader,
-  ModuleLoading,
-} from "../components/module-layout"
+import { ModuleError, ModuleHeader } from "../components/module-layout"
 import { SubscriptionDeleteDialog } from "../components/subscription-delete-dialog"
 import { SubscriptionFilters } from "../components/subscription-filters"
 import { SubscriptionFormSheet } from "../components/subscription-form-sheet"
 import { SubscriptionList } from "../components/subscription-list"
+import { SubscriptionListSkeleton } from "../components/subscription-list-skeleton"
 import {
   CurrencyRequiredState,
   SubscriptionEmptyState,
 } from "../components/subscription-states"
 import { SubscriptionSummary } from "../components/subscription-summary"
+import { SubscriptionsLoadingState } from "../components/subscriptions-loading-state"
 import { useSubscriptions } from "../hooks/use-subscriptions"
 
 export const Route = createFileRoute("/dashboard/subscriptions")({
@@ -27,7 +25,7 @@ function SubscriptionsRoute() {
   const state = useSubscriptions()
 
   if (state.settings.isLoading || state.summary.isLoading) {
-    return <ModuleLoading label="Loading subscriptions" />
+    return <SubscriptionsLoadingState />
   }
   if (state.settings.isError || state.summary.isError) {
     return (
@@ -79,7 +77,7 @@ function SubscriptionsRoute() {
         </p>
       )}
       {state.list.isLoading ? (
-        <ModuleLoading label="Loading services" />
+        <SubscriptionListSkeleton />
       ) : state.list.isError ? (
         <ModuleError retry={() => void state.list.refetch()} />
       ) : subscriptions.length ? (
@@ -96,17 +94,16 @@ function SubscriptionsRoute() {
           onAdd={state.openCreate}
         />
       )}
-      {state.sheetOpen && (
-        <SubscriptionFormSheet
-          currency={state.currency}
-          subscription={state.editing}
-          open
-          pending={state.savePending}
-          error={state.message}
-          onOpenChange={state.closeSheet}
-          onSubmit={state.save}
-        />
-      )}
+      <SubscriptionFormSheet
+        currency={state.currency}
+        subscription={state.editing}
+        open={state.sheetOpen}
+        pending={state.savePending}
+        error={state.message}
+        onOpenChange={state.closeSheet}
+        onOpenChangeComplete={state.finishSheetChange}
+        onSubmit={state.save}
+      />
       <SubscriptionDeleteDialog
         subscription={state.deleting}
         onOpenChange={(open) => !open && state.setDeleting(null)}

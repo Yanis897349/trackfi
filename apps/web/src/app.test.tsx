@@ -290,7 +290,10 @@ describe("Trackfi web application", () => {
     render(<App queryClient={queryClient} router={router} />)
 
     expect(
-      await screen.findByRole("heading", { name: "Subscriptions" })
+      await screen.findByRole("heading", {
+        name: "Subscriptions",
+        level: 2,
+      })
     ).toBeInTheDocument()
     expect(await screen.findByText("Monthly equivalent")).toBeInTheDocument()
     expect(screen.getAllByText("Design software").length).toBeGreaterThan(0)
@@ -299,21 +302,96 @@ describe("Trackfi web application", () => {
     ).toBeInTheDocument()
   })
 
+  it("uses a contextual skeleton while subscriptions load", async () => {
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      deferUrl: "/api/settings",
+    })
+    const { queryClient, router } = createTestRouter("/dashboard/subscriptions")
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    const loading = await screen.findByRole("status", {
+      name: "Loading subscriptions",
+    })
+    expect(loading.querySelectorAll('[data-slot="skeleton"]')).not.toHaveLength(
+      0
+    )
+    expect(document.querySelector(".animate-spin")).not.toBeInTheDocument()
+  })
+
+  it("uses a contextual skeleton while settings load", async () => {
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      deferUrl: "/api/settings",
+    })
+    const { queryClient, router } = createTestRouter("/dashboard/settings")
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    expect(
+      await screen.findByRole("status", { name: "Loading settings" })
+    ).toContainElement(document.querySelector('[data-slot="skeleton"]'))
+  })
+
+  it("uses contextual skeletons for admin data", async () => {
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("admin"),
+      deferUrl: "/api/admin/feature-flags",
+    })
+    const featureFlags = createTestRouter("/dashboard/feature-flags")
+
+    const { unmount } = render(
+      <App
+        queryClient={featureFlags.queryClient}
+        router={featureFlags.router}
+      />
+    )
+
+    expect(
+      await screen.findByRole("status", { name: "Loading feature flags" })
+    ).toBeInTheDocument()
+    unmount()
+
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("admin"),
+      deferUrl: "/api/admin/waitlist",
+    })
+    const waitlist = createTestRouter("/dashboard/waitlist")
+    render(<App queryClient={waitlist.queryClient} router={waitlist.router} />)
+
+    expect(
+      await screen.findByRole("status", { name: "Loading waitlist" })
+    ).toBeInTheDocument()
+    expect(screen.queryByText("Loading waitlist…")).not.toBeInTheDocument()
+  })
+
   it("renders account currency settings", async () => {
     mockApi({ waitlistMode: true, session: sessionFor("user") })
     const { queryClient, router } = createTestRouter("/dashboard/settings")
 
     render(<App queryClient={queryClient} router={router} />)
 
+    const saveButton = await screen.findByRole("button", {
+      name: "Save currency",
+    })
     expect(
-      await screen.findByRole("heading", { name: "Settings" })
+      screen.getByRole("heading", { name: "Settings", level: 2 })
     ).toBeInTheDocument()
-    expect(await screen.findByText("Account currency")).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Save currency" })).toBeDisabled()
+    expect(screen.getByText("Account currency")).toBeInTheDocument()
+    expect(screen.getByLabelText("Account currency")).toHaveTextContent(
+      "Euro (EUR)"
+    )
+    expect(saveButton).toBeDisabled()
   })
 })
 
 function mockApi({
+  deferUrl,
   featureFlags = false,
   invitation,
   session,
@@ -322,6 +400,7 @@ function mockApi({
   waitlistEntries = false,
   waitlistMode,
 }: {
+  deferUrl?: string
   featureFlags?: boolean
   invitation?: { email: string; valid: true } | null
   session: null | { session: { id: string }; user: Record<string, string> }
@@ -338,6 +417,9 @@ function mockApi({
       const method =
         (input instanceof Request ? input.method : init?.method) ?? "GET"
       requests.push({ method, url })
+      if (deferUrl && url.includes(deferUrl)) {
+        return new Promise<Response>(() => {})
+      }
       let body: unknown = {}
       let status = 200
       if (url.includes("/api/config")) body = { waitlistMode }

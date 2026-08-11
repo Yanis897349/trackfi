@@ -18,6 +18,7 @@ export function SubscriptionFormSheet({
   pending,
   error,
   onOpenChange,
+  onOpenChangeComplete,
   onSubmit,
 }: {
   currency: string
@@ -26,10 +27,15 @@ export function SubscriptionFormSheet({
   pending: boolean
   error: string
   onOpenChange(open: boolean): void
+  onOpenChangeComplete(open: boolean): void
   onSubmit(input: SubscriptionInput): void
 }) {
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet
+      open={open}
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={onOpenChangeComplete}
+    >
       <SheetContent className="w-full overflow-y-auto sm:max-w-md">
         <SheetHeader className="border-b">
           <SheetTitle>
