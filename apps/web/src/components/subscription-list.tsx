@@ -1,24 +1,8 @@
-import {
-  ArchiveIcon,
-  ExternalLinkIcon,
-  MoreHorizontalIcon,
-  PauseIcon,
-  PencilIcon,
-  PlayIcon,
-  RotateCcwIcon,
-  Trash2Icon,
-} from "lucide-react"
+import { ExternalLinkIcon } from "lucide-react"
 
 import { Badge } from "@trackfi/ui/components/badge"
-import { Button } from "@trackfi/ui/components/button"
 import { Card, CardContent } from "@trackfi/ui/components/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@trackfi/ui/components/dropdown-menu"
+import { formatDateOnly } from "../lib/date"
 import {
   Table,
   TableBody,
@@ -34,6 +18,7 @@ import {
   type Subscription,
   type SubscriptionStatus,
 } from "../lib/subscriptions"
+import { SubscriptionActions } from "./subscription-actions"
 
 export function SubscriptionList({
   subscriptions,
@@ -77,13 +62,13 @@ export function SubscriptionList({
                   {cadenceSuffix(subscription.cadence)}
                 </TableCell>
                 <TableCell>
-                  {formatDate(subscription.nextRenewalDate)}
+                  {formatDateOnly(subscription.nextRenewalDate)}
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={subscription.status} />
                 </TableCell>
                 <TableCell className="text-right">
-                  <Actions
+                  <SubscriptionActions
                     subscription={subscription}
                     onEdit={onEdit}
                     onStatus={onStatus}
@@ -118,14 +103,14 @@ export function SubscriptionList({
                   {cadenceSuffix(subscription.cadence)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Renews {formatDate(subscription.nextRenewalDate)} ·{" "}
+                  Renews {formatDateOnly(subscription.nextRenewalDate)} ·{" "}
                   {displayLabel(subscription.category)}
                 </p>
                 <div className="mt-3">
                   <StatusBadge status={subscription.status} />
                 </div>
               </div>
-              <Actions
+              <SubscriptionActions
                 subscription={subscription}
                 onEdit={onEdit}
                 onStatus={onStatus}
@@ -136,58 +121,6 @@ export function SubscriptionList({
         ))}
       </div>
     </>
-  )
-}
-
-function Actions({
-  subscription,
-  onEdit,
-  onStatus,
-  onDelete,
-}: {
-  subscription: Subscription
-  onEdit(subscription: Subscription): void
-  onStatus(subscription: Subscription, status: SubscriptionStatus): void
-  onDelete(subscription: Subscription): void
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-        <MoreHorizontalIcon />
-        <span className="sr-only">Actions for {subscription.name}</span>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem onClick={() => onEdit(subscription)}>
-          <PencilIcon /> Edit
-        </DropdownMenuItem>
-        {subscription.status === "active" && (
-          <DropdownMenuItem onClick={() => onStatus(subscription, "paused")}>
-            <PauseIcon /> Pause
-          </DropdownMenuItem>
-        )}
-        {subscription.status === "paused" && (
-          <DropdownMenuItem onClick={() => onStatus(subscription, "active")}>
-            <PlayIcon /> Resume
-          </DropdownMenuItem>
-        )}
-        {subscription.status === "archived" ? (
-          <DropdownMenuItem onClick={() => onStatus(subscription, "active")}>
-            <RotateCcwIcon /> Restore
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem onClick={() => onStatus(subscription, "archived")}>
-            <ArchiveIcon /> Archive
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          variant="destructive"
-          onClick={() => onDelete(subscription)}
-        >
-          <Trash2Icon /> Delete
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }
 
@@ -209,11 +142,4 @@ function cadenceSuffix(cadence: Subscription["cadence"]) {
       yearly: "year",
     } as const
   )[cadence]
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeZone: "UTC",
-  }).format(new Date(`${value}T00:00:00Z`))
 }

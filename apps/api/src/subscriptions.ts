@@ -14,28 +14,11 @@ export interface SubscriptionCalculationInput {
   cadence: SubscriptionCadence
 }
 
-const dayMilliseconds = 86_400_000
 const cadenceMonths: Partial<Record<SubscriptionCadence, number>> = {
   monthly: 1,
   quarterly: 3,
   semiannual: 6,
   yearly: 12,
-}
-
-export function isDateOnly(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
-  const [year, month, day] = value.split("-").map(Number)
-  const date = new Date(Date.UTC(year!, month! - 1, day))
-  return (
-    date.getUTCFullYear() === year &&
-    date.getUTCMonth() === month! - 1 &&
-    date.getUTCDate() === day
-  )
-}
-
-export function addDays(date: string, days: number) {
-  const result = new Date(parseDate(date) + days * dayMilliseconds)
-  return formatDate(result)
 }
 
 export function nextRenewalDate(
@@ -46,15 +29,13 @@ export function nextRenewalDate(
   if (billingAnchor >= asOf) return billingAnchor
 
   if (cadence === "weekly") {
-    const elapsedDays = Math.floor(
-      (parseDate(asOf) - parseDate(billingAnchor)) / dayMilliseconds
-    )
-    return addDays(billingAnchor, Math.ceil(elapsedDays / 7) * 7)
+    const elapsedDays = dateOnlyDayDifference(billingAnchor, asOf)
+    return addDateOnlyDays(billingAnchor, Math.ceil(elapsedDays / 7) * 7)
   }
 
   const interval = cadenceMonths[cadence]!
-  const anchor = parts(billingAnchor)
-  const current = parts(asOf)
+  const anchor = dateOnlyParts(billingAnchor)
+  const current = dateOnlyParts(asOf)
   const elapsedMonths =
     (current.year - anchor.year) * 12 + current.month - anchor.month
   let periods = Math.max(0, Math.floor(elapsedMonths / interval))
@@ -86,12 +67,12 @@ export function annualEquivalentMinor(
 }
 
 function addCalendarMonths(anchorValue: string, months: number) {
-  const anchor = parts(anchorValue)
+  const anchor = dateOnlyParts(anchorValue)
   const absoluteMonth = anchor.year * 12 + anchor.month + months
   const year = Math.floor(absoluteMonth / 12)
   const month = absoluteMonth % 12
-  const anchorLastDay = daysInMonth(anchor.year, anchor.month)
-  const targetLastDay = daysInMonth(year, month)
+  const anchorLastDay = daysInUtcMonth(anchor.year, anchor.month)
+  const targetLastDay = daysInUtcMonth(year, month)
   const day =
     anchor.day === anchorLastDay
       ? targetLastDay
@@ -100,21 +81,9 @@ function addCalendarMonths(anchorValue: string, months: number) {
     .toString()
     .padStart(2, "0")}-${day.toString().padStart(2, "0")}`
 }
-
-function daysInMonth(year: number, month: number) {
-  return new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
-}
-
-function parts(value: string) {
-  const [year, month, day] = value.split("-").map(Number)
-  return { year: year!, month: month! - 1, day: day! }
-}
-
-function parseDate(value: string) {
-  const valueParts = parts(value)
-  return Date.UTC(valueParts.year, valueParts.month, valueParts.day)
-}
-
-function formatDate(value: Date) {
-  return value.toISOString().slice(0, 10)
-}
+import {
+  dateOnlyDayDifference,
+  dateOnlyParts,
+  daysInUtcMonth,
+  addDateOnlyDays,
+} from "./date"

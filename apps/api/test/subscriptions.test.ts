@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import {
-  addDays,
-  annualEquivalentMinor,
-  isDateOnly,
-  nextRenewalDate,
-} from "../src/subscriptions"
+import { annualEquivalentMinor, nextRenewalDate } from "../src/subscriptions"
+import { addDateOnlyDays, isDateOnly } from "../src/date"
 
 describe("subscription calculations", () => {
   it("validates real calendar dates", () => {
@@ -54,6 +50,6 @@ describe("subscription calculations", () => {
         { amountMinor: 100, cadence: "yearly" },
       ])
     ).toBe(7100)
-    expect(addDays("2024-02-01", 30)).toBe("2024-03-02")
+    expect(addDateOnlyDays("2024-02-01", 30)).toBe("2024-03-02")
   })
 })
