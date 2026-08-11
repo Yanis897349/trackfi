@@ -148,8 +148,9 @@ function SettingsRoute() {
             <AlertDialogTitle>Change account currency?</AlertDialogTitle>
             <AlertDialogDescription>
               Existing amounts will keep their numeric values and will be
-              relabeled as {currency}. Trackfi will not perform an exchange-rate
-              conversion.
+              relabeled as {currency}. Values that use more precision than the
+              new currency supports will be rounded. Trackfi will not perform an
+              exchange-rate conversion.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

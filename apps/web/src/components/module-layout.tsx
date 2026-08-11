@@ -38,7 +38,7 @@ export function ModuleLoading({
 }) {
   return (
     <div className="flex min-h-48 items-center justify-center text-sm text-muted-foreground">
-      <LoaderCircleIcon className="mr-2 size-4 animate-spin" />
+      <LoaderCircleIcon className="mr-2 size-4 animate-spin motion-reduce:animate-none" />
       {label}…
     </div>
   )

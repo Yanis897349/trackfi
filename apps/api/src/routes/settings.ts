@@ -12,6 +12,8 @@ const settingsSchema = z.object({
   confirmRelabel: z.boolean().optional(),
 })
 
+const supportedCurrencies = new Set(Intl.supportedValuesOf("currency"))
+
 export function registerSettingsRoutes(app: Hono<AppEnv>) {
   app.get("/api/settings", async (context) => {
     const user = await requireUser(context)
@@ -67,15 +69,30 @@ export function registerSettingsRoutes(app: Hono<AppEnv>) {
     }
 
     const now = new Date().toISOString()
-    await context.env.DB.prepare(
+    const saveSettings = context.env.DB.prepare(
       `INSERT INTO user_settings (user_id, currency, created_at, updated_at)
       VALUES (?, ?, ?, ?)
       ON CONFLICT(user_id) DO UPDATE SET
         currency = excluded.currency,
         updated_at = excluded.updated_at`
-    )
-      .bind(user.id, parsed.data.currency, now, now)
-      .run()
+    ).bind(user.id, parsed.data.currency, now, now)
+
+    if (existing && existing.currency !== parsed.data.currency) {
+      const previousScale = currencyMinorUnitScale(existing.currency)
+      const nextScale = currencyMinorUnitScale(parsed.data.currency)
+      const relabelSubscriptions = context.env.DB.prepare(
+        `UPDATE subscriptions
+        SET amount_minor = MAX(
+          1,
+          CAST(ROUND(amount_minor * ?) AS INTEGER)
+        )
+        WHERE user_id = ?`
+      ).bind(nextScale / previousScale, user.id)
+
+      await context.env.DB.batch([relabelSubscriptions, saveSettings])
+    } else {
+      await saveSettings.run()
+    }
 
     return context.json({
       settings: { currency: parsed.data.currency, updatedAt: now },
@@ -84,13 +101,14 @@ export function registerSettingsRoutes(app: Hono<AppEnv>) {
 }
 
 function isSupportedCurrency(currency: string) {
-  try {
-    return (
-      new Intl.NumberFormat("en", { style: "currency", currency })
-        .resolvedOptions()
-        .currency?.toUpperCase() === currency
-    )
-  } catch {
-    return false
-  }
+  return supportedCurrencies.has(currency)
+}
+
+function currencyMinorUnitScale(currency: string) {
+  const fractionDigits =
+    new Intl.NumberFormat("en", {
+      style: "currency",
+      currency,
+    }).resolvedOptions().maximumFractionDigits ?? 2
+  return 10 ** fractionDigits
 }

@@ -476,10 +476,17 @@ describe("Trackfi API", () => {
       (
         await userApi("/api/settings", cookie, {
           method: "PATCH",
-          body: { currency: "USD", confirmRelabel: true },
+          body: { currency: "JPY", confirmRelabel: true },
         })
       ).status
     ).toBe(200)
+    await expect(
+      (
+        await userApi("/api/subscriptions?status=all&asOf=2024-02-01", cookie)
+      ).json()
+    ).resolves.toMatchObject({
+      subscriptions: [{ amountMinor: 10 }],
+    })
 
     expect(
       (
@@ -537,6 +544,14 @@ describe("Trackfi API", () => {
     ).toBe(401)
 
     const cookie = await createUserSession()
+    expect(
+      (
+        await userApi("/api/settings", cookie, {
+          method: "PATCH",
+          body: { currency: "ZZZ" },
+        })
+      ).status
+    ).toBe(400)
     const untrusted = await exports.default.fetch(
       new Request("https://trackfi.test/api/settings", {
         method: "PATCH",
