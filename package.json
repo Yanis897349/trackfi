@@ -10,9 +10,11 @@
   "scripts": {
     "build": "turbo run build",
     "check": "pnpm format:check && turbo run lint typecheck test build",
+    "db:migrate:local": "pnpm --filter @trackfi/api run db:migrate:local",
+    "db:migrate:remote": "pnpm --filter @trackfi/api run db:migrate:remote",
     "deploy:api": "pnpm --filter @trackfi/api run deploy",
     "deploy:web": "wrangler pages deploy apps/web/dist --project-name trackfi-web --branch main",
-    "dev": "concurrently --kill-others-on-fail --names web,api --prefix-colors blue,green \"pnpm --filter @trackfi/web dev\" \"pnpm --filter @trackfi/api dev\"",
+    "dev": "VITE_API_URL=${VITE_API_URL:-http://localhost:${API_PORT:-8787}} APP_ORIGIN=${APP_ORIGIN:-http://localhost:${WEB_PORT:-5173}} AUTH_BASE_URL=${AUTH_BASE_URL:-http://localhost:${API_PORT:-8787}} concurrently --kill-others-on-fail --names api,web --prefix-colors green,blue \"pnpm --filter @trackfi/api dev\" \"sh -c 'until curl --silent --fail http://localhost:${API_PORT:-8787}/health >/dev/null 2>&1; do sleep 0.2; done; pnpm --filter @trackfi/web dev'\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "turbo run lint",
