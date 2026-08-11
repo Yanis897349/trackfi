@@ -68,7 +68,8 @@ GitHub Actions runs checks on every pull request and push. Production deployment
    `Trackfi <hello@updates.example.com>`.
 6. Configure Worker secrets. Add them with `wrangler secret put`:
 
-   - Secrets: `BETTER_AUTH_SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`
+   - Secrets: `BETTER_AUTH_SECRET`, `BRANDFETCH_API_TOKEN`, `RESEND_API_KEY`,
+     `TURNSTILE_SECRET_KEY`
 
    The non-secret production values `APP_ORIGIN`, `AUTH_BASE_URL`, `EMAIL_FROM`,
    and `ADMIN_EMAILS` are versioned in `apps/api/wrangler.jsonc`. Update that
@@ -85,12 +86,12 @@ GitHub Actions runs checks on every pull request and push. Production deployment
    - `CLOUDFLARE_DEPLOY_ENABLED=true`
    - `TRACKFI_API_URL` set to the public Worker origin
    - `TURNSTILE_SITE_KEY` set to the public widget key
-   - `BRANDFETCH_CLIENT_ID` set to the public Logo API client ID from the
-     Brandfetch Developer Portal
 
-Brand logos are hotlinked directly from Brandfetch using each subscription's
-website domain. When `VITE_BRANDFETCH_CLIENT_ID` is empty, Trackfi falls back to
-service initials without disabling subscription features.
+Brand logos are fetched by the Worker through Brandfetch's authenticated Brand
+API and cached before being returned to signed-in users. The API token is never
+included in the web bundle. When Brandfetch is unavailable or has no matching
+logo, Trackfi falls back to service initials without disabling subscription
+features.
 
 After checks pass on `main`, CI applies pending D1 migrations, deploys the
 `trackfi-api` Worker, and uploads `apps/web/dist` to the `trackfi-web` Pages

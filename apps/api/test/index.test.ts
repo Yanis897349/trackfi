@@ -384,6 +384,131 @@ describe("Trackfi API", () => {
     expect(untrusted.headers.get("access-control-allow-origin")).toBeNull()
   })
 
+  it("protects the brand logo proxy and validates domains", async () => {
+    const unauthorized = await exports.default.fetch(
+      new Request("https://trackfi.test/api/brands/logo?domain=example.com")
+    )
+    expect(unauthorized.status).toBe(401)
+
+    const cookie = await createUserSession()
+    const invalid = await userApi(
+      "/api/brands/logo?domain=https%3A%2F%2Fexample.com",
+      cookie
+    )
+    expect(invalid.status).toBe(400)
+    await expect(invalid.json()).resolves.toEqual({ error: "invalid_domain" })
+  })
+
+  it("uses the server-side Brandfetch token and proxies a trusted icon", async () => {
+    const cookie = await createUserSession()
+    const domain = `brand-${crypto.randomUUID()}.example`
+    const outboundRequests: Request[] = []
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const request =
+          input instanceof Request ? input : new Request(input, init)
+        outboundRequests.push(request)
+
+        if (request.url.includes("api.brandfetch.io")) {
+          return Response.json({
+            logos: [
+              {
+                type: "logo",
+                theme: "light",
+                formats: [
+                  {
+                    format: "svg",
+                    src: "https://asset.brandfetch.io/wide.svg",
+                  },
+                ],
+              },
+              {
+                type: "icon",
+                theme: "light",
+                formats: [
+                  {
+                    format: "svg",
+                    src: "https://asset.brandfetch.io/icon.svg",
+                  },
+                  {
+                    format: "png",
+                    src: "https://asset.brandfetch.io/icon.png",
+                  },
+                ],
+              },
+            ],
+          })
+        }
+        if (request.url === "https://asset.brandfetch.io/icon.png") {
+          return new Response("image-bytes", {
+            headers: {
+              "Content-Length": "11",
+              "Content-Type": "image/png",
+              ETag: '"brand-icon"',
+            },
+          })
+        }
+        throw new Error(`Unexpected outbound request: ${request.url}`)
+      })
+    )
+
+    const response = await userApi(
+      `/api/brands/logo?domain=${encodeURIComponent(domain)}`,
+      cookie
+    )
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get("content-type")).toBe("image/png")
+    expect(response.headers.get("cache-control")).toBe(
+      "public, max-age=86400, s-maxage=604800"
+    )
+    expect(response.headers.get("x-content-type-options")).toBe("nosniff")
+    expect(new TextDecoder().decode(await response.arrayBuffer())).toBe(
+      "image-bytes"
+    )
+    expect(outboundRequests).toHaveLength(2)
+    expect(outboundRequests[0]?.headers.get("authorization")).toBe(
+      "Bearer brandfetch-test-token"
+    )
+    expect(outboundRequests[1]?.headers.get("authorization")).toBeNull()
+  })
+
+  it("does not proxy asset URLs outside Brandfetch", async () => {
+    const cookie = await createUserSession()
+    const domain = `untrusted-${crypto.randomUUID()}.example`
+    const outboundRequests: Request[] = []
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const request =
+          input instanceof Request ? input : new Request(input, init)
+        outboundRequests.push(request)
+        return Response.json({
+          logos: [
+            {
+              type: "icon",
+              formats: [
+                { format: "png", src: "https://malicious.example/logo.png" },
+              ],
+            },
+          ],
+        })
+      })
+    )
+
+    const response = await userApi(
+      `/api/brands/logo?domain=${encodeURIComponent(domain)}`,
+      cookie
+    )
+
+    expect(response.status).toBe(404)
+    await expect(response.json()).resolves.toEqual({
+      error: "logo_not_found",
+    })
+    expect(outboundRequests).toHaveLength(1)
+  })
+
   it("surfaces Resend delivery failures", async () => {
     vi.stubGlobal(
       "fetch",

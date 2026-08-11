@@ -8,7 +8,7 @@ import {
 } from "@trackfi/ui/components/hover-card"
 import { cn } from "@trackfi/ui/lib/utils"
 
-import { brandfetchLogoUrl } from "../lib/brandfetch"
+import { brandLogoUrl } from "../lib/brandfetch"
 import { formatDateOnly } from "../lib/date"
 import {
   displayLabel,
@@ -35,7 +35,7 @@ export function BrandLogo({
   websiteUrl: string | null
   className?: string
 }) {
-  const source = brandfetchLogoUrl(websiteUrl)
+  const source = brandLogoUrl(websiteUrl)
   const [failedSource, setFailedSource] = useState<string | null>(null)
 
   return (
@@ -52,7 +52,7 @@ export function BrandLogo({
             src={source}
             alt=""
             className="size-full rounded-[22%] object-contain"
-            referrerPolicy="origin"
+            crossOrigin="use-credentials"
             onError={() => setFailedSource(source)}
           />
         </span>

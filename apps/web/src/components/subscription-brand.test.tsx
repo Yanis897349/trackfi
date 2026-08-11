@@ -1,32 +1,26 @@
 import { fireEvent, render } from "@testing-library/react"
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
 
-import { brandfetchLogoUrl } from "../lib/brandfetch"
+import { brandLogoUrl } from "../lib/brandfetch"
 import { BrandLogo } from "./subscription-brand"
 
-afterEach(() => vi.unstubAllEnvs())
-
 describe("subscription brand identity", () => {
-  it("builds an explicit, retina Brandfetch icon URL from the website domain", () => {
+  it("builds a Trackfi API logo URL from the website domain", () => {
     expect(
-      brandfetchLogoUrl(
+      brandLogoUrl(
         "https://www.example.com/pricing?plan=team",
-        "client id",
-        40
+        "https://api.trackfi.test"
       )
-    ).toBe(
-      "https://cdn.brandfetch.io/domain/example.com/w/80/h/80/fallback/lettermark/type/icon?c=client%20id"
-    )
-    expect(brandfetchLogoUrl("not-a-url", "client-id")).toBeNull()
+    ).toBe("https://api.trackfi.test/api/brands/logo?domain=example.com")
+    expect(brandLogoUrl("not-a-url", "https://api.trackfi.test")).toBeNull()
   })
 
-  it("sends the origin referrer and falls back to the service initial", () => {
-    vi.stubEnv("VITE_BRANDFETCH_CLIENT_ID", "client-id")
+  it("sends credentials and falls back to the service initial", () => {
     const { container, getByText } = render(
       <BrandLogo name="Notion" websiteUrl="https://notion.so" />
     )
     const image = container.querySelector("img")!
-    expect(image).toHaveAttribute("referrerpolicy", "origin")
+    expect(image).toHaveAttribute("crossorigin", "use-credentials")
     expect(image).toHaveClass("rounded-[22%]")
     expect(image.parentElement).toHaveClass("p-[15%]")
     fireEvent.error(image)
