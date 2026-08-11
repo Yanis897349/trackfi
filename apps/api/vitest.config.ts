@@ -5,6 +5,17 @@ export default defineConfig({
   plugins: [
     cloudflareTest({
       wrangler: { configPath: "./wrangler.jsonc" },
+      miniflare: {
+        bindings: {
+          APP_ORIGIN: "http://localhost:5173",
+          AUTH_BASE_URL: "http://localhost:8787",
+          EMAIL_FROM: "Trackfi <hello@example.com>",
+          ADMIN_EMAILS: "",
+          BETTER_AUTH_SECRET: "",
+          RESEND_API_KEY: "",
+          TURNSTILE_SECRET_KEY: "",
+        },
+      },
     }),
   ],
 })

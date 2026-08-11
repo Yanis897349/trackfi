@@ -66,15 +66,14 @@ GitHub Actions runs checks on every pull request and push. Production deployment
    keys.
 5. Verify a Resend sending domain and choose a sender such as
    `Trackfi <hello@updates.example.com>`.
-6. Configure Worker secrets and variables. Secrets should be added with
-   `wrangler secret put`; non-secret values may be configured in Cloudflare:
+6. Configure Worker secrets. Add them with `wrangler secret put`:
 
    - Secrets: `BETTER_AUTH_SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`
-   - Variables: `APP_ORIGIN`, `AUTH_BASE_URL`, `EMAIL_FROM`, `ADMIN_EMAILS`
 
-   `APP_ORIGIN` is the Pages origin and `AUTH_BASE_URL` is the Worker origin,
-   both without a trailing slash. Generate `BETTER_AUTH_SECRET` with at least 32
-   random characters.
+   The non-secret production values `APP_ORIGIN`, `AUTH_BASE_URL`, `EMAIL_FROM`,
+   and `ADMIN_EMAILS` are versioned in `apps/api/wrangler.jsonc`. Update that
+   file when the production domains, sender, or administrators change. Generate
+   `BETTER_AUTH_SECRET` with at least 32 random characters.
 
 7. Create a least-privilege Cloudflare API token scoped to the target account
    with Workers Scripts, Pages, and D1 edit permissions.

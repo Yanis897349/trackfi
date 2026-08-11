@@ -6,11 +6,24 @@
   "compatibility_flags": ["nodejs_compat"],
   "minify": true,
   "workers_dev": true,
+  "vars": {
+    "APP_ORIGIN": "https://trackfi-web.pages.dev",
+    "AUTH_BASE_URL": "https://trackfi-api.trackfi-api.workers.dev",
+    "EMAIL_FROM": "Trackfi <hello@yanis-kernoua.dev>",
+    "ADMIN_EMAILS": "trackfi-web.pages.de.contend323@passmail.net",
+  },
+  "secrets": {
+    "required": [
+      "BETTER_AUTH_SECRET",
+      "RESEND_API_KEY",
+      "TURNSTILE_SECRET_KEY",
+    ],
+  },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "trackfi-db",
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "35ee22b5-b481-4b22-a708-85aa8ccc1cec",
       "migrations_dir": "migrations",
     },
   ],
