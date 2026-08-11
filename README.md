@@ -85,6 +85,12 @@ GitHub Actions runs checks on every pull request and push. Production deployment
    - `CLOUDFLARE_DEPLOY_ENABLED=true`
    - `TRACKFI_API_URL` set to the public Worker origin
    - `TURNSTILE_SITE_KEY` set to the public widget key
+   - `BRANDFETCH_CLIENT_ID` set to the public Logo API client ID from the
+     Brandfetch Developer Portal
+
+Brand logos are hotlinked directly from Brandfetch using each subscription's
+website domain. When `VITE_BRANDFETCH_CLIENT_ID` is empty, Trackfi falls back to
+service initials without disabling subscription features.
 
 After checks pass on `main`, CI applies pending D1 migrations, deploys the
 `trackfi-api` Worker, and uploads `apps/web/dist` to the `trackfi-web` Pages

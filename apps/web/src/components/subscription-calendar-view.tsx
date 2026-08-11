@@ -1,0 +1,136 @@
+import type { ReactNode } from "react"
+import { Link } from "@tanstack/react-router"
+import {
+  ArrowLeftIcon,
+  CalendarCheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  TagsIcon,
+  WalletCardsIcon,
+} from "lucide-react"
+
+import { Button, buttonVariants } from "@trackfi/ui/components/button"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@trackfi/ui/components/card"
+import { cn } from "@trackfi/ui/lib/utils"
+
+import {
+  formatMonthTitle,
+  monthDate,
+  shiftMonth,
+} from "../lib/subscription-calendar"
+import { formatMoney, type RenewalCalendar } from "../lib/subscriptions"
+import { SubscriptionRenewalAgenda } from "./subscription-renewal-agenda"
+import { SubscriptionRenewalMonth } from "./subscription-renewal-month"
+
+export function SubscriptionCalendarView({
+  calendar,
+  currency,
+  month,
+  message,
+  onMonthChange,
+}: {
+  calendar: RenewalCalendar
+  currency: string
+  month: Date
+  message: string
+  onMonthChange(month: Date): void
+}) {
+  return (
+    <>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Link
+          to="/dashboard/subscriptions"
+          className={cn(
+            buttonVariants({ variant: "outline", size: "lg" }),
+            "w-fit px-4"
+          )}
+        >
+          <ArrowLeftIcon /> Back to subscriptions
+        </Link>
+        <div className="flex flex-wrap gap-x-5 gap-y-2 text-[13px]">
+          <CalendarStat icon={CalendarCheckIcon}>
+            {calendar.renewalCount} renewals
+          </CalendarStat>
+          <CalendarStat icon={WalletCardsIcon}>
+            {formatMoney(calendar.totalMinor, currency)} due
+          </CalendarStat>
+          <CalendarStat icon={TagsIcon}>
+            {calendar.categoryCount} categories
+          </CalendarStat>
+        </div>
+      </div>
+      {message && (
+        <p
+          role="alert"
+          className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+        >
+          {message}
+        </p>
+      )}
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_19rem]">
+        <Card className="gap-0 overflow-hidden py-0">
+          <CardHeader className="grid grid-cols-[auto_1fr_auto] items-center border-b px-4 py-4">
+            <div className="flex gap-1">
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={() => onMonthChange(shiftMonth(month, -1))}
+              >
+                <ChevronLeftIcon />
+                <span className="sr-only">Previous month</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                onClick={() => onMonthChange(shiftMonth(month, 1))}
+              >
+                <ChevronRightIcon />
+                <span className="sr-only">Next month</span>
+              </Button>
+            </div>
+            <CardTitle className="text-center text-base">
+              {formatMonthTitle(month)}
+            </CardTitle>
+            <Button
+              variant="outline"
+              onClick={() => onMonthChange(monthDate(new Date()))}
+            >
+              Today
+            </Button>
+          </CardHeader>
+          <CardContent className="overflow-x-auto px-0">
+            <SubscriptionRenewalMonth
+              month={month}
+              renewals={calendar.renewals}
+              currency={currency}
+            />
+          </CardContent>
+        </Card>
+        <SubscriptionRenewalAgenda
+          calendar={calendar}
+          currency={currency}
+          month={month}
+        />
+      </div>
+    </>
+  )
+}
+
+function CalendarStat({
+  icon: Icon,
+  children,
+}: {
+  icon: typeof CalendarCheckIcon
+  children: ReactNode
+}) {
+  return (
+    <span className="flex items-center gap-1.5 font-medium">
+      <Icon className="size-4 text-muted-foreground" /> {children}
+    </span>
+  )
+}

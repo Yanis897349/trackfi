@@ -6,7 +6,7 @@ import { Button } from "@trackfi/ui/components/button"
 import { ModuleError, ModuleHeader } from "../components/module-layout"
 import { SubscriptionDeleteDialog } from "../components/subscription-delete-dialog"
 import { SubscriptionFilters } from "../components/subscription-filters"
-import { SubscriptionFormSheet } from "../components/subscription-form-sheet"
+import { SubscriptionFormDialog } from "../components/subscription-form-dialog"
 import { SubscriptionList } from "../components/subscription-list"
 import { SubscriptionListSkeleton } from "../components/subscription-list-skeleton"
 import {
@@ -42,16 +42,16 @@ function SubscriptionsRoute() {
   const subscriptions = state.list.data?.subscriptions ?? []
   const hasFilters =
     Boolean(state.search.trim()) ||
-    state.status !== "current" ||
-    state.category !== "all"
+    state.status !== "active" ||
+    state.cadence !== "all"
 
   return (
-    <section className="mx-auto w-full max-w-6xl space-y-6">
+    <section className="mx-auto w-full max-w-[1120px] space-y-6">
       <ModuleHeader
         title="Subscriptions"
         description="Track recurring services, costs, and renewal dates."
         action={
-          <Button onClick={state.openCreate}>
+          <Button size="lg" className="px-4" onClick={state.openCreate}>
             <PlusIcon /> Add subscription
           </Button>
         }
@@ -63,10 +63,10 @@ function SubscriptionsRoute() {
       <SubscriptionFilters
         search={state.search}
         status={state.status}
-        category={state.category}
+        cadence={state.cadence}
         onSearchChange={state.setSearch}
         onStatusChange={state.setStatus}
-        onCategoryChange={state.setCategory}
+        onCadenceChange={state.setCadence}
       />
       {state.message && (
         <p
@@ -84,6 +84,9 @@ function SubscriptionsRoute() {
         <SubscriptionList
           subscriptions={subscriptions}
           currency={state.currency}
+          page={state.page}
+          total={state.list.data?.total ?? subscriptions.length}
+          onPageChange={state.setPage}
           onEdit={state.openEdit}
           onStatus={state.updateStatus}
           onDelete={state.setDeleting}
@@ -94,14 +97,14 @@ function SubscriptionsRoute() {
           onAdd={state.openCreate}
         />
       )}
-      <SubscriptionFormSheet
+      <SubscriptionFormDialog
         currency={state.currency}
         subscription={state.editing}
-        open={state.sheetOpen}
+        open={state.dialogOpen}
         pending={state.savePending}
         error={state.message}
-        onOpenChange={state.closeSheet}
-        onOpenChangeComplete={state.finishSheetChange}
+        onOpenChange={state.closeDialog}
+        onOpenChangeComplete={state.finishDialogChange}
         onSubmit={state.save}
       />
       <SubscriptionDeleteDialog

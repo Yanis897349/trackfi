@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest"
 
-import { annualEquivalentMinor, nextRenewalDate } from "../src/subscriptions"
-import { addDateOnlyDays, isDateOnly } from "../src/date"
+import {
+  annualEquivalentMinor,
+  nextRenewalDate,
+  renewalDatesInRange,
+} from "../src/subscriptions"
+import {
+  addDateOnlyDays,
+  isDateOnly,
+  subtractUtcCalendarMonth,
+} from "../src/date"
 
 describe("subscription calculations", () => {
   it("validates real calendar dates", () => {
@@ -51,5 +59,26 @@ describe("subscription calculations", () => {
       ])
     ).toBe(7100)
     expect(addDateOnlyDays("2024-02-01", 30)).toBe("2024-03-02")
+  })
+
+  it("enumerates every renewal inside an inclusive range", () => {
+    expect(
+      renewalDatesInRange("2024-08-31", "weekly", "2024-08-26", "2024-10-06")
+    ).toEqual([
+      "2024-08-31",
+      "2024-09-07",
+      "2024-09-14",
+      "2024-09-21",
+      "2024-09-28",
+      "2024-10-05",
+    ])
+  })
+
+  it("subtracts one UTC calendar month with end-of-month clamping", () => {
+    expect(
+      subtractUtcCalendarMonth(
+        new Date("2024-03-31T12:30:00.000Z")
+      ).toISOString()
+    ).toBe("2024-02-29T12:30:00.000Z")
   })
 })

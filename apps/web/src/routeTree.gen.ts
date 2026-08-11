@@ -21,6 +21,7 @@ import { Route as DashboardFeatureFlagsRouteImport } from './routes/dashboard.fe
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSubscriptionsRouteImport } from './routes/dashboard.subscriptions'
 import { Route as DashboardWaitlistRouteImport } from './routes/dashboard.waitlist'
+import { Route as DashboardSubscriptionsCalendarRouteImport } from './routes/dashboard.subscriptions_.calendar'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +83,12 @@ const DashboardWaitlistRoute = DashboardWaitlistRouteImport.update({
   path: '/waitlist',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardSubscriptionsCalendarRoute =
+  DashboardSubscriptionsCalendarRouteImport.update({
+    id: '/subscriptions_/calendar',
+    path: '/subscriptions/calendar',
+    getParentRoute: () => DashboardRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/subscriptions': typeof DashboardSubscriptionsRoute
   '/dashboard/waitlist': typeof DashboardWaitlistRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/subscriptions/calendar': typeof DashboardSubscriptionsCalendarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -109,6 +117,7 @@ export interface FileRoutesByTo {
   '/dashboard/subscriptions': typeof DashboardSubscriptionsRoute
   '/dashboard/waitlist': typeof DashboardWaitlistRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/subscriptions/calendar': typeof DashboardSubscriptionsCalendarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -124,6 +133,7 @@ export interface FileRoutesById {
   '/dashboard/subscriptions': typeof DashboardSubscriptionsRoute
   '/dashboard/waitlist': typeof DashboardWaitlistRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/subscriptions_/calendar': typeof DashboardSubscriptionsCalendarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/dashboard/subscriptions'
     | '/dashboard/waitlist'
     | '/dashboard/'
+    | '/dashboard/subscriptions/calendar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/dashboard/subscriptions'
     | '/dashboard/waitlist'
     | '/dashboard'
+    | '/dashboard/subscriptions/calendar'
   id:
     | '__root__'
     | '/'
@@ -167,6 +179,7 @@ export interface FileRouteTypes {
     | '/dashboard/subscriptions'
     | '/dashboard/waitlist'
     | '/dashboard/'
+    | '/dashboard/subscriptions_/calendar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardWaitlistRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/subscriptions_/calendar': {
+      id: '/dashboard/subscriptions_/calendar'
+      path: '/subscriptions/calendar'
+      fullPath: '/dashboard/subscriptions/calendar'
+      preLoaderRoute: typeof DashboardSubscriptionsCalendarRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
@@ -274,6 +294,7 @@ interface DashboardRouteChildren {
   DashboardSubscriptionsRoute: typeof DashboardSubscriptionsRoute
   DashboardWaitlistRoute: typeof DashboardWaitlistRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardSubscriptionsCalendarRoute: typeof DashboardSubscriptionsCalendarRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
@@ -282,6 +303,7 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardSubscriptionsRoute: DashboardSubscriptionsRoute,
   DashboardWaitlistRoute: DashboardWaitlistRoute,
   DashboardIndexRoute: DashboardIndexRoute,
+  DashboardSubscriptionsCalendarRoute: DashboardSubscriptionsCalendarRoute,
 }
 
 const DashboardRouteWithChildren = DashboardRoute._addFileChildren(

@@ -13,13 +13,16 @@ import {
 
 import { ModuleHeader } from "./module-layout"
 
-export function CurrencyRequiredState() {
+export function CurrencyRequiredState({
+  title = "Subscriptions",
+  description = "Track recurring services, costs, and renewal dates.",
+}: {
+  title?: string
+  description?: string
+} = {}) {
   return (
     <section className="mx-auto w-full max-w-6xl space-y-6">
-      <ModuleHeader
-        title="Subscriptions"
-        description="Track recurring services, costs, and renewal dates."
-      />
+      <ModuleHeader title={title} description={description} />
       <Empty className="min-h-80 border">
         <EmptyHeader>
           <EmptyMedia variant="icon">

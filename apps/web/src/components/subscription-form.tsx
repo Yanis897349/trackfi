@@ -21,6 +21,7 @@ import {
   type SubscriptionInput,
 } from "../lib/subscriptions"
 import { useSubscriptionForm } from "../hooks/use-subscription-form"
+import { SubscriptionDatePicker } from "./subscription-date-picker"
 import { SubscriptionFormDetails } from "./subscription-form-details"
 
 export const subscriptionFormId = "subscription-form"
@@ -39,12 +40,14 @@ export function SubscriptionForm({
   const form = useSubscriptionForm({ currency, subscription, onSubmit })
 
   return (
-    <form id={subscriptionFormId} className="px-4" onSubmit={form.submit}>
-      <FieldGroup>
+    <form id={subscriptionFormId} className="px-6 pb-6" onSubmit={form.submit}>
+      <FieldGroup className="gap-[18px]">
         <Field>
           <FieldLabel htmlFor="subscription-name">Service name</FieldLabel>
           <Input
             id="subscription-name"
+            className="h-10 px-3"
+            placeholder="e.g. Notion, Spotify, Figma"
             value={form.values.name}
             onChange={(event) => form.setValue("name", event.target.value)}
             maxLength={100}
@@ -52,14 +55,16 @@ export function SubscriptionForm({
             required
           />
         </Field>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Field>
             <FieldLabel htmlFor="subscription-amount">
               Amount ({currency})
             </FieldLabel>
             <Input
               id="subscription-amount"
+              className="h-10 px-3"
               type="number"
+              placeholder="0.00"
               min={1 / form.divisor}
               step={1 / form.divisor}
               value={form.values.amount}
@@ -76,7 +81,10 @@ export function SubscriptionForm({
                 form.setValue("cadence", value as SubscriptionCadence)
               }
             >
-              <SelectTrigger className="w-full" aria-label="Cadence">
+              <SelectTrigger
+                className="h-10 w-full px-3 data-[size=default]:h-10"
+                aria-label="Cadence"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -91,16 +99,12 @@ export function SubscriptionForm({
         </div>
         <Field>
           <FieldLabel htmlFor="subscription-date">Next billing date</FieldLabel>
-          <Input
+          <SubscriptionDatePicker
             id="subscription-date"
-            type="date"
             value={form.values.billingAnchor}
-            onChange={(event) =>
-              form.setValue("billingAnchor", event.target.value)
-            }
-            required
+            onChange={(value) => form.setValue("billingAnchor", value)}
           />
-          <FieldDescription>
+          <FieldDescription className="text-xs">
             Future renewals are calculated from this date.
           </FieldDescription>
         </Field>

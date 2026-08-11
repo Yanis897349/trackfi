@@ -12,6 +12,17 @@ import {
 } from "@trackfi/ui/components/alert-dialog"
 import { Button } from "@trackfi/ui/components/button"
 import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@trackfi/ui/components/dialog"
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@trackfi/ui/components/hover-card"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -151,6 +162,38 @@ describe("shared overlay motion", () => {
       expect(screen.queryByText("Helpful text")).not.toBeInTheDocument()
     )
   })
+
+  it("opens centered dialogs and controlled hover cards", async () => {
+    render(
+      <MotionConfig reducedMotion="user">
+        <Dialog>
+          <DialogTrigger render={<Button />}>Open dialog</DialogTrigger>
+          <DialogContent>
+            <DialogTitle>Subscription dialog</DialogTitle>
+          </DialogContent>
+        </Dialog>
+        <HoverCardHarness />
+      </MotionConfig>
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Open dialog" }))
+    expect(
+      await screen.findByRole("dialog", { name: "Subscription dialog" })
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Close" }))
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("dialog", { name: "Subscription dialog" })
+      ).not.toBeInTheDocument()
+    )
+
+    fireEvent.click(screen.getByRole("button", { name: "Show preview" }))
+    expect(screen.getByText("Preview details")).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Hide preview" }))
+    await waitFor(() =>
+      expect(screen.queryByText("Preview details")).not.toBeInTheDocument()
+    )
+  })
 })
 
 function TooltipHarness() {
@@ -166,5 +209,20 @@ function TooltipHarness() {
         <TooltipContent>Helpful text</TooltipContent>
       </Tooltip>
     </TooltipProvider>
+  )
+}
+
+function HoverCardHarness() {
+  const [open, setOpen] = useState(false)
+  return (
+    <>
+      <Button onClick={() => setOpen((current) => !current)}>
+        {open ? "Hide preview" : "Show preview"}
+      </Button>
+      <HoverCard open={open} onOpenChange={setOpen}>
+        <HoverCardTrigger render={<Button />}>Preview target</HoverCardTrigger>
+        <HoverCardContent>Preview details</HoverCardContent>
+      </HoverCard>
+    </>
   )
 }

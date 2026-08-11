@@ -35,6 +35,7 @@ const titles: Record<string, string> = {
   "/dashboard/feature-flags": "Feature flags",
   "/dashboard/settings": "Settings",
   "/dashboard/subscriptions": "Subscriptions",
+  "/dashboard/subscriptions/calendar": "Renewal calendar",
 }
 
 export function DashboardShell({
@@ -95,7 +96,10 @@ export function DashboardShell({
                   <SidebarMenuItem key={module.id}>
                     <SidebarMenuButton
                       tooltip={module.label}
-                      isActive={location.pathname === module.href}
+                      isActive={
+                        location.pathname === module.href ||
+                        location.pathname.startsWith(`${module.href}/`)
+                      }
                       render={<Link to={module.href} />}
                     >
                       <module.icon />

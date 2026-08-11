@@ -66,6 +66,33 @@ export function annualEquivalentMinor(
   )
 }
 
+export function monthlyEquivalentMinor(
+  subscriptions: Array<
+    Pick<SubscriptionCalculationInput, "amountMinor" | "cadence">
+  >
+) {
+  return Math.round(annualEquivalentMinor(subscriptions) / 12)
+}
+
+export function renewalDatesInRange(
+  billingAnchor: string,
+  cadence: SubscriptionCadence,
+  from: string,
+  through: string
+) {
+  const dates: string[] = []
+  let candidate = nextRenewalDate(billingAnchor, cadence, from)
+  while (candidate <= through) {
+    dates.push(candidate)
+    candidate = nextRenewalDate(
+      billingAnchor,
+      cadence,
+      addDateOnlyDays(candidate, 1)
+    )
+  }
+  return dates
+}
+
 function addCalendarMonths(anchorValue: string, months: number) {
   const anchor = dateOnlyParts(anchorValue)
   const absoluteMonth = anchor.year * 12 + anchor.month + months

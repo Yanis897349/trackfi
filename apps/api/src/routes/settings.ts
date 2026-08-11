@@ -2,6 +2,7 @@ import type { Hono } from "hono"
 import { z } from "zod"
 
 import { requireUser, requireUserMutation } from "../authorization"
+import { subscriptionSpendSnapshotStatement } from "../subscription-database"
 import type { AppEnv } from "../types"
 
 const settingsSchema = z.object({
@@ -89,7 +90,26 @@ export function registerSettingsRoutes(app: Hono<AppEnv>) {
         WHERE user_id = ?`
       ).bind(nextScale / previousScale, user.id)
 
-      await context.env.DB.batch([relabelSubscriptions, saveSettings])
+      await context.env.DB.batch([
+        relabelSubscriptions,
+        saveSettings,
+        subscriptionSpendSnapshotStatement(
+          context.env.DB,
+          user.id,
+          parsed.data.currency,
+          now
+        ),
+      ])
+    } else if (!existing) {
+      await context.env.DB.batch([
+        saveSettings,
+        subscriptionSpendSnapshotStatement(
+          context.env.DB,
+          user.id,
+          parsed.data.currency,
+          now
+        ),
+      ])
     } else {
       await saveSettings.run()
     }

@@ -25,4 +25,6 @@ Object.defineProperty(window, "matchMedia", {
 
 afterEach(() => {
   cleanup()
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
 })
