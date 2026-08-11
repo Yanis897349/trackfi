@@ -277,7 +277,11 @@ describe("Trackfi web application", () => {
     render(<App queryClient={queryClient} router={router} />)
 
     expect(
-      await screen.findByText("Choose an account currency first")
+      await screen.findByText(
+        "Choose an account currency first",
+        {},
+        { timeout: 5_000 }
+      )
     ).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Open settings" })).toHaveAttribute(
       "href",

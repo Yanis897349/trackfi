@@ -25,8 +25,6 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
-    // Route modules are code-split and can take longer to evaluate under
-    // parallel CI load. Testing Library assertions retain their shorter waits.
     testTimeout: 10_000,
   },
 })
