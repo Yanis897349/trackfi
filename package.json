@@ -1,0 +1,30 @@
+{
+  "name": "trackfi",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=24.19.0 <25",
+    "pnpm": ">=11.21.0 <12"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "check": "pnpm format:check && turbo run lint typecheck test build",
+    "deploy:api": "pnpm --filter @trackfi/api deploy",
+    "deploy:web": "wrangler pages deploy apps/web/dist --project-name trackfi-web --branch main",
+    "dev": "concurrently --kill-others-on-fail --names web,api --prefix-colors blue,green \"pnpm --filter @trackfi/web dev\" \"pnpm --filter @trackfi/api dev\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.8.3",
+    "prettier-plugin-tailwindcss": "^0.8.0",
+    "turbo": "^2.9.18",
+    "typescript": "~6.0.0",
+    "wrangler": "^4.120.1"
+  }
+}

@@ -1,0 +1,12 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+allowBuilds:
+  esbuild: true
+  workerd: true
+minimumReleaseAgeExclude:
+  - "@cloudflare/vitest-pool-workers@0.21.0"
+  - framer-motion@13.1.0
+  - miniflare@5.20260804.0-alpha
+  - motion@13.1.0
+  - wrangler@4.120.1
