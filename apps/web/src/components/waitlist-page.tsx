@@ -13,6 +13,7 @@ import { TurnstileWidget } from "./turnstile-widget"
 export function WaitlistPage() {
   const [email, setEmail] = useState("")
   const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0)
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -42,6 +43,8 @@ export function WaitlistPage() {
       setError(humanizeError(cause))
     } finally {
       setSubmitting(false)
+      setTurnstileToken("")
+      setTurnstileResetKey((current) => current + 1)
     }
   }
 
@@ -104,7 +107,10 @@ export function WaitlistPage() {
                 </div>
                 {error && <FieldError>{error}</FieldError>}
               </Field>
-              <TurnstileWidget onTokenChange={handleToken} />
+              <TurnstileWidget
+                onTokenChange={handleToken}
+                resetKey={turnstileResetKey}
+              />
             </form>
           )}
         </div>

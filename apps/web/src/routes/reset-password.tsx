@@ -15,17 +15,25 @@ import { AuthShell, FormMessage } from "../components/auth-shell"
 import { authClient } from "../lib/api"
 
 export const Route = createFileRoute("/reset-password")({
-  validateSearch: z.object({ token: z.string().optional() }),
+  validateSearch: z.object({
+    error: z.string().optional(),
+    token: z.string().optional(),
+  }),
   component: ResetPasswordRoute,
 })
 
 function ResetPasswordRoute() {
-  const { token } = Route.useSearch()
+  const { error: callbackError, token } = Route.useSearch()
   const [password, setPassword] = useState("")
   const [confirmation, setConfirmation] = useState("")
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const displayedError =
+    error ||
+    (callbackError || !token
+      ? "This reset link is invalid or has expired."
+      : "")
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -95,7 +103,7 @@ function ResetPasswordRoute() {
                 onChange={(event) => setConfirmation(event.target.value)}
               />
             </Field>
-            {error && <FieldError>{error}</FieldError>}
+            {displayedError && <FieldError>{displayedError}</FieldError>}
             <Button type="submit" size="lg" disabled={submitting || !token}>
               {submitting ? "Updating…" : "Update password"}
             </Button>

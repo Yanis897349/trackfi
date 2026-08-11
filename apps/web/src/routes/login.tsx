@@ -21,6 +21,7 @@ function LoginRoute() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0)
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const handleToken = useCallback(
@@ -37,27 +38,33 @@ function LoginRoute() {
     }
 
     setSubmitting(true)
-    const result = await authClient.signIn.email(
-      {
-        email,
-        password,
-        callbackURL: `${window.location.origin}/dashboard`,
-      },
-      {
-        headers: { "X-Turnstile-Token": turnstileToken },
-      }
-    )
-    setSubmitting(false)
-
-    if (result.error) {
-      setError(
-        result.error.status === 403
-          ? "Verify your email before signing in. We sent you a new link."
-          : "The email or password is incorrect."
+    try {
+      const result = await authClient.signIn.email(
+        {
+          email,
+          password,
+          callbackURL: `${window.location.origin}/dashboard`,
+        },
+        {
+          headers: { "X-Turnstile-Token": turnstileToken },
+        }
       )
-      return
+      if (result.error) {
+        setError(
+          result.error.status === 403
+            ? "Verify your email before signing in. We sent you a new link."
+            : "The email or password is incorrect."
+        )
+        return
+      }
+      await navigate({ to: "/dashboard" })
+    } catch {
+      setError("We couldn’t sign you in. Please try again.")
+    } finally {
+      setSubmitting(false)
+      setTurnstileToken("")
+      setTurnstileResetKey((current) => current + 1)
     }
-    await navigate({ to: "/dashboard" })
   }
 
   return (
@@ -101,7 +108,10 @@ function LoginRoute() {
           </Field>
           {error && <FieldError>{error}</FieldError>}
           <div className="flex justify-center">
-            <TurnstileWidget onTokenChange={handleToken} />
+            <TurnstileWidget
+              onTokenChange={handleToken}
+              resetKey={turnstileResetKey}
+            />
           </div>
           <Button type="submit" size="lg" disabled={submitting}>
             {submitting ? "Signing in…" : "Sign in"}

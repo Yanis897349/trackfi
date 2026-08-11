@@ -30,6 +30,7 @@ export function RegisterForm({
   const [password, setPassword] = useState("")
   const [confirmation, setConfirmation] = useState("")
   const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0)
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -51,30 +52,41 @@ export function RegisterForm({
     }
 
     setSubmitting(true)
-    const result = await authClient.signUp.email(
-      {
-        name,
-        email,
-        password,
-        callbackURL: `${window.location.origin}/login`,
-      },
-      {
-        headers: {
-          "X-Turnstile-Token": turnstileToken,
-          ...(invitation.invite ? { "X-Invite-Token": invitation.invite } : {}),
+    try {
+      const result = await authClient.signUp.email(
+        {
+          name,
+          email,
+          password,
+          callbackURL: `${window.location.origin}/login`,
         },
-      }
-    )
-    setSubmitting(false)
-    if (result.error) {
-      setError(
-        result.error.status === 403
-          ? "This invitation is invalid or has expired."
-          : "We couldn’t create the account. Check your details and try again."
+        {
+          headers: {
+            "X-Turnstile-Token": turnstileToken,
+            ...(invitation.invite
+              ? { "X-Invite-Token": invitation.invite }
+              : {}),
+          },
+        }
       )
-      return
+      if (result.error) {
+        setError(
+          result.error.status === 403
+            ? "This invitation is invalid or has expired."
+            : "We couldn’t create the account. Check your details and try again."
+        )
+        return
+      }
+      setSubmitted(true)
+    } catch {
+      setError(
+        "We couldn’t create the account. Check your details and try again."
+      )
+    } finally {
+      setSubmitting(false)
+      setTurnstileToken("")
+      setTurnstileResetKey((current) => current + 1)
     }
-    setSubmitted(true)
   }
 
   return (
@@ -151,7 +163,10 @@ export function RegisterForm({
             </Field>
             {error && <FieldError>{error}</FieldError>}
             <div className="flex justify-center">
-              <TurnstileWidget onTokenChange={handleToken} />
+              <TurnstileWidget
+                onTokenChange={handleToken}
+                resetKey={turnstileResetKey}
+              />
             </div>
             <Button type="submit" size="lg" disabled={submitting}>
               {submitting ? "Creating account…" : "Create account"}

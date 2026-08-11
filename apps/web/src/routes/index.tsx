@@ -17,6 +17,6 @@ export const Route = createFileRoute("/")({
 function IndexRoute() {
   const { config, session } = Route.useLoaderData()
   if (session) return <Navigate to="/dashboard" replace />
-  if (!config.waitlistMode) return <Navigate to="/login" replace />
+  if (!config.waitlistMode) return <Navigate to="/register" replace />
   return <WaitlistPage />
 }

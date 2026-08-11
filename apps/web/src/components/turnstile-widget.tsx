@@ -40,8 +40,10 @@ function loadTurnstile() {
 
 export function TurnstileWidget({
   onTokenChange,
+  resetKey = 0,
 }: {
   onTokenChange: (token: string) => void
+  resetKey?: number
 }) {
   const id = useId()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -70,7 +72,7 @@ export function TurnstileWidget({
       cancelled = true
       if (widgetId) window.turnstile?.remove(widgetId)
     }
-  }, [onTokenChange])
+  }, [onTokenChange, resetKey])
 
   return (
     <div

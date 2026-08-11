@@ -38,15 +38,31 @@ describe("Trackfi web application", () => {
     expect(screen.getByLabelText("Password")).toBeInTheDocument()
   })
 
-  it("routes public users to login when registration is open", async () => {
+  it("routes public users to registration when registration is open", async () => {
     mockApi({ waitlistMode: false, session: null })
     const { queryClient, router } = createTestRouter()
 
     render(<App queryClient={queryClient} router={router} />)
 
     expect(
-      await screen.findByRole("heading", { name: "Welcome back" })
+      await screen.findByRole("heading", { name: "Create your account" })
     ).toBeInTheDocument()
+  })
+
+  it("explains when a password-reset link is invalid", async () => {
+    mockApi({ waitlistMode: true, session: null })
+    const { queryClient, router } = createTestRouter(
+      "/reset-password?error=INVALID_TOKEN"
+    )
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    expect(
+      await screen.findByText("This reset link is invalid or has expired.")
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Update password" })
+    ).toBeDisabled()
   })
 
   it("redirects unauthenticated dashboard visits to login", async () => {

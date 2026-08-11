@@ -21,6 +21,7 @@ export const Route = createFileRoute("/forgot-password")({
 function ForgotPasswordRoute() {
   const [email, setEmail] = useState("")
   const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0)
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -38,16 +39,23 @@ function ForgotPasswordRoute() {
     }
 
     setSubmitting(true)
-    const result = await authClient.requestPasswordReset(
-      { email, redirectTo: `${window.location.origin}/reset-password` },
-      { headers: { "X-Turnstile-Token": turnstileToken } }
-    )
-    setSubmitting(false)
-    if (result.error) {
+    try {
+      const result = await authClient.requestPasswordReset(
+        { email, redirectTo: `${window.location.origin}/reset-password` },
+        { headers: { "X-Turnstile-Token": turnstileToken } }
+      )
+      if (result.error) {
+        setError("We couldn’t start the reset. Please try again.")
+        return
+      }
+      setSubmitted(true)
+    } catch {
       setError("We couldn’t start the reset. Please try again.")
-      return
+    } finally {
+      setSubmitting(false)
+      setTurnstileToken("")
+      setTurnstileResetKey((current) => current + 1)
     }
-    setSubmitted(true)
   }
 
   return (
@@ -80,7 +88,10 @@ function ForgotPasswordRoute() {
             </Field>
             {error && <FieldError>{error}</FieldError>}
             <div className="flex justify-center">
-              <TurnstileWidget onTokenChange={handleToken} />
+              <TurnstileWidget
+                onTokenChange={handleToken}
+                resetKey={turnstileResetKey}
+              />
             </div>
             <Button type="submit" size="lg" disabled={submitting}>
               {submitting ? "Sending…" : "Send reset link"}
