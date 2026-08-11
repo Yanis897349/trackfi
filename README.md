@@ -87,11 +87,11 @@ GitHub Actions runs checks on every pull request and push. Production deployment
    - `TRACKFI_API_URL` set to the public Worker origin
    - `TURNSTILE_SITE_KEY` set to the public widget key
 
-Brand logos are fetched by the Worker through Brandfetch's Logo API and cached
-before being returned to signed-in users. The Brandfetch client ID is never
-included in the web bundle. When Brandfetch is unavailable or has no matching
-logo, Trackfi falls back to service initials without disabling subscription
-features.
+The authenticated brand-logo route redirects browsers to Brandfetch's Logo API
+so Brandfetch receives the application origin required by its hotlinking policy.
+The client ID is browser-visible by design but remains outside the web bundle.
+When Brandfetch is unavailable or has no matching logo, Trackfi falls back to
+service initials without disabling subscription features.
 
 After checks pass on `main`, CI applies pending D1 migrations, deploys the
 `trackfi-api` Worker, and uploads `apps/web/dist` to the `trackfi-web` Pages

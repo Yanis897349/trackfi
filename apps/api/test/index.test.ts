@@ -399,145 +399,20 @@ describe("Trackfi API", () => {
     await expect(invalid.json()).resolves.toEqual({ error: "invalid_domain" })
   })
 
-  it("uses the server-side Brandfetch client ID and proxies a logo", async () => {
+  it("redirects the browser to Brandfetch with the configured client ID", async () => {
     const cookie = await createUserSession()
     const domain = `brand-${crypto.randomUUID()}.example`
-    const outboundRequests: Request[] = []
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-        const request =
-          input instanceof Request ? input : new Request(input, init)
-        outboundRequests.push(request)
-        return new Response("image-bytes", {
-          headers: {
-            "Content-Length": "11",
-            "Content-Type": "image/png",
-            ETag: '"brand-icon"',
-          },
-        })
-      })
-    )
 
     const response = await userApi(
       `/api/brands/logo?domain=${encodeURIComponent(domain)}`,
-      cookie
+      cookie,
+      { redirect: "manual" }
     )
 
-    expect(response.status).toBe(200)
-    expect(response.headers.get("content-type")).toBe("image/png")
-    expect(response.headers.get("cache-control")).toBe(
-      "public, max-age=86400, s-maxage=604800"
-    )
-    expect(response.headers.get("x-content-type-options")).toBe("nosniff")
-    expect(new TextDecoder().decode(await response.arrayBuffer())).toBe(
-      "image-bytes"
-    )
-    expect(outboundRequests).toHaveLength(1)
-    expect(outboundRequests[0]?.url).toBe(
+    expect(response.status).toBe(302)
+    expect(response.headers.get("location")).toBe(
       `https://cdn.brandfetch.io/domain/${domain}/w/80/h/80/fallback/404/type/icon?c=brandfetch-test-client-id`
     )
-    expect(outboundRequests[0]?.headers.get("authorization")).toBeNull()
-
-    const cached = await userApi(
-      `/api/brands/logo?domain=${encodeURIComponent(domain)}`,
-      cookie
-    )
-    expect(cached.status).toBe(200)
-    expect(cached.headers.get("content-type")).toBe("image/png")
-    expect(cached.headers.get("etag")).toBe('"brand-icon"')
-    expect(cached.headers.get("cache-control")).toBe(
-      "public, max-age=86400, s-maxage=604800"
-    )
-    expect(new TextDecoder().decode(await cached.arrayBuffer())).toBe(
-      "image-bytes"
-    )
-    expect(outboundRequests).toHaveLength(1)
-  })
-
-  it("does not follow Brandfetch redirects to an untrusted host", async () => {
-    const cookie = await createUserSession()
-    const domain = `untrusted-${crypto.randomUUID()}.example`
-    const outboundRequests: Request[] = []
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-        const request =
-          input instanceof Request ? input : new Request(input, init)
-        outboundRequests.push(request)
-        return new Response(null, {
-          status: 302,
-          headers: { Location: "https://malicious.example/logo.png" },
-        })
-      })
-    )
-
-    const response = await userApi(
-      `/api/brands/logo?domain=${encodeURIComponent(domain)}`,
-      cookie
-    )
-
-    expect(response.status).toBe(502)
-    await expect(response.json()).resolves.toEqual({
-      error: "brandfetch_unavailable",
-    })
-    expect(outboundRequests).toHaveLength(1)
-  })
-
-  it("caches missing Brandfetch logos", async () => {
-    const cookie = await createUserSession()
-    const domain = `missing-${crypto.randomUUID()}.example`
-    const fetchMock = vi.fn(async () => new Response(null, { status: 404 }))
-    vi.stubGlobal("fetch", fetchMock)
-
-    const first = await userApi(
-      `/api/brands/logo?domain=${encodeURIComponent(domain)}`,
-      cookie
-    )
-    expect(first.status).toBe(404)
-    expect(first.headers.get("cache-control")).toBe(
-      "public, max-age=3600, s-maxage=86400"
-    )
-    await first.arrayBuffer()
-
-    const second = await userApi(
-      `/api/brands/logo?domain=${encodeURIComponent(domain)}`,
-      cookie
-    )
-    expect(second.status).toBe(404)
-    await expect(second.json()).resolves.toEqual({ error: "logo_not_found" })
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-  })
-
-  it("rejects chunked Brandfetch logos above the byte limit", async () => {
-    const cookie = await createUserSession()
-    const domain = `oversized-${crypto.randomUUID()}.example`
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(
-        async () =>
-          new Response(
-            new ReadableStream({
-              start(controller) {
-                controller.enqueue(new Uint8Array(5 * 1024 * 1024))
-                controller.enqueue(new Uint8Array(1))
-                controller.close()
-              },
-            }),
-            { headers: { "Content-Type": "image/png" } }
-          )
-      )
-    )
-
-    const response = await userApi(
-      `/api/brands/logo?domain=${encodeURIComponent(domain)}`,
-      cookie
-    )
-
-    expect(response.status).toBe(502)
-    await expect(response.json()).resolves.toEqual({
-      error: "brandfetch_unavailable",
-    })
   })
 
   it("surfaces Resend delivery failures", async () => {
@@ -1097,11 +972,16 @@ async function createUserSession() {
 function userApi(
   path: string,
   cookie: string,
-  options?: { method?: string; body?: unknown }
+  options?: {
+    method?: string
+    body?: unknown
+    redirect?: RequestRedirect
+  }
 ) {
   return exports.default.fetch(
     new Request(`https://trackfi.test${path}`, {
       method: options?.method ?? "GET",
+      ...(options?.redirect ? { redirect: options.redirect } : {}),
       headers: {
         Cookie: cookie,
         Origin: "http://localhost:5173",

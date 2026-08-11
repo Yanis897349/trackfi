@@ -1,9 +1,7 @@
 import type { Context } from "hono"
 
 export interface Bindings {
-  BRAND_LOGO_CACHE: KVNamespace
   DB: D1Database
-  BRAND_LOGO_RATE_LIMITER: RateLimit
   WAITLIST_RATE_LIMITER: RateLimit
   ADMIN_EMAILS?: string
   APP_ORIGIN?: string
