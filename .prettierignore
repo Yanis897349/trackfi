@@ -1,0 +1,9 @@
+node_modules
+.context
+.turbo
+.wrangler
+dist
+coverage
+pnpm-lock.yaml
+**/routeTree.gen.ts
+**/worker-configuration.d.ts

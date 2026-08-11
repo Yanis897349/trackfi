@@ -1,0 +1,10 @@
+{
+  "extends": "@trackfi/typescript-config/react-library.json",
+  "compilerOptions": {
+    "paths": {
+      "@trackfi/ui/*": ["./src/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}

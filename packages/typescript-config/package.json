@@ -1,0 +1,14 @@
+{
+  "name": "@trackfi/typescript-config",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "*.json"
+  ],
+  "exports": {
+    "./base.json": "./base.json",
+    "./react-library.json": "./react-library.json",
+    "./vite.json": "./vite.json",
+    "./worker.json": "./worker.json"
+  }
+}
