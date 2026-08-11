@@ -3,3 +3,10 @@ export function formatDate(value: string | Date) {
     dateStyle: "medium",
   }).format(typeof value === "string" ? new Date(value) : value)
 }
+
+export function formatDateOnly(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`))
+}
