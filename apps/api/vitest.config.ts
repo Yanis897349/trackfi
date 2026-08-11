@@ -12,6 +12,7 @@ export default defineConfig({
           EMAIL_FROM: "Trackfi <hello@example.com>",
           ADMIN_EMAILS: "",
           BETTER_AUTH_SECRET: "",
+          BRANDFETCH_CLIENT_ID: "brandfetch-test-client-id",
           RESEND_API_KEY: "",
           TURNSTILE_SECRET_KEY: "",
         },

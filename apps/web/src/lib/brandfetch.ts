@@ -1,12 +1,9 @@
-export function brandfetchLogoUrl(
-  websiteUrl: string | null,
-  clientId = import.meta.env.VITE_BRANDFETCH_CLIENT_ID,
-  displaySize = 40
-) {
+import { API_URL } from "./api"
+
+export function brandLogoUrl(websiteUrl: string | null, apiUrl = API_URL) {
   const domain = websiteDomain(websiteUrl)
-  if (!domain || !clientId) return null
-  const sourceSize = displaySize * 2
-  return `https://cdn.brandfetch.io/domain/${encodeURIComponent(domain)}/w/${sourceSize}/h/${sourceSize}/fallback/lettermark/type/icon?c=${encodeURIComponent(clientId)}`
+  if (!domain) return null
+  return `${apiUrl}/api/brands/logo?domain=${encodeURIComponent(domain)}`
 }
 
 function websiteDomain(websiteUrl: string | null) {
