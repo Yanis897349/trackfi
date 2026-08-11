@@ -10,7 +10,7 @@
   "scripts": {
     "build": "turbo run build",
     "check": "pnpm format:check && turbo run lint typecheck test build",
-    "deploy:api": "pnpm --filter @trackfi/api deploy",
+    "deploy:api": "pnpm --filter @trackfi/api run deploy",
     "deploy:web": "wrangler pages deploy apps/web/dist --project-name trackfi-web --branch main",
     "dev": "concurrently --kill-others-on-fail --names web,api --prefix-colors blue,green \"pnpm --filter @trackfi/web dev\" \"pnpm --filter @trackfi/api dev\"",
     "format": "prettier --write .",
