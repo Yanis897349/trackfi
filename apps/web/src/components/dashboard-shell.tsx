@@ -5,6 +5,7 @@ import {
   LayoutDashboardIcon,
   LogOutIcon,
   MailCheckIcon,
+  SettingsIcon,
 } from "lucide-react"
 
 import { Button } from "@trackfi/ui/components/button"
@@ -26,11 +27,14 @@ import {
 } from "@trackfi/ui/components/sidebar"
 
 import { authClient, type CurrentUser } from "../lib/api"
+import { modules } from "../modules"
 
 const titles: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/dashboard/waitlist": "Waitlist approvals",
   "/dashboard/feature-flags": "Feature flags",
+  "/dashboard/settings": "Settings",
+  "/dashboard/subscriptions": "Subscriptions",
 }
 
 export function DashboardShell({
@@ -83,6 +87,25 @@ export function DashboardShell({
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
+          <SidebarGroup>
+            <SidebarGroupLabel>Modules</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {modules.map((module) => (
+                  <SidebarMenuItem key={module.id}>
+                    <SidebarMenuButton
+                      tooltip={module.label}
+                      isActive={location.pathname === module.href}
+                      render={<Link to={module.href} />}
+                    >
+                      <module.icon />
+                      <span>{module.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
           {user.role === "admin" && (
             <SidebarGroup>
               <SidebarGroupLabel>Admin</SidebarGroupLabel>
@@ -114,6 +137,22 @@ export function DashboardShell({
               </SidebarGroupContent>
             </SidebarGroup>
           )}
+          <SidebarGroup className="mt-auto">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip="Settings"
+                    isActive={location.pathname === "/dashboard/settings"}
+                    render={<Link to="/dashboard/settings" />}
+                  >
+                    <SettingsIcon />
+                    <span>Settings</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="border-t">
           <div className="flex items-center gap-2 overflow-hidden p-1">

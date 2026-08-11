@@ -18,6 +18,8 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardFeatureFlagsRouteImport } from './routes/dashboard.feature-flags'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
+import { Route as DashboardSubscriptionsRouteImport } from './routes/dashboard.subscriptions'
 import { Route as DashboardWaitlistRouteImport } from './routes/dashboard.waitlist'
 
 const IndexRoute = IndexRouteImport.update({
@@ -65,6 +67,16 @@ const DashboardFeatureFlagsRoute = DashboardFeatureFlagsRouteImport.update({
   path: '/feature-flags',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSubscriptionsRoute = DashboardSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardWaitlistRoute = DashboardWaitlistRouteImport.update({
   id: '/waitlist',
   path: '/waitlist',
@@ -80,6 +92,8 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/subscriptions': typeof DashboardSubscriptionsRoute
   '/dashboard/waitlist': typeof DashboardWaitlistRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
@@ -91,6 +105,8 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/subscriptions': typeof DashboardSubscriptionsRoute
   '/dashboard/waitlist': typeof DashboardWaitlistRoute
   '/dashboard': typeof DashboardIndexRoute
 }
@@ -104,6 +120,8 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/dashboard/subscriptions': typeof DashboardSubscriptionsRoute
   '/dashboard/waitlist': typeof DashboardWaitlistRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
@@ -118,6 +136,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/dashboard/feature-flags'
+    | '/dashboard/settings'
+    | '/dashboard/subscriptions'
     | '/dashboard/waitlist'
     | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
@@ -129,6 +149,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/dashboard/feature-flags'
+    | '/dashboard/settings'
+    | '/dashboard/subscriptions'
     | '/dashboard/waitlist'
     | '/dashboard'
   id:
@@ -141,6 +163,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/dashboard/feature-flags'
+    | '/dashboard/settings'
+    | '/dashboard/subscriptions'
     | '/dashboard/waitlist'
     | '/dashboard/'
   fileRoutesById: FileRoutesById
@@ -220,6 +244,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFeatureFlagsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/subscriptions': {
+      id: '/dashboard/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/dashboard/subscriptions'
+      preLoaderRoute: typeof DashboardSubscriptionsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/waitlist': {
       id: '/dashboard/waitlist'
       path: '/waitlist'
@@ -232,12 +270,16 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardFeatureFlagsRoute: typeof DashboardFeatureFlagsRoute
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSubscriptionsRoute: typeof DashboardSubscriptionsRoute
   DashboardWaitlistRoute: typeof DashboardWaitlistRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardFeatureFlagsRoute: DashboardFeatureFlagsRoute,
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSubscriptionsRoute: DashboardSubscriptionsRoute,
   DashboardWaitlistRoute: DashboardWaitlistRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }

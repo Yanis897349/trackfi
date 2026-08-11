@@ -16,6 +16,8 @@ import sessionsMigration from "../migrations/20260811140100_create_sessions.sql?
 import usersMigration from "../migrations/20260811140000_create_users.sql?raw"
 import verificationsMigration from "../migrations/20260811140300_create_verifications.sql?raw"
 import waitlistMigration from "../migrations/20260811140600_create_waitlist_entries.sql?raw"
+import userSettingsMigration from "../migrations/20260811140700_create_user_settings.sql?raw"
+import subscriptionsMigration from "../migrations/20260811140800_create_subscriptions.sql?raw"
 import { createAuth } from "../src/auth"
 import { sendInvitation } from "../src/email"
 import { sha256 } from "../src/security"
@@ -29,6 +31,8 @@ const migrationQueries = [
   rateLimitsMigration,
   featureFlagsMigration,
   waitlistMigration,
+  userSettingsMigration,
+  subscriptionsMigration,
 ].flatMap((sql) =>
   sql
     .split(";")
@@ -403,6 +407,170 @@ describe("Trackfi API", () => {
     expect(response.status).toBe(401)
   })
 
+  it("manages user-scoped subscriptions and calculates recurring insights", async () => {
+    const cookie = await createUserSession()
+    const missingCurrency = await userApi("/api/subscriptions", cookie, {
+      method: "POST",
+      body: subscriptionBody(),
+    })
+    expect(missingCurrency.status).toBe(409)
+    await expect(missingCurrency.json()).resolves.toEqual({
+      error: "currency_required",
+    })
+
+    const savedSettings = await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "EUR" },
+    })
+    expect(savedSettings.status).toBe(200)
+
+    const created = await userApi("/api/subscriptions", cookie, {
+      method: "POST",
+      body: subscriptionBody(),
+    })
+    expect(created.status).toBe(201)
+    const createdBody = await created.json<{
+      subscription: { id: string; status: string }
+    }>()
+    expect(createdBody.subscription.status).toBe("active")
+
+    const summary = await userApi(
+      "/api/subscriptions/summary?asOf=2024-02-01",
+      cookie
+    )
+    await expect(summary.json()).resolves.toMatchObject({
+      summary: {
+        currency: "EUR",
+        activeCount: 1,
+        monthlyEquivalentMinor: 1000,
+        annualEquivalentMinor: 12000,
+        upcomingCount: 1,
+        upcoming: [{ nextRenewalDate: "2024-02-29" }],
+      },
+    })
+
+    const paused = await userApi(
+      `/api/subscriptions/${createdBody.subscription.id}`,
+      cookie,
+      { method: "PATCH", body: { status: "paused" } }
+    )
+    expect(paused.status).toBe(200)
+    const pausedSummary = await userApi(
+      "/api/subscriptions/summary?asOf=2024-02-01",
+      cookie
+    )
+    await expect(pausedSummary.json()).resolves.toMatchObject({
+      summary: { activeCount: 0, annualEquivalentMinor: 0 },
+    })
+
+    const currencyConflict = await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "USD" },
+    })
+    expect(currencyConflict.status).toBe(409)
+    await expect(currencyConflict.json()).resolves.toMatchObject({
+      error: "currency_change_requires_confirmation",
+      subscriptionCount: 1,
+    })
+    expect(
+      (
+        await userApi("/api/settings", cookie, {
+          method: "PATCH",
+          body: { currency: "USD", confirmRelabel: true },
+        })
+      ).status
+    ).toBe(200)
+
+    expect(
+      (
+        await userApi(
+          `/api/subscriptions/${createdBody.subscription.id}`,
+          cookie,
+          { method: "DELETE" }
+        )
+      ).status
+    ).toBe(400)
+    expect(
+      (
+        await userApi(
+          `/api/subscriptions/${createdBody.subscription.id}?confirm=true`,
+          cookie,
+          { method: "DELETE" }
+        )
+      ).status
+    ).toBe(204)
+  })
+
+  it("keeps subscription records isolated between users", async () => {
+    const ownerCookie = await createUserSession()
+    const otherCookie = await createUserSession()
+    await userApi("/api/settings", ownerCookie, {
+      method: "PATCH",
+      body: { currency: "EUR" },
+    })
+    const created = await userApi("/api/subscriptions", ownerCookie, {
+      method: "POST",
+      body: subscriptionBody({ name: "Private service" }),
+    })
+    const id = (await created.json<{ subscription: { id: string } }>())
+      .subscription.id
+
+    const otherList = await userApi("/api/subscriptions", otherCookie)
+    await expect(otherList.json()).resolves.toEqual({ subscriptions: [] })
+    expect(
+      (
+        await userApi(`/api/subscriptions/${id}`, otherCookie, {
+          method: "PATCH",
+          body: { status: "archived" },
+        })
+      ).status
+    ).toBe(404)
+  })
+
+  it("validates subscription inputs and protects regular-user mutations", async () => {
+    expect(
+      (
+        await exports.default.fetch(
+          new Request("https://trackfi.test/api/settings")
+        )
+      ).status
+    ).toBe(401)
+
+    const cookie = await createUserSession()
+    const untrusted = await exports.default.fetch(
+      new Request("https://trackfi.test/api/settings", {
+        method: "PATCH",
+        headers: {
+          Cookie: cookie,
+          Origin: "https://malicious.example",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ currency: "EUR" }),
+      })
+    )
+    expect(untrusted.status).toBe(403)
+
+    await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "EUR" },
+    })
+    expect(
+      (
+        await userApi("/api/subscriptions", cookie, {
+          method: "POST",
+          body: subscriptionBody({ websiteUrl: "javascript:alert(1)" }),
+        })
+      ).status
+    ).toBe(400)
+    expect(
+      (await userApi("/api/subscriptions/summary?asOf=not-a-date", cookie))
+        .status
+    ).toBe(400)
+    expect(
+      (await userApi("/api/subscriptions?status=unknown", cookie)).status
+    ).toBe(400)
+  })
+
   it("returns 404 for unknown routes", async () => {
     const response = await exports.default.fetch(
       new Request("https://trackfi.test/unknown")
@@ -487,6 +655,58 @@ async function createAdminSession() {
   const cookie = signedIn.headers.get("set-cookie")?.split(";")[0]
   if (!cookie) throw new Error("Admin sign-in did not set a session cookie")
   return cookie
+}
+
+async function createUserSession() {
+  const email = `user-${crypto.randomUUID()}@example.com`
+  const password = "correct-horse-battery-staple"
+  const auth = createAuth(env as unknown as Bindings)
+  await auth.api.signUpEmail({
+    body: { name: "Subscription User", email, password },
+    headers: new Headers({ Origin: "http://localhost:5173" }),
+  })
+  await env.DB.prepare('UPDATE "user" SET "emailVerified" = 1 WHERE email = ?')
+    .bind(email)
+    .run()
+  const signedIn = await auth.api.signInEmail({
+    body: { email, password },
+    headers: new Headers({ Origin: "http://localhost:5173" }),
+    returnHeaders: true,
+  })
+  const cookie = signedIn.headers.get("set-cookie")?.split(";")[0]
+  if (!cookie) throw new Error("User sign-in did not set a session cookie")
+  return cookie
+}
+
+function userApi(
+  path: string,
+  cookie: string,
+  options?: { method?: string; body?: unknown }
+) {
+  return exports.default.fetch(
+    new Request(`https://trackfi.test${path}`, {
+      method: options?.method ?? "GET",
+      headers: {
+        Cookie: cookie,
+        Origin: "http://localhost:5173",
+        "Content-Type": "application/json",
+      },
+      ...(options?.body ? { body: JSON.stringify(options.body) } : {}),
+    })
+  )
+}
+
+function subscriptionBody(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "Design software",
+    amountMinor: 1000,
+    cadence: "monthly",
+    billingAnchor: "2024-01-31",
+    category: "software",
+    websiteUrl: "https://example.com",
+    notes: "Team plan",
+    ...overrides,
+  }
 }
 
 function adminMutation(path: string, cookie: string) {

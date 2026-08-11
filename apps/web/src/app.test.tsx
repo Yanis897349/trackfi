@@ -163,11 +163,13 @@ describe("Trackfi web application", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "Your financial workspace is ready.",
+        name: "Financial overview",
       })
     ).toBeInTheDocument()
     expect(screen.getByText("Waitlist approvals")).toBeInTheDocument()
     expect(screen.getByText("Feature flags")).toBeInTheDocument()
+    expect(screen.getAllByText("Subscriptions").length).toBeGreaterThan(0)
+    expect(screen.getByText("Settings")).toBeInTheDocument()
   })
 
   it("hides admin navigation from regular users", async () => {
@@ -181,11 +183,13 @@ describe("Trackfi web application", () => {
 
     expect(
       await screen.findByRole("heading", {
-        name: "Your financial workspace is ready.",
+        name: "Financial overview",
       })
     ).toBeInTheDocument()
     expect(screen.queryByText("Waitlist approvals")).not.toBeInTheDocument()
     expect(screen.queryByText("Feature flags")).not.toBeInTheDocument()
+    expect(screen.getAllByText("Subscriptions").length).toBeGreaterThan(0)
+    expect(screen.getByText("Settings")).toBeInTheDocument()
   })
 
   it("confirms and updates waitlist mode", async () => {
@@ -255,18 +259,74 @@ describe("Trackfi web application", () => {
     expect(screen.getByText("Regular User")).toBeInTheDocument()
     expect(screen.getByText("user@example.com")).toBeInTheDocument()
   })
+
+  it("requires currency setup before adding subscriptions", async () => {
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      currency: null,
+    })
+    const { queryClient, router } = createTestRouter("/dashboard/subscriptions")
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    expect(
+      await screen.findByText("Choose an account currency first")
+    ).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Open settings" })).toHaveAttribute(
+      "href",
+      "/dashboard/settings"
+    )
+  })
+
+  it("renders subscription insights and tracked services", async () => {
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      subscriptions: [subscriptionFixture()],
+    })
+    const { queryClient, router } = createTestRouter("/dashboard/subscriptions")
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    expect(
+      await screen.findByRole("heading", { name: "Subscriptions" })
+    ).toBeInTheDocument()
+    expect(await screen.findByText("Monthly equivalent")).toBeInTheDocument()
+    expect(screen.getAllByText("Design software").length).toBeGreaterThan(0)
+    expect(
+      screen.getByRole("button", { name: "Add subscription" })
+    ).toBeInTheDocument()
+  })
+
+  it("renders account currency settings", async () => {
+    mockApi({ waitlistMode: true, session: sessionFor("user") })
+    const { queryClient, router } = createTestRouter("/dashboard/settings")
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    expect(
+      await screen.findByRole("heading", { name: "Settings" })
+    ).toBeInTheDocument()
+    expect(await screen.findByText("Account currency")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Save currency" })).toBeDisabled()
+  })
 })
 
 function mockApi({
   featureFlags = false,
   invitation,
   session,
+  currency = "EUR",
+  subscriptions = [],
   waitlistEntries = false,
   waitlistMode,
 }: {
   featureFlags?: boolean
   invitation?: { email: string; valid: true } | null
   session: null | { session: { id: string }; user: Record<string, string> }
+  currency?: string | null
+  subscriptions?: Array<Record<string, unknown>>
   waitlistEntries?: boolean
   waitlistMode: boolean
 }) {
@@ -282,7 +342,22 @@ function mockApi({
       let status = 200
       if (url.includes("/api/config")) body = { waitlistMode }
       else if (url.includes("/api/auth/get-session")) body = session
-      else if (url.includes("/api/invitations/validate")) {
+      else if (url.includes("/api/settings")) {
+        body = { settings: { currency, updatedAt: null } }
+      } else if (url.includes("/api/subscriptions/summary")) {
+        body = {
+          summary: {
+            currency,
+            activeCount: subscriptions.length,
+            monthlyEquivalentMinor: subscriptions.length ? 1000 : 0,
+            annualEquivalentMinor: subscriptions.length ? 12000 : 0,
+            upcomingCount: subscriptions.length,
+            upcoming: subscriptions,
+          },
+        }
+      } else if (url.includes("/api/subscriptions")) {
+        body = { subscriptions }
+      } else if (url.includes("/api/invitations/validate")) {
         if (invitation) body = invitation
         else {
           body = { valid: false }
@@ -347,5 +422,22 @@ function sessionFor(role: "admin" | "user") {
       name: role === "admin" ? "Admin User" : "Regular User",
       role,
     },
+  }
+}
+
+function subscriptionFixture() {
+  return {
+    id: "subscription-id",
+    name: "Design software",
+    amountMinor: 1000,
+    cadence: "monthly",
+    billingAnchor: "2026-08-20",
+    nextRenewalDate: "2026-08-20",
+    category: "software",
+    websiteUrl: "https://example.com",
+    notes: null,
+    status: "active",
+    createdAt: "2026-08-11T00:00:00.000Z",
+    updatedAt: "2026-08-11T00:00:00.000Z",
   }
 }
