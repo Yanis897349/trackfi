@@ -52,7 +52,7 @@ export function BrandLogo({
             src={source}
             alt=""
             className="size-full rounded-[22%] object-contain"
-            crossOrigin="use-credentials"
+            referrerPolicy="origin"
             onError={() => setFailedSource(source)}
           />
         </span>

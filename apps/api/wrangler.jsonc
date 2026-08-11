@@ -20,11 +20,6 @@
       "TURNSTILE_SECRET_KEY",
     ],
   },
-  "kv_namespaces": [
-    {
-      "binding": "BRAND_LOGO_CACHE",
-    },
-  ],
   "d1_databases": [
     {
       "binding": "DB",
@@ -34,14 +29,6 @@
     },
   ],
   "ratelimits": [
-    {
-      "name": "BRAND_LOGO_RATE_LIMITER",
-      "namespace_id": "1002",
-      "simple": {
-        "limit": 60,
-        "period": 60,
-      },
-    },
     {
       "name": "WAITLIST_RATE_LIMITER",
       "namespace_id": "1001",

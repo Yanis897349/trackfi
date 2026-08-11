@@ -15,12 +15,12 @@ describe("subscription brand identity", () => {
     expect(brandLogoUrl("not-a-url", "https://api.trackfi.test")).toBeNull()
   })
 
-  it("sends credentials and falls back to the service initial", () => {
+  it("sends the application origin and falls back to the service initial", () => {
     const { container, getByText } = render(
       <BrandLogo name="Notion" websiteUrl="https://notion.so" />
     )
     const image = container.querySelector("img")!
-    expect(image).toHaveAttribute("crossorigin", "use-credentials")
+    expect(image).toHaveAttribute("referrerpolicy", "origin")
     expect(image).toHaveClass("rounded-[22%]")
     expect(image.parentElement).toHaveClass("p-[15%]")
     fireEvent.error(image)
