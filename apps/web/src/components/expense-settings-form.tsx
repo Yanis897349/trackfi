@@ -61,15 +61,15 @@ export function ExpenseSettingsForm({
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const budgetValue = Number(budget)
-    const dailyValue = Number(dailyTarget)
+    const budgetValue = optionalNumber(budget)
+    const dailyValue = optionalNumber(dailyTarget)
     const approaching = Number(approachingThreshold)
     const limit = Number(limitThreshold)
     if (
-      !Number.isFinite(budgetValue) ||
-      budgetValue <= 0 ||
-      !Number.isFinite(dailyValue) ||
-      dailyValue <= 0 ||
+      (budgetValue !== null &&
+        (!Number.isFinite(budgetValue) || budgetValue <= 0)) ||
+      (dailyValue !== null &&
+        (!Number.isFinite(dailyValue) || dailyValue <= 0)) ||
       !Number.isInteger(approaching) ||
       !Number.isInteger(limit) ||
       approaching < 1 ||
@@ -84,8 +84,10 @@ export function ExpenseSettingsForm({
     setValidation("")
     onSave({
       ...settings,
-      monthlyBudgetMinor: Math.round(budgetValue * divisor),
-      dailyTargetMinor: Math.round(dailyValue * divisor),
+      monthlyBudgetMinor:
+        budgetValue === null ? null : Math.round(budgetValue * divisor),
+      dailyTargetMinor:
+        dailyValue === null ? null : Math.round(dailyValue * divisor),
       resetDay,
       rolloverEnabled,
       approachingThreshold: approaching,
@@ -182,4 +184,8 @@ export function ExpenseSettingsForm({
       {(validation || error) && <FieldError>{validation || error}</FieldError>}
     </form>
   )
+}
+
+function optionalNumber(value: string) {
+  return value.trim() ? Number(value) : null
 }

@@ -50,7 +50,8 @@ export function registerExpenseListRoute(app: Hono<AppEnv>) {
     const expenses = result.results.filter((expense) => {
       const pendingMatches = pending !== true || expense.status === "pending"
       const receiptMatches =
-        missingReceipt !== true || expense.receipt_key === null
+        missingReceipt !== true ||
+        (expense.receipt_key === null && expense.status !== "declined")
       return (
         (!from || expense.transaction_date >= from) &&
         (!to || expense.transaction_date <= to) &&

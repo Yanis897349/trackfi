@@ -5,7 +5,10 @@ import {
   CardTitle,
 } from "@trackfi/ui/components/card"
 
-import type { ExpenseSummary } from "../lib/expenses"
+import {
+  expenseCategoryAllocationEntries,
+  type ExpenseSummary,
+} from "../lib/expenses"
 import { displayLabel, formatMoney } from "../lib/subscriptions"
 
 export function ExpenseCategoryAllocationCard({
@@ -15,7 +18,7 @@ export function ExpenseCategoryAllocationCard({
   summary: ExpenseSummary
   currency: string
 }) {
-  const entries = categoryEntries(summary)
+  const entries = expenseCategoryAllocationEntries(summary)
   return (
     <Card className="gap-3 rounded-[10px] py-[18px] shadow-none">
       <CardHeader className="flex flex-row items-center justify-between px-[18px]">
@@ -57,17 +60,4 @@ export function ExpenseCategoryAllocationCard({
       </CardContent>
     </Card>
   )
-}
-
-function categoryEntries(summary: ExpenseSummary) {
-  if (summary.categoryBreakdown.length <= 4) return summary.categoryBreakdown
-  return [
-    ...summary.categoryBreakdown.slice(0, 3),
-    {
-      category: "other" as const,
-      totalMinor: summary.categoryBreakdown
-        .slice(3)
-        .reduce((total, entry) => total + entry.totalMinor, 0),
-    },
-  ]
 }

@@ -926,7 +926,7 @@ describe("Trackfi API", () => {
         category: "food",
         status: "pending",
       }),
-      receipt: new File(["%PDF-1.7\nreceipt"], "receipt.pdf", {
+      receipt: new File(["%PDF-1.7\nreceipt"], "收据-📄.pdf", {
         type: "application/pdf",
       }),
     })
@@ -934,7 +934,7 @@ describe("Trackfi API", () => {
     const coffeeBody = await coffee.json<{
       expense: { id: string; receipt: { name: string } }
     }>()
-    expect(coffeeBody.expense.receipt.name).toBe("receipt.pdf")
+    expect(coffeeBody.expense.receipt.name).toBe("收据-📄.pdf")
     await userApi("/api/expenses", cookie, {
       method: "POST",
       body: expenseBody({
@@ -983,6 +983,17 @@ describe("Trackfi API", () => {
       total: 1,
       expenses: [{ merchant: "Coffee", status: "pending" }],
     })
+    await expect(
+      (
+        await userApi(
+          "/api/expenses?from=2024-01-15&to=2024-02-14&missingReceipt=true",
+          cookie
+        )
+      ).json()
+    ).resolves.toMatchObject({
+      total: 1,
+      expenses: [{ merchant: "Rent", status: "approved" }],
+    })
 
     const otherCookie = await createUserSession()
     await expect(
@@ -1010,6 +1021,9 @@ describe("Trackfi API", () => {
     )
     expect(receipt.status).toBe(200)
     expect(receipt.headers.get("content-type")).toContain("application/pdf")
+    expect(receipt.headers.get("content-disposition")).toContain(
+      "filename*=UTF-8''%E6%94%B6%E6%8D%AE-%F0%9F%93%84.pdf"
+    )
     await expect(
       (
         await userApi(`/api/expenses/${rentBody.expense.id}`, cookie, {

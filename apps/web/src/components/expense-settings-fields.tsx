@@ -25,7 +25,6 @@ export function ExpenseMoneyField({
         </span>
         <Input
           id={id}
-          required
           type="number"
           min={step}
           step={step}

@@ -14,8 +14,8 @@ import {
   validateReceipt,
 } from "../expense-receipts"
 import { expenseCreateSchema, expenseUpdateSchema } from "../expense-validation"
-import { safeContentDispositionFilename } from "../http"
-import type { AppEnv } from "../types"
+import { inlineContentDisposition } from "../http"
+import type { AppContext, AppEnv } from "../types"
 
 export function registerExpenseMutationRoutes(app: Hono<AppEnv>) {
   app.get("/api/expenses/:id/receipt", async (context) => {
@@ -34,7 +34,7 @@ export function registerExpenseMutationRoutes(app: Hono<AppEnv>) {
     headers.set("Content-Length", String(expense.receipt_size))
     headers.set(
       "Content-Disposition",
-      `inline; filename="${safeContentDispositionFilename(expense.receipt_name!)}"`
+      inlineContentDisposition(expense.receipt_name!)
     )
     headers.set("Cache-Control", "private, no-store")
     return new Response(receipt.body, { headers })
@@ -100,24 +100,25 @@ export function registerExpenseMutationRoutes(app: Hono<AppEnv>) {
       : parsed.data.removeReceipt
         ? null
         : undefined
+    let row
     try {
-      const row = await updateExpenseRow(
+      row = await updateExpenseRow(
         context.env.DB,
         existing,
         parsed.data,
         stored
       )
-      if (
-        existing.receipt_key &&
-        (request.receipt || parsed.data.removeReceipt)
-      ) {
-        await context.env.EXPENSE_RECEIPTS.delete(existing.receipt_key)
-      }
-      return context.json({ expense: serializeExpense(row) })
     } catch (error) {
       if (stored) await context.env.EXPENSE_RECEIPTS.delete(stored.key)
       throw error
     }
+    if (
+      existing.receipt_key &&
+      (request.receipt || parsed.data.removeReceipt)
+    ) {
+      deleteReceiptInBackground(context, existing.receipt_key)
+    }
+    return context.json({ expense: serializeExpense(row) })
   })
 
   app.delete("/api/expenses/:id", async (context) => {
@@ -134,8 +135,14 @@ export function registerExpenseMutationRoutes(app: Hono<AppEnv>) {
     if (!existing) return context.json({ error: "not_found" }, 404)
     await deleteExpenseRow(context.env.DB, user.id, existing.id)
     if (existing.receipt_key) {
-      await context.env.EXPENSE_RECEIPTS.delete(existing.receipt_key)
+      deleteReceiptInBackground(context, existing.receipt_key)
     }
     return context.body(null, 204)
   })
+}
+
+export function deleteReceiptInBackground(context: AppContext, key: string) {
+  context.executionCtx.waitUntil(
+    context.env.EXPENSE_RECEIPTS.delete(key).catch(() => undefined)
+  )
 }

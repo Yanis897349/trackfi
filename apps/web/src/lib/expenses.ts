@@ -170,3 +170,23 @@ export function expenseRequestBody(input: ExpenseInput, receipt: File | null) {
   form.set("receipt", receipt)
   return form
 }
+
+export function expenseCategoryAllocationEntries(summary: ExpenseSummary) {
+  if (summary.categoryBreakdown.length <= 4) return summary.categoryBreakdown
+  const leading = summary.categoryBreakdown.slice(0, 3)
+  const remainingTotal = summary.categoryBreakdown
+    .slice(3)
+    .reduce((total, entry) => total + entry.totalMinor, 0)
+  const existingOther = leading.findIndex((entry) => entry.category === "other")
+  if (existingOther >= 0) {
+    return leading.map((entry, index) =>
+      index === existingOther
+        ? { ...entry, totalMinor: entry.totalMinor + remainingTotal }
+        : entry
+    )
+  }
+  return [
+    ...leading,
+    { category: "other" as const, totalMinor: remainingTotal },
+  ]
+}

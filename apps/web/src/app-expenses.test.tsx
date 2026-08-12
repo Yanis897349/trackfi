@@ -159,6 +159,43 @@ describe("Trackfi expenses application", () => {
     )
   })
 
+  it("returns to the first page after editing a later page", async () => {
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      expenses: Array.from({ length: 6 }, (_, index) => ({
+        ...expenseFixture(),
+        id: `expense-${index + 1}`,
+        merchant: `Merchant ${index + 1}`,
+      })),
+    })
+    const { queryClient, router } = createTestRouter("/dashboard/expenses")
+    render(<App queryClient={queryClient} router={router} />)
+
+    fireEvent.click(
+      (await screen.findAllByRole("button", { name: "Next page" }))[0]!
+    )
+    expect(await screen.findAllByText("Merchant 6")).not.toHaveLength(0)
+
+    fireEvent.click(
+      (
+        await screen.findAllByRole("button", {
+          name: "Actions for Merchant 6",
+        })
+      )[0]!
+    )
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Edit" }))
+    fireEvent.click(await screen.findByRole("radio", { name: "Pending" }))
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }))
+
+    expect(await screen.findAllByText("Merchant 1")).not.toHaveLength(0)
+    expect(
+      screen
+        .getAllByRole("button", { name: "Previous page" })
+        .every((button) => button.hasAttribute("disabled"))
+    ).toBe(true)
+  })
+
   it("uses a contextual skeleton while expenses load", async () => {
     mockApi({
       waitlistMode: true,

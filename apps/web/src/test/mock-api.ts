@@ -161,7 +161,8 @@ export function mockApi({
               (!statusFilter || expense.status === statusFilter) &&
               (!category || expense.category === category) &&
               (!pending || expense.status === "pending") &&
-              (!missingReceipt || !expense.receipt) &&
+              (!missingReceipt ||
+                (!expense.receipt && expense.status !== "declined")) &&
               (!query || String(expense.merchant).toLowerCase().includes(query))
             )
           })

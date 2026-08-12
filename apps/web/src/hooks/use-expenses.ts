@@ -84,6 +84,7 @@ export function useExpenses() {
       }),
     onSuccess: async () => {
       setDialogOpen(false)
+      setPage(1)
       await refresh()
     },
     onError: (error) => setMessage(humanizeError(error)),
