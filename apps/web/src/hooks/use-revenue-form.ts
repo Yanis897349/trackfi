@@ -79,7 +79,7 @@ export function useRevenueForm({
       cadence: values.scheduleType === "scheduled" ? values.cadence : null,
       paymentAnchor:
         values.scheduleType === "scheduled"
-          ? source && !paymentAnchorChanged
+          ? source && !paymentAnchorChanged && values.cadence === source.cadence
             ? source.paymentAnchor
             : values.paymentAnchor
           : null,
