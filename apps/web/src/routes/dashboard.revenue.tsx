@@ -23,20 +23,17 @@ export const Route = createFileRoute("/dashboard/revenue")({
 
 function RevenueRoute() {
   const state = useRevenue()
-  if (state.settings.isLoading || state.summary.isLoading) {
+  if (state.settings.isLoading) {
     return <RevenueLoadingState />
   }
-  if (state.settings.isError || state.summary.isError) {
-    return (
-      <ModuleError
-        retry={() => {
-          void state.settings.refetch()
-          void state.summary.refetch()
-        }}
-      />
-    )
+  if (state.settings.isError) {
+    return <ModuleError retry={() => void state.settings.refetch()} />
   }
   if (!state.currency) return <RevenueCurrencyRequiredState />
+  if (state.summary.isLoading) return <RevenueLoadingState />
+  if (state.summary.isError) {
+    return <ModuleError retry={() => void state.summary.refetch()} />
+  }
 
   const sources = state.list.data?.revenueSources ?? []
   const hasFilters =

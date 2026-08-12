@@ -36,20 +36,23 @@ export function useRevenue() {
   const [deleting, setDeleting] = useState<RevenueSource | null>(null)
   const [message, setMessage] = useState("")
   const settings = useQuery(settingsQueryOptions())
+  const currency = settings.data?.settings.currency
   const summary = useQuery({
     ...revenueSummaryQueryOptions(forecastMonths),
     placeholderData: keepPreviousData,
+    enabled: Boolean(currency),
   })
-  const list = useQuery(
-    revenueSourcesQueryOptions({
+  const list = useQuery({
+    ...revenueSourcesQueryOptions({
       status,
       query: search,
       page,
       pageSize: 3,
       ...(category === "all" ? {} : { category }),
       ...(scheduleType === "all" ? {} : { scheduleType }),
-    })
-  )
+    }),
+    enabled: Boolean(currency),
+  })
 
   async function refresh() {
     setMessage("")
@@ -132,8 +135,7 @@ export function useRevenue() {
     settings,
     status,
     summary,
-    currency:
-      settings.data?.settings.currency ?? summary.data?.summary.currency,
+    currency,
     closeDialog(open: boolean) {
       setDialogOpen(open)
     },

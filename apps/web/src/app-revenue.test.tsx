@@ -8,10 +8,11 @@ import "./routes/dashboard.revenue"
 
 describe("Trackfi revenue application", () => {
   it("requires currency setup before adding revenue", async () => {
-    mockApi({
+    const requests = mockApi({
       waitlistMode: true,
       session: sessionFor("user"),
       currency: null,
+      deferUrl: "/api/revenue-sources",
     })
     const { queryClient, router } = createTestRouter("/dashboard/revenue")
     render(<App queryClient={queryClient} router={router} />)
@@ -23,6 +24,9 @@ describe("Trackfi revenue application", () => {
       "href",
       "/dashboard/settings"
     )
+    expect(
+      requests.some(({ url }) => url.includes("/api/revenue-sources"))
+    ).toBe(false)
   })
 
   it("renders forecasts, source mix, and tracked revenue sources", async () => {
