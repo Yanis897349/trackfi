@@ -18,6 +18,7 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardFeatureFlagsRouteImport } from './routes/dashboard.feature-flags'
+import { Route as DashboardRevenueRouteImport } from './routes/dashboard.revenue'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardSubscriptionsRouteImport } from './routes/dashboard.subscriptions'
 import { Route as DashboardWaitlistRouteImport } from './routes/dashboard.waitlist'
@@ -68,6 +69,11 @@ const DashboardFeatureFlagsRoute = DashboardFeatureFlagsRouteImport.update({
   path: '/feature-flags',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardRevenueRoute = DashboardRevenueRouteImport.update({
+  id: '/revenue',
+  path: '/revenue',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
+  '/dashboard/revenue': typeof DashboardRevenueRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/subscriptions': typeof DashboardSubscriptionsRoute
   '/dashboard/waitlist': typeof DashboardWaitlistRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
+  '/dashboard/revenue': typeof DashboardRevenueRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/subscriptions': typeof DashboardSubscriptionsRoute
   '/dashboard/waitlist': typeof DashboardWaitlistRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
+  '/dashboard/revenue': typeof DashboardRevenueRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/subscriptions': typeof DashboardSubscriptionsRoute
   '/dashboard/waitlist': typeof DashboardWaitlistRoute
@@ -146,6 +155,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/dashboard/feature-flags'
+    | '/dashboard/revenue'
     | '/dashboard/settings'
     | '/dashboard/subscriptions'
     | '/dashboard/waitlist'
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/dashboard/feature-flags'
+    | '/dashboard/revenue'
     | '/dashboard/settings'
     | '/dashboard/subscriptions'
     | '/dashboard/waitlist'
@@ -175,6 +186,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/dashboard/feature-flags'
+    | '/dashboard/revenue'
     | '/dashboard/settings'
     | '/dashboard/subscriptions'
     | '/dashboard/waitlist'
@@ -257,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardFeatureFlagsRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/revenue': {
+      id: '/dashboard/revenue'
+      path: '/revenue'
+      fullPath: '/dashboard/revenue'
+      preLoaderRoute: typeof DashboardRevenueRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/settings': {
       id: '/dashboard/settings'
       path: '/settings'
@@ -290,6 +309,7 @@ declare module '@tanstack/react-router' {
 
 interface DashboardRouteChildren {
   DashboardFeatureFlagsRoute: typeof DashboardFeatureFlagsRoute
+  DashboardRevenueRoute: typeof DashboardRevenueRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSubscriptionsRoute: typeof DashboardSubscriptionsRoute
   DashboardWaitlistRoute: typeof DashboardWaitlistRoute
@@ -299,6 +319,7 @@ interface DashboardRouteChildren {
 
 const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardFeatureFlagsRoute: DashboardFeatureFlagsRoute,
+  DashboardRevenueRoute: DashboardRevenueRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSubscriptionsRoute: DashboardSubscriptionsRoute,
   DashboardWaitlistRoute: DashboardWaitlistRoute,

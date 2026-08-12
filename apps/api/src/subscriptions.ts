@@ -7,6 +7,7 @@ export const subscriptionCadences = [
 ] as const
 
 export type SubscriptionCadence = (typeof subscriptionCadences)[number]
+export type RecurrenceCadence = SubscriptionCadence | "biweekly"
 
 export interface SubscriptionCalculationInput {
   amountMinor: number
@@ -14,7 +15,7 @@ export interface SubscriptionCalculationInput {
   cadence: SubscriptionCadence
 }
 
-const cadenceMonths: Partial<Record<SubscriptionCadence, number>> = {
+const cadenceMonths: Partial<Record<RecurrenceCadence, number>> = {
   monthly: 1,
   quarterly: 3,
   semiannual: 6,
@@ -26,11 +27,23 @@ export function nextRenewalDate(
   cadence: SubscriptionCadence,
   asOf: string
 ) {
+  return nextOccurrenceDate(billingAnchor, cadence, asOf)
+}
+
+export function nextOccurrenceDate(
+  billingAnchor: string,
+  cadence: RecurrenceCadence,
+  asOf: string
+) {
   if (billingAnchor >= asOf) return billingAnchor
 
-  if (cadence === "weekly") {
+  if (cadence === "weekly" || cadence === "biweekly") {
+    const intervalDays = cadence === "weekly" ? 7 : 14
     const elapsedDays = dateOnlyDayDifference(billingAnchor, asOf)
-    return addDateOnlyDays(billingAnchor, Math.ceil(elapsedDays / 7) * 7)
+    return addDateOnlyDays(
+      billingAnchor,
+      Math.ceil(elapsedDays / intervalDays) * intervalDays
+    )
   }
 
   const interval = cadenceMonths[cadence]!
@@ -80,11 +93,20 @@ export function renewalDatesInRange(
   from: string,
   through: string
 ) {
+  return occurrenceDatesInRange(billingAnchor, cadence, from, through)
+}
+
+export function occurrenceDatesInRange(
+  billingAnchor: string,
+  cadence: RecurrenceCadence,
+  from: string,
+  through: string
+) {
   const dates: string[] = []
-  let candidate = nextRenewalDate(billingAnchor, cadence, from)
+  let candidate = nextOccurrenceDate(billingAnchor, cadence, from)
   while (candidate <= through) {
     dates.push(candidate)
-    candidate = nextRenewalDate(
+    candidate = nextOccurrenceDate(
       billingAnchor,
       cadence,
       addDateOnlyDays(candidate, 1)

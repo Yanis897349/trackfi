@@ -10,6 +10,12 @@ import {
   isDateOnly,
   subtractUtcCalendarMonth,
 } from "../src/date"
+import {
+  nextRevenuePaymentDate,
+  revenueAnnualEquivalentMinor,
+  revenueMonthlyEquivalentMinor,
+  revenuePaymentDatesInRange,
+} from "../src/revenue"
 
 describe("subscription calculations", () => {
   it("validates real calendar dates", () => {
@@ -80,5 +86,39 @@ describe("subscription calculations", () => {
         new Date("2024-03-31T12:30:00.000Z")
       ).toISOString()
     ).toBe("2024-02-29T12:30:00.000Z")
+  })
+
+  it("normalizes scheduled and variable revenue forecasts", () => {
+    expect(
+      revenueAnnualEquivalentMinor({
+        amountMinor: 100,
+        scheduleType: "scheduled",
+        cadence: "biweekly",
+      })
+    ).toBe(2600)
+    expect(
+      revenueMonthlyEquivalentMinor({
+        amountMinor: 100,
+        scheduleType: "variable",
+        cadence: null,
+      })
+    ).toBe(100)
+  })
+
+  it("forecasts biweekly revenue and preserves calendar anchors", () => {
+    expect(nextRevenuePaymentDate("2024-01-01", "biweekly", "2024-01-16")).toBe(
+      "2024-01-29"
+    )
+    expect(
+      revenuePaymentDatesInRange(
+        "2024-01-01",
+        "biweekly",
+        "2024-01-01",
+        "2024-01-31"
+      )
+    ).toEqual(["2024-01-01", "2024-01-15", "2024-01-29"])
+    expect(nextRevenuePaymentDate("2024-01-31", "monthly", "2024-02-01")).toBe(
+      "2024-02-29"
+    )
   })
 })

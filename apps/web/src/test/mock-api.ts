@@ -6,6 +6,7 @@ export function mockApi({
   invitation,
   session,
   currency = "EUR",
+  revenueSources = [],
   subscriptions = [],
   waitlistEntries = false,
   waitlistMode,
@@ -15,6 +16,7 @@ export function mockApi({
   invitation?: { email: string; valid: true } | null
   session: null | { session: { id: string }; user: Record<string, string> }
   currency?: string | null
+  revenueSources?: Array<Record<string, unknown>>
   subscriptions?: Array<Record<string, unknown>>
   waitlistEntries?: boolean
   waitlistMode: boolean
@@ -36,6 +38,55 @@ export function mockApi({
       else if (url.includes("/api/auth/get-session")) body = session
       else if (url.includes("/api/settings")) {
         body = { settings: { currency, updatedAt: null } }
+      } else if (url.includes("/api/revenue-sources/summary")) {
+        const active = revenueSources.filter(
+          (source) => source.status === "active"
+        )
+        body = {
+          summary: {
+            currency,
+            activeCount: active.length,
+            pausedCount: revenueSources.filter(
+              (source) => source.status === "paused"
+            ).length,
+            variableCount: active.filter(
+              (source) => source.scheduleType === "variable"
+            ).length,
+            activeCategoryCount: active.length ? 1 : 0,
+            monthlyEquivalentMinor: active.reduce(
+              (total, source) =>
+                total + Number(source.monthlyEquivalentMinor ?? 0),
+              0
+            ),
+            annualEquivalentMinor: active.reduce(
+              (total, source) =>
+                total + Number(source.annualEquivalentMinor ?? 0),
+              0
+            ),
+            upcomingCount: active.filter((source) => source.nextPaymentDate)
+              .length,
+            upcomingTotalMinor: active.reduce(
+              (total, source) =>
+                total +
+                (source.nextPaymentDate ? Number(source.amountMinor) : 0),
+              0
+            ),
+            sourceBreakdown: active.map((source) => ({
+              sourceId: source.id,
+              name: source.name,
+              category: source.category,
+              monthlyEquivalentMinor: source.monthlyEquivalentMinor,
+            })),
+            upcoming: [],
+          },
+        }
+      } else if (url.includes("/api/revenue-sources")) {
+        body = {
+          revenueSources,
+          page: 1,
+          pageSize: 3,
+          total: revenueSources.length,
+        }
       } else if (url.includes("/api/subscriptions/calendar")) {
         body = {
           calendar: {
@@ -161,6 +212,25 @@ export function subscriptionFixture() {
     websiteUrl: "https://example.com",
     notes: null,
     status: "active",
+    createdAt: "2026-08-11T00:00:00.000Z",
+    updatedAt: "2026-08-11T00:00:00.000Z",
+  }
+}
+
+export function revenueSourceFixture() {
+  return {
+    id: "revenue-source-id",
+    name: "Primary job",
+    amountMinor: 300000,
+    scheduleType: "scheduled",
+    cadence: "monthly",
+    paymentAnchor: "2026-08-25",
+    nextPaymentDate: "2026-08-25",
+    category: "salary",
+    notes: "Net salary",
+    status: "active",
+    monthlyEquivalentMinor: 300000,
+    annualEquivalentMinor: 3600000,
     createdAt: "2026-08-11T00:00:00.000Z",
     updatedAt: "2026-08-11T00:00:00.000Z",
   }

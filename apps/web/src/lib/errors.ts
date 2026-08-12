@@ -1,6 +1,6 @@
 const errorMessages: Record<string, string> = {
   currency_required:
-    "Choose an account currency in Settings before adding a subscription.",
+    "Choose an account currency in Settings before adding financial items.",
   delete_confirmation_required: "Confirm permanent deletion before continuing.",
   email_delivery_failed:
     "The change was saved, but the email could not be delivered. Try resending it.",
