@@ -52,12 +52,12 @@ export function TurnstileWidget({
   const id = useId()
   const containerRef = useRef<HTMLDivElement>(null)
   const [loadedKey, setLoadedKey] = useState<number | null>(
-    import.meta.env.MODE === "test" ? resetKey : null
+    import.meta.env?.MODE === "test" ? resetKey : null
   )
   const loaded = loadedKey === resetKey
 
   useEffect(() => {
-    if (import.meta.env.MODE === "test") {
+    if (import.meta.env?.MODE === "test") {
       onTokenChange("test-token")
       return
     }

@@ -5,7 +5,7 @@
   "language_label": "Language",
   "language_description": "Choose the language used across Trackfi and transactional emails.",
   "language_saved": "Language saved.",
-  "language_sync_failed": "The language changed on this device, but could not be synced to your account.",
+  "language_sync_failed": "We couldn’t sync the language with your account, so it was not changed.",
   "common_actions": "Actions",
   "common_add": "Add",
   "common_all": "All",

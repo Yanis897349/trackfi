@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "pnpm i18n:compile && vite build",
-    "build:functions": "pnpm i18n:compile && wrangler pages functions build functions --outdir .wrangler/functions --compatibility-date=2026-08-12 --compatibility-flag=nodejs_compat",
+    "build:functions": "pnpm i18n:compile && wrangler pages functions build functions --outdir .wrangler/functions --compatibility-date=2026-08-11 --compatibility-flag=nodejs_compat",
     "deploy": "wrangler pages deploy dist",
     "dev": "pnpm i18n:compile && vite --host 0.0.0.0 --port ${WEB_PORT:-5173}",
     "i18n:compile": "node scripts/compile-localization.mjs",

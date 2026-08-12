@@ -1,3 +1,4 @@
+import { useState } from "react"
 import type { Locale } from "@trackfi/localization"
 import { LanguagesIcon } from "lucide-react"
 
@@ -20,6 +21,8 @@ export function LanguageSelector({
   className?: string
   user?: CurrentUser | null
 }) {
+  const [syncError, setSyncError] = useState("")
+  const [saving, setSaving] = useState(false)
   const localeItems = [
     { label: m.language_english(), value: "en" },
     { label: m.language_french(), value: "fr" },
@@ -29,32 +32,53 @@ export function LanguageSelector({
     if (value !== "en" && value !== "fr") return
 
     if (user) {
-      await authClient.updateUser({ locale: value } as never).catch(() => null)
+      setSyncError("")
+      setSaving(true)
+      try {
+        const result = await authClient.updateUser({ locale: value } as never)
+        if (result.error) {
+          setSyncError(m.language_sync_failed())
+          return
+        }
+      } catch {
+        setSyncError(m.language_sync_failed())
+        return
+      } finally {
+        setSaving(false)
+      }
     }
     await setLocale(value)
   }
 
   return (
-    <Select
-      items={localeItems}
-      value={getLocale()}
-      onValueChange={changeLocale}
-    >
-      <SelectTrigger
-        size="sm"
-        aria-label={m.language_label()}
-        className={cn("min-w-28", className)}
+    <div className={cn("space-y-2", className)}>
+      <Select
+        items={localeItems}
+        value={getLocale()}
+        disabled={saving}
+        onValueChange={changeLocale}
       >
-        <LanguagesIcon className="size-3.5 text-muted-foreground" />
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {localeItems.map((item) => (
-          <SelectItem key={item.value} value={item.value}>
-            {item.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+        <SelectTrigger
+          size="sm"
+          aria-label={m.language_label()}
+          className="w-full min-w-28"
+        >
+          <LanguagesIcon className="size-3.5 text-muted-foreground" />
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {localeItems.map((item) => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {syncError && (
+        <p role="alert" className="max-w-72 text-xs text-destructive">
+          {syncError}
+        </p>
+      )}
+    </div>
   )
 }
