@@ -22,3 +22,8 @@ icon = "circle-check"
 available_in = [ "local" ]
 command = "mise exec -- pnpm db:migrate:local && mise exec -- pnpm --filter @trackfi/api exec wrangler d1 execute DB --local --command \"UPDATE feature_flags SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE key = 'waitlist_mode';\""
 icon = "lock-open"
+
+[scripts.run.verify-admin-emails]
+available_in = [ "local" ]
+command = "mise exec -- pnpm db:migrate:local && mise exec -- pnpm --filter @trackfi/api exec wrangler d1 execute DB --local --command \"UPDATE \\\"user\\\" SET \\\"emailVerified\\\" = 1 WHERE role = 'admin' AND \\\"emailVerified\\\" = 0;\""
+icon = "badge-check"
