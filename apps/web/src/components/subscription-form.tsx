@@ -22,6 +22,7 @@ import {
   type SubscriptionInput,
 } from "../lib/subscriptions"
 import { useSubscriptionForm } from "../hooks/use-subscription-form"
+import { dateFnsLocale, m } from "../lib/i18n"
 import { SubscriptionFormDetails } from "./subscription-form-details"
 
 export const subscriptionFormId = "subscription-form"
@@ -43,11 +44,13 @@ export function SubscriptionForm({
     <form id={subscriptionFormId} className="px-6 pb-6" onSubmit={form.submit}>
       <FieldGroup className="gap-[18px]">
         <Field>
-          <FieldLabel htmlFor="subscription-name">Service name</FieldLabel>
+          <FieldLabel htmlFor="subscription-name">
+            {m.subscriptions_service_name()}
+          </FieldLabel>
           <Input
             id="subscription-name"
             className="h-10 px-3"
-            placeholder="e.g. Notion, Spotify, Figma"
+            placeholder={m.subscriptions_service_placeholder()}
             value={form.values.name}
             onChange={(event) => form.setValue("name", event.target.value)}
             maxLength={100}
@@ -58,7 +61,7 @@ export function SubscriptionForm({
         <div className="grid gap-4 sm:grid-cols-2">
           <Field>
             <FieldLabel htmlFor="subscription-amount">
-              Amount ({currency})
+              {m.subscriptions_amount({ currency })}
             </FieldLabel>
             <Input
               id="subscription-amount"
@@ -73,7 +76,7 @@ export function SubscriptionForm({
             />
           </Field>
           <Field>
-            <FieldLabel>Cadence</FieldLabel>
+            <FieldLabel>{m.subscriptions_cadence()}</FieldLabel>
             <Select
               items={subscriptionCadenceOptions}
               value={form.values.cadence}
@@ -83,7 +86,7 @@ export function SubscriptionForm({
             >
               <SelectTrigger
                 className="h-10 w-full px-3 data-[size=default]:h-10"
-                aria-label="Cadence"
+                aria-label={m.subscriptions_cadence()}
               >
                 <SelectValue />
               </SelectTrigger>
@@ -98,14 +101,18 @@ export function SubscriptionForm({
           </Field>
         </div>
         <Field>
-          <FieldLabel htmlFor="subscription-date">Next billing date</FieldLabel>
+          <FieldLabel htmlFor="subscription-date">
+            {m.subscriptions_next_billing_date()}
+          </FieldLabel>
           <DateOnlyPicker
             id="subscription-date"
             value={form.values.billingAnchor}
             onChange={(value) => form.setValue("billingAnchor", value)}
+            locale={dateFnsLocale()}
+            placeholder={m.calendar_pick_date()}
           />
           <FieldDescription className="text-xs">
-            Future renewals are calculated from this date.
+            {m.subscriptions_date_description()}
           </FieldDescription>
         </Field>
         <SubscriptionFormDetails

@@ -1,5 +1,4 @@
 import { useCallback, useState, type FormEvent } from "react"
-import { Link } from "@tanstack/react-router"
 import { ArrowRightIcon, CheckIcon } from "lucide-react"
 
 import { Button } from "@trackfi/ui/components/button"
@@ -8,6 +7,8 @@ import { Input } from "@trackfi/ui/components/input"
 
 import { apiFetch } from "../lib/api"
 import { humanizeError } from "../lib/errors"
+import { getLocale, localizeHref, m } from "../lib/i18n"
+import { LanguageSelector } from "./language-selector"
 import { TurnstileWidget } from "./turnstile-widget"
 
 export function WaitlistPage() {
@@ -27,7 +28,7 @@ export function WaitlistPage() {
     setError("")
     if (!event.currentTarget.reportValidity()) return
     if (!turnstileToken) {
-      setError("Please complete the security check.")
+      setError(m.auth_complete_security_check())
       return
     }
 
@@ -36,7 +37,7 @@ export function WaitlistPage() {
       await apiFetch("/api/waitlist", {
         method: "POST",
         headers: { "X-Turnstile-Token": turnstileToken },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, locale: getLocale() }),
       })
       setSubmitted(true)
     } catch (cause) {
@@ -52,17 +53,19 @@ export function WaitlistPage() {
     <main className="relative flex min-h-svh overflow-hidden bg-background">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklch,var(--foreground)_7%,transparent),transparent_42%)]" />
       <section className="relative mx-auto flex w-full max-w-6xl flex-col justify-between px-6 py-8 md:px-10 md:py-10">
-        <p className="text-sm font-semibold tracking-tight">Trackfi</p>
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm font-semibold tracking-tight">Trackfi</p>
+          <LanguageSelector />
+        </div>
         <div className="max-w-2xl py-20">
           <p className="mb-5 text-sm font-medium text-muted-foreground">
-            Thoughtful finance tracking is almost here.
+            {m.waitlist_eyebrow()}
           </p>
           <h1 className="max-w-xl text-4xl leading-[1.05] font-semibold tracking-[-0.04em] text-balance sm:text-6xl">
-            See the future of your money, clearly.
+            {m.waitlist_title()}
           </h1>
           <p className="mt-6 max-w-lg text-base leading-7 text-pretty text-muted-foreground sm:text-lg">
-            Track subscriptions, recurring income, investments, and long-term
-            growth from one calm, focused workspace.
+            {m.waitlist_description()}
           </p>
 
           {submitted ? (
@@ -71,17 +74,20 @@ export function WaitlistPage() {
                 <CheckIcon className="size-3.5" />
               </span>
               <div>
-                <p className="text-sm font-medium">You’re on the list.</p>
+                <p className="text-sm font-medium">
+                  {m.waitlist_success_title()}
+                </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Check your inbox for a confirmation. We’ll be in touch when
-                  your access is ready.
+                  {m.waitlist_success_description()}
                 </p>
               </div>
             </div>
           ) : (
             <form className="mt-9 max-w-md" onSubmit={handleSubmit}>
               <Field data-invalid={Boolean(error) || undefined}>
-                <FieldLabel htmlFor="waitlist-email">Email address</FieldLabel>
+                <FieldLabel htmlFor="waitlist-email">
+                  {m.auth_email()}
+                </FieldLabel>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Input
                     id="waitlist-email"
@@ -101,7 +107,7 @@ export function WaitlistPage() {
                     disabled={submitting}
                     className="h-10"
                   >
-                    {submitting ? "Joining…" : "Join the waitlist"}
+                    {submitting ? m.waitlist_joining() : m.waitlist_join()}
                     {!submitting && <ArrowRightIcon />}
                   </Button>
                 </div>
@@ -115,10 +121,13 @@ export function WaitlistPage() {
           )}
         </div>
         <div className="flex items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>Built for a clearer financial future.</p>
-          <Link to="/login" className="hover:text-foreground hover:underline">
-            Already invited? Sign in
-          </Link>
+          <p>{m.waitlist_footer()}</p>
+          <a
+            href={localizeHref("/login")}
+            className="hover:text-foreground hover:underline"
+          >
+            {m.waitlist_invited_sign_in()}
+          </a>
         </div>
       </section>
     </main>

@@ -14,6 +14,7 @@ import { useSubscriptionManager } from "../hooks/use-subscriptions"
 import { formatMonthKey, monthDate } from "../lib/subscription-calendar"
 import { settingsQueryOptions } from "../lib/settings"
 import { renewalCalendarQueryOptions } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export const Route = createFileRoute("/dashboard/subscriptions_/calendar")({
   component: SubscriptionCalendarRoute,
@@ -43,8 +44,8 @@ function SubscriptionCalendarRoute() {
   if (!currency) {
     return (
       <CurrencyRequiredState
-        title="Renewal calendar"
-        description="Choose an account currency before planning subscription renewals."
+        title={m.calendar_title()}
+        description={m.calendar_currency_description()}
       />
     )
   }
@@ -52,11 +53,11 @@ function SubscriptionCalendarRoute() {
   return (
     <section className="mx-auto w-full max-w-6xl space-y-5">
       <ModuleHeader
-        title="Renewal calendar"
-        description="Plan ahead with a monthly view of every subscription renewal."
+        title={m.calendar_title()}
+        description={m.calendar_description()}
         action={
           <Button size="lg" className="px-4" onClick={manager.openCreate}>
-            <PlusIcon /> Add subscription
+            <PlusIcon /> {m.subscriptions_add()}
           </Button>
         }
       />
@@ -86,11 +87,11 @@ function CalendarLoadingState() {
     <section
       className="mx-auto w-full max-w-6xl space-y-5"
       role="status"
-      aria-label="Loading renewal calendar"
+      aria-label={m.calendar_loading()}
     >
       <ModuleHeader
-        title="Renewal calendar"
-        description="Plan ahead with a monthly view of every subscription renewal."
+        title={m.calendar_title()}
+        description={m.calendar_description()}
         action={<Skeleton className="h-9 w-40" />}
       />
       <Skeleton className="h-10 w-full" />

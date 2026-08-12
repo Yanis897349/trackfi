@@ -13,6 +13,7 @@ import {
   ExpenseSettingsForm,
   expenseSettingsFormId,
 } from "./expense-settings-form"
+import { m } from "../lib/i18n"
 
 export function ExpenseSettingsDialog({
   currency,
@@ -36,10 +37,10 @@ export function ExpenseSettingsDialog({
       <DialogContent className="rounded-[14px] sm:max-w-[704px] [&>[data-slot=dialog-close]]:top-5 [&>[data-slot=dialog-close]]:right-5">
         <DialogHeader className="gap-1 border-b-0 px-7 pt-6 pb-5">
           <DialogTitle className="text-lg font-semibold">
-            Expense settings
+            {m.expenses_settings_title()}
           </DialogTitle>
           <DialogDescription>
-            Set the guardrails Trackfi uses to plan and monitor your spending.
+            {m.expenses_settings_description()}
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto px-7 pb-5">
@@ -59,10 +60,10 @@ export function ExpenseSettingsDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {m.common_cancel()}
           </Button>
           <Button type="submit" form={expenseSettingsFormId} disabled={pending}>
-            {pending ? "Saving…" : "Save settings"}
+            {pending ? m.common_saving() : m.expenses_save_settings()}
           </Button>
         </DialogFooter>
       </DialogContent>

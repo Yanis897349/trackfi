@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth"
+import { normalizeLocale } from "@trackfi/localization"
 
 import {
   getAppOrigin,
@@ -30,7 +31,12 @@ export function createAuth(
       maxPasswordLength: 128,
       requireEmailVerification: true,
       sendResetPassword: ({ user, url }) => {
-        const promise = sendPasswordReset(env, user.email, url)
+        const promise = sendPasswordReset(
+          env,
+          user.email,
+          url,
+          normalizeLocale((user as { locale?: unknown }).locale)
+        )
         if (executionContext) {
           executionContext.waitUntil(promise)
           return Promise.resolve()
@@ -43,7 +49,12 @@ export function createAuth(
       sendOnSignIn: true,
       autoSignInAfterVerification: false,
       sendVerificationEmail: ({ user, url }) => {
-        const promise = sendVerificationEmail(env, user.email, url)
+        const promise = sendVerificationEmail(
+          env,
+          user.email,
+          url,
+          normalizeLocale((user as { locale?: unknown }).locale)
+        )
         if (executionContext) {
           executionContext.waitUntil(promise)
           return Promise.resolve()
@@ -59,6 +70,12 @@ export function createAuth(
           defaultValue: "user",
           input: false,
         },
+        locale: {
+          type: ["en", "fr"],
+          required: true,
+          defaultValue: "en",
+          input: true,
+        },
       },
     },
     databaseHooks: {
@@ -68,6 +85,7 @@ export function createAuth(
             data: {
               ...user,
               email: user.email.trim().toLowerCase(),
+              locale: normalizeLocale(user.locale),
               role: isAdminEmail(env, user.email) ? "admin" : "user",
             },
           }),

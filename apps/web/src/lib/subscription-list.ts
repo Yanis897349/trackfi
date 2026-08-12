@@ -1,10 +1,11 @@
 import type { Subscription } from "./subscriptions"
+import { m } from "./i18n"
 
 export function subscriptionSecondaryLabel(subscription: Subscription) {
   return (
     subscription.notes?.split("\n")[0] ||
     websiteHostname(subscription.websiteUrl) ||
-    "No additional details"
+    m.subscriptions_no_details()
   )
 }
 
@@ -20,11 +21,11 @@ function websiteHostname(websiteUrl: string | null) {
 export function cadenceSuffix(cadence: Subscription["cadence"]) {
   return (
     {
-      weekly: "week",
-      monthly: "month",
-      quarterly: "quarter",
-      semiannual: "6 months",
-      yearly: "year",
+      weekly: m.subscriptions_per_week(),
+      monthly: m.subscriptions_per_month(),
+      quarterly: m.subscriptions_per_quarter(),
+      semiannual: m.subscriptions_per_six_months(),
+      yearly: m.subscriptions_per_year(),
     } as const
   )[cadence]
 }

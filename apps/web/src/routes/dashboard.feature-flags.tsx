@@ -19,6 +19,7 @@ import { FormMessage } from "../components/auth-shell"
 import { FeatureFlagsLoadingState } from "../components/feature-flags-loading-state"
 import { apiFetch, getSession } from "../lib/api"
 import { humanizeError } from "../lib/errors"
+import { intlLocale, m } from "../lib/i18n"
 
 interface FeatureFlag {
   description: string
@@ -71,28 +72,33 @@ function FeatureFlagsRoute() {
   return (
     <section className="mx-auto w-full max-w-4xl space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Feature flags</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          {m.admin_feature_flags_title()}
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Control staged product access without a deployment.
+          {m.admin_feature_flags_description()}
         </p>
       </div>
       {message && <FormMessage>{message}</FormMessage>}
       <Card>
         <CardContent className="flex items-start justify-between gap-6 py-1">
           <div>
-            <p className="text-sm font-medium">Waitlist mode</p>
+            <p className="text-sm font-medium">{m.admin_waitlist_mode()}</p>
             <p className="mt-1 max-w-xl text-sm leading-6 text-muted-foreground">
-              {waitlistFlag?.description ??
-                "Restrict registration to approved invitations."}
+              {m.admin_waitlist_mode_description()}
             </p>
             {waitlistFlag && (
               <p className="mt-3 text-xs text-muted-foreground">
-                Last updated {new Date(waitlistFlag.updatedAt).toLocaleString()}
+                {m.admin_last_updated({
+                  date: new Date(waitlistFlag.updatedAt).toLocaleString(
+                    intlLocale()
+                  ),
+                })}
               </p>
             )}
           </div>
           <Switch
-            aria-label="Waitlist mode"
+            aria-label={m.admin_waitlist_mode()}
             checked={waitlistFlag?.enabled ?? false}
             disabled={!waitlistFlag || mutation.isPending}
             onCheckedChange={(checked) => setPendingValue(checked)}
@@ -107,22 +113,24 @@ function FeatureFlagsRoute() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {pendingValue ? "Enable waitlist mode?" : "Open registration?"}
+              {pendingValue
+                ? m.admin_enable_waitlist()
+                : m.admin_open_registration()}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingValue
-                ? "New registrations will require an approved invitation. Existing accounts keep their access."
-                : "Anyone will be able to create a Trackfi account without an invitation."}
+                ? m.admin_enable_waitlist_description()
+                : m.admin_open_registration_description()}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() =>
                 pendingValue !== null && mutation.mutate(pendingValue)
               }
             >
-              Confirm change
+              {m.admin_confirm_change()}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

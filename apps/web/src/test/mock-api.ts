@@ -11,6 +11,7 @@ export function mockApi({
   subscriptions = [],
   waitlistEntries = false,
   waitlistMode,
+  localeUpdateFails = false,
 }: {
   deferUrl?: string
   featureFlags?: boolean
@@ -22,6 +23,7 @@ export function mockApi({
   subscriptions?: Array<Record<string, unknown>>
   waitlistEntries?: boolean
   waitlistMode: boolean
+  localeUpdateFails?: boolean
 }) {
   const requests: Array<{ method: string; url: string }> = []
   const expenseRecords = expenses.map((expense) => ({ ...expense }))
@@ -39,7 +41,10 @@ export function mockApi({
       let status = 200
       if (url.includes("/api/config")) body = { waitlistMode }
       else if (url.includes("/api/auth/get-session")) body = session
-      else if (url.includes("/api/settings")) {
+      else if (url.includes("/api/auth/update-user") && localeUpdateFails) {
+        body = { message: "Unable to update user" }
+        status = 500
+      } else if (url.includes("/api/settings")) {
         body = { settings: { currency, updatedAt: null } }
       } else if (url.includes("/api/expenses/settings")) {
         body = {
@@ -353,6 +358,7 @@ export function sessionFor(role: "admin" | "user") {
       id: `${role}-id`,
       email: `${role}@example.com`,
       name: role === "admin" ? "Admin User" : "Regular User",
+      locale: "en",
       role,
     },
   }

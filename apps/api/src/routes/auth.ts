@@ -77,6 +77,8 @@ export function registerAuthRoutes(app: Hono<AppEnv>) {
       await context.env.DB.prepare(
         `UPDATE waitlist_entries
         SET status = 'registered', registered_at = ?, invite_token_hash = NULL,
+          locale = COALESCE((SELECT locale FROM "user"
+            WHERE "user".email = waitlist_entries.email), locale),
           invite_expires_at = NULL
         WHERE id = ? AND status = 'approved'
           AND EXISTS (

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import { App } from "./app"
@@ -38,5 +38,28 @@ describe("Trackfi settings application", () => {
       "Euro (EUR)"
     )
     expect(saveButton).toBeDisabled()
+  })
+
+  it("keeps the current locale and reports account synchronization failures", async () => {
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      localeUpdateFails: true,
+    })
+    const { queryClient, router } = createTestRouter("/dashboard/settings")
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    const language = await screen.findByRole("combobox", { name: "Language" })
+    expect(language).toHaveTextContent("English")
+    fireEvent.click(language)
+    const french = await screen.findByRole("option", { name: "Français" })
+    fireEvent.pointerDown(french, { pointerType: "mouse" })
+    fireEvent.click(french)
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "We couldn’t sync the language with your account, so it was not changed."
+    )
+    expect(language).toHaveTextContent("English")
   })
 })

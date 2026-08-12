@@ -24,6 +24,7 @@ import {
   type SubscriptionSummary as Summary,
 } from "../lib/subscriptions"
 import { BrandLogo, SubscriptionPreview } from "./subscription-brand"
+import { intlLocale, m } from "../lib/i18n"
 
 export function SubscriptionSummary({
   summary,
@@ -36,43 +37,52 @@ export function SubscriptionSummary({
     <>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
-          label="Active subscriptions"
+          label={m.subscriptions_active_count()}
           value={String(summary.activeCount)}
           context={
             summary.activeCount === 0
-              ? "No active services"
+              ? m.subscriptions_no_active()
               : summary.pausedCount
-                ? `${summary.pausedCount} paused`
-                : "All services running"
+                ? m.subscriptions_paused_count({ count: summary.pausedCount })
+                : m.subscriptions_all_running()
           }
           icon={CheckCircle2Icon}
         />
         <MetricCard
-          label="Monthly spend"
+          label={m.subscriptions_monthly_spend()}
           value={formatMoney(summary.monthlyEquivalentMinor, currency)}
           context={monthlyComparisonLabel(summary)}
           icon={WalletIcon}
         />
         <MetricCard
-          label="Annual commitment"
+          label={m.subscriptions_annual_commitment()}
           value={formatMoney(summary.annualEquivalentMinor, currency)}
-          context={`Across ${summary.activeCategoryCount} ${summary.activeCategoryCount === 1 ? "category" : "categories"}`}
+          context={
+            summary.activeCategoryCount === 1
+              ? m.subscriptions_categories_one()
+              : m.subscriptions_categories_many({
+                  count: summary.activeCategoryCount,
+                })
+          }
           icon={ChartNoAxesColumnIncreasingIcon}
         />
         <MetricCard
-          label="Renewing soon"
+          label={m.subscriptions_renewing_soon()}
           value={String(summary.upcomingCount)}
-          context="Within the next 30 days"
+          context={m.subscriptions_next_30_days()}
           icon={CalendarClockIcon}
         />
       </div>
       <Card className="gap-0 rounded-lg py-0 shadow-xs sm:h-[190px]">
         <CardHeader className="h-[68px] items-center px-5 py-4">
           <div>
-            <CardTitle className="font-semibold">Upcoming renewals</CardTitle>
+            <CardTitle className="font-semibold">
+              {m.subscriptions_upcoming_renewals()}
+            </CardTitle>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Next 30 days · {formatMoney(summary.upcomingTotalMinor, currency)}{" "}
-              committed
+              {m.subscriptions_next_30_committed({
+                amount: formatMoney(summary.upcomingTotalMinor, currency),
+              })}
             </p>
           </div>
           <CardAction className="self-center">
@@ -80,7 +90,7 @@ export function SubscriptionSummary({
               to="/dashboard/subscriptions/calendar"
               className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
             >
-              <CalendarDaysIcon /> View calendar
+              <CalendarDaysIcon /> {m.subscriptions_view_calendar()}
             </Link>
           </CardAction>
         </CardHeader>
@@ -104,8 +114,10 @@ export function SubscriptionSummary({
                         {item.name}
                       </p>
                       <p className="mt-[3px] truncate text-xs text-muted-foreground">
-                        {displayLabel(item.category)} · renews{" "}
-                        {formatRenewalDate(item.nextRenewalDate)}
+                        {displayLabel(item.category)} ·{" "}
+                        {m.subscriptions_renews({
+                          date: formatRenewalDate(item.nextRenewalDate),
+                        })}
                       </p>
                     </div>
                   </div>
@@ -117,7 +129,7 @@ export function SubscriptionSummary({
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No active renewals are due in the next 30 days.
+              {m.subscriptions_no_upcoming()}
             </p>
           )}
         </CardContent>
@@ -137,7 +149,7 @@ function SubscriptionLogo({ item }: { item: Summary["upcoming"][number] }) {
 }
 
 function formatRenewalDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(intlLocale(), {
     month: "short",
     day: "numeric",
     timeZone: "UTC",

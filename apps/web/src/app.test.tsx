@@ -1,9 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vitest"
 
 import { App } from "./app"
 import { createTestRouter } from "./router"
 import { mockApi } from "./test/mock-api"
+import { overwriteGetLocale } from "./paraglide/runtime.js"
+
+afterEach(() => overwriteGetLocale(() => "en"))
 
 describe("Trackfi public application", () => {
   it("shows the waitlist while waitlist mode is enabled", async () => {
@@ -20,6 +23,42 @@ describe("Trackfi public application", () => {
     expect(
       screen.getByRole("button", { name: "Join the waitlist" })
     ).toBeInTheDocument()
+    expect(document.documentElement.lang).toBe("en")
+    expect(document.title).toBe(
+      "See the future of your money, clearly. · Trackfi"
+    )
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "index,follow"
+    )
+    expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "http://localhost:3000/en"
+    )
+    expect(
+      document.querySelector('link[hreflang="x-default"]')
+    ).toHaveAttribute("href", "http://localhost:3000/en")
+  })
+
+  it("renders the public experience and metadata in French", async () => {
+    overwriteGetLocale(() => "fr")
+    mockApi({ waitlistMode: true, session: null })
+    const { queryClient, router } = createTestRouter()
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Voyez clairement l’avenir de votre argent.",
+      })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Rejoindre la liste d’attente" })
+    ).toBeInTheDocument()
+    expect(document.documentElement.lang).toBe("fr")
+    expect(document.title).toBe(
+      "Voyez clairement l’avenir de votre argent. · Trackfi"
+    )
   })
 
   it("renders the login route", async () => {
@@ -32,6 +71,25 @@ describe("Trackfi public application", () => {
       await screen.findByRole("heading", { name: "Welcome back" })
     ).toBeInTheDocument()
     expect(screen.getByLabelText("Password")).toBeInTheDocument()
+  })
+
+  it("renders unsupported routes in the active locale", async () => {
+    overwriteGetLocale(() => "fr")
+    mockApi({ waitlistMode: true, session: null })
+    const { queryClient, router } = createTestRouter("/missing")
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    expect(
+      await screen.findByRole("heading", { name: "Page introuvable" })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole("link", { name: "Revenir à Trackfi" })
+    ).toBeInTheDocument()
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "noindex,nofollow"
+    )
   })
 
   it("routes public users to registration when registration is open", async () => {

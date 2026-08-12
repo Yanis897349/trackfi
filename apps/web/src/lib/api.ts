@@ -1,8 +1,9 @@
 import { createAuthClient } from "better-auth/react"
+import type { Locale } from "@trackfi/localization"
 
-export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8787"
+export const API_URL = import.meta.env?.VITE_API_URL ?? "http://localhost:8787"
 export const TURNSTILE_SITE_KEY =
-  import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA"
+  import.meta.env?.VITE_TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA"
 
 export const authClient = createAuthClient({
   baseURL: API_URL,
@@ -14,6 +15,7 @@ export interface CurrentUser {
   email: string
   id: string
   name: string
+  locale: Locale
   role: "admin" | "user"
 }
 

@@ -22,6 +22,10 @@ The normal local ports are:
 - Web: `http://localhost:5173`
 - API health: `http://localhost:8787/health`
 
+All browser routes are exposed below an explicit `/en` or `/fr` prefix. The
+unprefixed legacy URLs redirect using the signed-in account preference, then
+the browser preference, with English as the fallback.
+
 The application starts in waitlist mode. Cloudflare's documented Turnstile test
 keys are included in the example files, but you should replace the auth secret,
 Brandfetch client ID, admin email, and Resend settings. An email listed in
@@ -104,8 +108,11 @@ no matching logo, Trackfi falls back to service initials without disabling
 subscription features.
 
 After checks pass on `main`, CI applies pending D1 migrations, deploys the
-`trackfi-api` Worker, and uploads `apps/web/dist` to the `trackfi-web` Pages
-project. The first Worker deployment creates the Worker project automatically.
+`trackfi-api` Worker, and uploads `apps/web/dist` together with the Pages
+Functions in `apps/web/functions` to the `trackfi-web` Pages project. The
+Pages Function uses the `API_URL` variable in `apps/web/wrangler.jsonc`; keep it
+aligned with the browser's `VITE_API_URL`/`TRACKFI_API_URL`. The first Worker
+deployment creates the Worker project automatically.
 
 To apply migrations manually:
 
@@ -118,6 +125,7 @@ For local deployment validation without changing Cloudflare state, run:
 ```sh
 pnpm --filter @trackfi/api build
 pnpm --filter @trackfi/web build
+pnpm --filter @trackfi/web build:functions
 ```
 
 ## Troubleshooting

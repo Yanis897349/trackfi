@@ -23,7 +23,7 @@ describe("Trackfi subscription application", () => {
     ).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Open settings" })).toHaveAttribute(
       "href",
-      "/dashboard/settings"
+      "/en/dashboard/settings"
     )
   })
 
@@ -46,7 +46,7 @@ describe("Trackfi subscription application", () => {
     expect(await screen.findByText("Monthly spend")).toBeInTheDocument()
     expect(screen.getAllByText("Design software").length).toBeGreaterThan(0)
     expect(
-      screen.getByPlaceholderText("Search subscriptions...")
+      screen.getByPlaceholderText("Search subscriptions…")
     ).toBeInTheDocument()
     fireEvent.click(screen.getByRole("button", { name: "Add subscription" }))
     const dialog = await screen.findByRole("dialog", {
@@ -100,7 +100,7 @@ describe("Trackfi subscription application", () => {
     ).toBeInTheDocument()
     expect(
       await screen.findByRole("link", { name: "Back to subscriptions" })
-    ).toHaveAttribute("href", "/dashboard/subscriptions")
+    ).toHaveAttribute("href", "/en/dashboard/subscriptions")
     expect(
       within(screen.getByRole("grid")).getByRole("button", {
         name: "Preview Design software",

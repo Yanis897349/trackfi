@@ -15,6 +15,7 @@ import { cn } from "@trackfi/ui/lib/utils"
 
 import type { ExpenseSummary } from "../lib/expenses"
 import { formatMoney } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export function ExpenseMetricCards({
   summary,
@@ -32,43 +33,59 @@ export function ExpenseMetricCards({
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <MetricCard
         icon={CircleDollarSignIcon}
-        label="Spent this month"
+        label={m.expenses_spent_month()}
         value={formatMoney(summary.spentMinor, currency)}
         detail={
           budget === null
-            ? "Set a budget to track progress"
-            : `${Math.round((summary.spentMinor / budget) * 100)}% of ${formatMoney(budget, currency)} budget`
+            ? m.expenses_set_budget()
+            : m.expenses_of_budget({
+                percent: Math.round((summary.spentMinor / budget) * 100),
+                budget: formatMoney(budget, currency),
+              })
         }
       />
       <MetricCard
         icon={GaugeIcon}
-        label="Daily pace"
+        label={m.expenses_daily_pace()}
         value={formatMoney(summary.dailyPaceMinor, currency)}
         detail={
           dailyDifference === null
-            ? "Set a daily spending target"
-            : `${formatMoney(Math.abs(dailyDifference), currency)} ${dailyDifference > 0 ? "above" : "below"} target`
+            ? m.expenses_set_daily_target()
+            : m.expenses_target_difference({
+                amount: formatMoney(Math.abs(dailyDifference), currency),
+                direction:
+                  dailyDifference > 0 ? m.status_above() : m.status_below(),
+              })
         }
         accent={dailyDifference !== null && dailyDifference > 0}
       />
       <MetricCard
         icon={PiggyBankIcon}
-        label="Remaining"
+        label={m.expenses_remaining()}
         value={
           summary.remainingMinor === null
             ? "—"
             : formatMoney(summary.remainingMinor, currency)
         }
-        detail={`${summary.period.remainingDays} days left`}
+        detail={m.expenses_days_left({ count: summary.period.remainingDays })}
       />
       <MetricCard
         icon={CalendarClockIcon}
-        label="Forecast"
+        label={m.expenses_forecast()}
         value={formatMoney(summary.forecastMinor, currency)}
         detail={
           budget === null
-            ? "Based on your current pace"
-            : `${formatMoney(Math.abs(summary.forecastMinor - budget), currency)} ${summary.forecastMinor > budget ? "over" : "under"} budget`
+            ? m.expenses_current_pace()
+            : m.expenses_budget_difference({
+                amount: formatMoney(
+                  Math.abs(summary.forecastMinor - budget),
+                  currency
+                ),
+                direction:
+                  summary.forecastMinor > budget
+                    ? m.status_above()
+                    : m.status_below(),
+              })
         }
         accent={budget !== null && summary.forecastMinor > budget}
       />

@@ -35,15 +35,18 @@ import {
 
 import { ModuleError, ModuleHeader } from "../components/module-layout"
 import { SettingsLoadingState } from "../components/settings-loading-state"
+import { LanguageSelector } from "../components/language-selector"
 import { apiFetch } from "../lib/api"
 import { humanizeError } from "../lib/errors"
 import { settingsQueryOptions, supportedCurrencies } from "../lib/settings"
+import { m } from "../lib/i18n"
 
 export const Route = createFileRoute("/dashboard/settings")({
   component: SettingsRoute,
 })
 
 function SettingsRoute() {
+  const { currentUser } = Route.useRouteContext()
   const queryClient = useQueryClient()
   const query = useQuery(settingsQueryOptions())
   const currencies = useMemo(() => supportedCurrencies(), [])
@@ -67,7 +70,7 @@ function SettingsRoute() {
         body: JSON.stringify({ currency, confirmRelabel }),
       }),
     onSuccess: async () => {
-      setMessage("Currency saved.")
+      setMessage(m.settings_currency_saved())
       setConfirmOpen(false)
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["settings"] }),
@@ -97,16 +100,27 @@ function SettingsRoute() {
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6">
       <ModuleHeader
-        title="Settings"
-        description="Manage preferences shared by every Trackfi module."
+        title={m.settings_title()}
+        description={m.settings_description()}
       />
       <Card>
         <CardHeader>
-          <CardTitle>Account currency</CardTitle>
+          <CardTitle>{m.language_label()}</CardTitle>
+        </CardHeader>
+        <CardContent className="max-w-lg space-y-2">
+          <LanguageSelector user={currentUser} className="w-full" />
+          <p className="text-sm text-muted-foreground">
+            {m.language_description()}
+          </p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>{m.settings_account_currency()}</CardTitle>
         </CardHeader>
         <CardContent className="max-w-lg space-y-4">
           <Field>
-            <FieldLabel>Currency</FieldLabel>
+            <FieldLabel>{m.settings_currency()}</FieldLabel>
             <Select
               items={currencyOptions}
               value={currency || null}
@@ -115,8 +129,11 @@ function SettingsRoute() {
                 setMessage("")
               }}
             >
-              <SelectTrigger className="w-full" aria-label="Account currency">
-                <SelectValue placeholder="Choose a currency" />
+              <SelectTrigger
+                className="w-full"
+                aria-label={m.settings_account_currency()}
+              >
+                <SelectValue placeholder={m.settings_choose_currency()} />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
                 {currencyOptions.map((option) => (
@@ -127,13 +144,14 @@ function SettingsRoute() {
               </SelectContent>
             </Select>
             <FieldDescription>
-              Subscription, expense, and revenue totals use this currency.
-              Changing it relabels existing amounts without converting them.
+              {m.settings_currency_description()}
             </FieldDescription>
             {message && (
               <FieldError
                 className={
-                  message === "Currency saved." ? "text-foreground" : undefined
+                  message === m.settings_currency_saved()
+                    ? "text-foreground"
+                    : undefined
                 }
               >
                 {message}
@@ -148,25 +166,26 @@ function SettingsRoute() {
             }
             onClick={() => mutation.mutate(false)}
           >
-            {mutation.isPending ? "Saving…" : "Save currency"}
+            {mutation.isPending
+              ? m.common_saving()
+              : m.settings_save_currency()}
           </Button>
         </CardContent>
       </Card>
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Change account currency?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {m.settings_change_currency_title()}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Existing amounts will keep their numeric values and will be
-              relabeled as {currency}. Values that use more precision than the
-              new currency supports will be rounded. Trackfi will not perform an
-              exchange-rate conversion.
+              {m.settings_change_currency_description({ currency })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
             <AlertDialogAction onClick={() => mutation.mutate(true)}>
-              Change currency
+              {m.settings_change_currency()}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

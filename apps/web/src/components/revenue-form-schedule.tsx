@@ -16,6 +16,7 @@ import {
 import type { RevenueFormState } from "../hooks/use-revenue-form"
 import { currencySymbol } from "../lib/currency"
 import { revenueCadenceOptions, type RevenueCadence } from "../lib/revenue"
+import { dateFnsLocale, m } from "../lib/i18n"
 
 export function RevenueFormSchedule({
   currency,
@@ -30,7 +31,9 @@ export function RevenueFormSchedule({
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_240px]">
         <Field className="gap-2">
           <FieldLabel htmlFor="revenue-amount">
-            {scheduled ? "Take-home amount" : "Estimated monthly take-home"}
+            {scheduled
+              ? m.revenue_take_home()
+              : m.revenue_estimated_take_home()}
           </FieldLabel>
           <div className="relative">
             <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm font-medium">
@@ -54,16 +57,18 @@ export function RevenueFormSchedule({
       {scheduled && (
         <Field className="gap-2">
           <FieldLabel htmlFor="revenue-payment-date">
-            Next expected payment
+            {m.revenue_next_expected_payment()}
           </FieldLabel>
           <DateOnlyPicker
             id="revenue-payment-date"
             className="h-[42px]"
             value={form.values.paymentAnchor}
             onChange={(value) => form.setValue("paymentAnchor", value)}
+            locale={dateFnsLocale()}
+            placeholder={m.calendar_pick_date()}
           />
           <FieldDescription className="text-xs">
-            We’ll use this date to build your cash-flow forecast.
+            {m.revenue_schedule_description()}
           </FieldDescription>
         </Field>
       )}
@@ -74,7 +79,7 @@ export function RevenueFormSchedule({
 function CadenceField({ form }: { form: RevenueFormState }) {
   return (
     <Field className="gap-2">
-      <FieldLabel>Repeats</FieldLabel>
+      <FieldLabel>{m.revenue_repeats()}</FieldLabel>
       <Select
         items={revenueCadenceOptions}
         value={form.values.cadence}
@@ -84,7 +89,7 @@ function CadenceField({ form }: { form: RevenueFormState }) {
       >
         <SelectTrigger
           className="h-[42px] w-full px-3 data-[size=default]:h-[42px]"
-          aria-label="Repeats"
+          aria-label={m.revenue_repeats()}
         >
           <SelectValue />
         </SelectTrigger>

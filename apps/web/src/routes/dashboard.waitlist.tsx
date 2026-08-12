@@ -9,6 +9,8 @@ import { WaitlistAdminTable } from "../components/waitlist-admin-table"
 import { apiFetch, getSession } from "../lib/api"
 import { humanizeError } from "../lib/errors"
 import type { WaitlistResponse, WaitlistStatus } from "../lib/waitlist"
+import { m } from "../lib/i18n"
+import { statusLabel } from "../lib/labels"
 
 export const Route = createFileRoute("/dashboard/waitlist")({
   beforeLoad: async () => {
@@ -60,10 +62,10 @@ function WaitlistAdminRoute() {
     <section className="mx-auto w-full max-w-6xl space-y-6">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">
-          Waitlist approvals
+          {m.nav_waitlist()}
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Approve pending emails and manage registration invitations.
+          {m.admin_waitlist_description()}
         </p>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -80,7 +82,7 @@ function WaitlistAdminRoute() {
               }}
               className="capitalize"
             >
-              {option}
+              {statusLabel(option)}
             </Button>
           )
         )}
@@ -91,12 +93,9 @@ function WaitlistAdminRoute() {
         invitationPending={invitationPending}
         isLoading={query.isLoading}
         onInvitation={mutateInvitation}
-        status={status}
       />
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
-          Page {page} of {totalPages}
-        </span>
+        <span>{m.admin_page({ page, total: totalPages })}</span>
         <div className="flex gap-2">
           <Button
             type="button"
@@ -105,7 +104,7 @@ function WaitlistAdminRoute() {
             disabled={page === 1}
             onClick={() => setPage((current) => Math.max(1, current - 1))}
           >
-            Previous
+            {m.common_previous()}
           </Button>
           <Button
             type="button"
@@ -114,7 +113,7 @@ function WaitlistAdminRoute() {
             disabled={page >= totalPages}
             onClick={() => setPage((current) => current + 1)}
           >
-            Next
+            {m.common_next()}
           </Button>
         </div>
       </div>

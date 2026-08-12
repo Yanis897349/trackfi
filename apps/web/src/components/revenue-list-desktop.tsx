@@ -18,6 +18,7 @@ import {
   RevenueStatusBadge,
 } from "./revenue-list-parts"
 import { SubscriptionPagination } from "./subscription-list-parts"
+import { m } from "../lib/i18n"
 
 export function RevenueListDesktop({
   sources,
@@ -39,13 +40,17 @@ export function RevenueListDesktop({
       <Table className="text-[13px]">
         <TableHeader>
           <TableRow>
-            <TableHead className="pl-4">Source</TableHead>
-            <TableHead className="w-[140px]">Category</TableHead>
-            <TableHead className="w-[210px]">Take-home amount</TableHead>
-            <TableHead className="w-[155px]">Next payment</TableHead>
-            <TableHead className="w-[110px]">Status</TableHead>
+            <TableHead className="pl-4">{m.revenue_source()}</TableHead>
+            <TableHead className="w-[140px]">
+              {m.subscriptions_category()}
+            </TableHead>
+            <TableHead className="w-[210px]">{m.revenue_take_home()}</TableHead>
+            <TableHead className="w-[155px]">
+              {m.revenue_next_payment()}
+            </TableHead>
+            <TableHead className="w-[110px]">{m.common_status()}</TableHead>
             <TableHead className="w-16">
-              <span className="sr-only">Actions</span>
+              <span className="sr-only">{m.common_actions()}</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -61,13 +66,13 @@ export function RevenueListDesktop({
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
                       {source.cadence === "once" ? (
-                        "One-time income"
+                        m.revenue_one_time_income()
                       ) : (
                         <>
                           {formatMoney(source.monthlyEquivalentMinor, currency)}{" "}
                           {source.scheduleType === "variable"
-                            ? "estimated monthly"
-                            : "projected monthly"}
+                            ? m.revenue_estimated_monthly_label()
+                            : m.revenue_projected_monthly_label()}
                         </>
                       )}
                     </p>
@@ -83,8 +88,8 @@ export function RevenueListDesktop({
                 {source.nextPaymentDate
                   ? formatDateOnly(source.nextPaymentDate)
                   : source.scheduleType === "variable"
-                    ? "Variable estimate"
-                    : "No upcoming payment"}
+                    ? m.revenue_variable()
+                    : m.revenue_no_upcoming()}
               </TableCell>
               <TableCell>
                 <RevenueStatusBadge source={source} />
@@ -98,7 +103,7 @@ export function RevenueListDesktop({
       </Table>
       <CardFooter className="h-14 justify-between bg-card px-4 py-0">
         <p className="text-xs text-muted-foreground">
-          {shown} of {total} revenue sources
+          {m.revenue_count({ shown, total })}
         </p>
         <SubscriptionPagination
           hasPrevious={hasPrevious}

@@ -9,6 +9,7 @@ import {
 } from "../lib/subscription-calendar"
 import type { RenewalOccurrence } from "../lib/subscriptions"
 import { BrandLogo, SubscriptionPreview } from "./subscription-brand"
+import { dateFnsLocale, m } from "../lib/i18n"
 
 export function SubscriptionRenewalMonth({
   month,
@@ -36,6 +37,7 @@ export function SubscriptionRenewalMonth({
         weekStartsOn={1}
         hideNavigation
         showOutsideDays
+        locale={dateFnsLocale()}
         className="w-full p-0"
         classNames={{
           root: "w-full",
@@ -91,7 +93,7 @@ export function SubscriptionRenewalMonth({
                   ))}
                   {dateRenewals.length > 2 && (
                     <span className="px-1 text-[10px] text-muted-foreground">
-                      +{dateRenewals.length - 2} more
+                      {m.calendar_more({ count: dateRenewals.length - 2 })}
                     </span>
                   )}
                 </div>

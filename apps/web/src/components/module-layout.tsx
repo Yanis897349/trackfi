@@ -10,6 +10,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@trackfi/ui/components/empty"
+import { m } from "../lib/i18n"
 
 export function ModuleHeader({
   title,
@@ -40,14 +41,12 @@ export function ModuleError({ retry }: { retry(): void }) {
         <EmptyMedia variant="icon">
           <AlertCircleIcon />
         </EmptyMedia>
-        <EmptyTitle>We couldn’t load this module</EmptyTitle>
-        <EmptyDescription>
-          Check your connection and try again. Your saved data is unchanged.
-        </EmptyDescription>
+        <EmptyTitle>{m.module_error_title()}</EmptyTitle>
+        <EmptyDescription>{m.module_error_description()}</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
         <Button variant="outline" onClick={retry}>
-          Try again
+          {m.common_retry()}
         </Button>
       </EmptyContent>
     </Empty>

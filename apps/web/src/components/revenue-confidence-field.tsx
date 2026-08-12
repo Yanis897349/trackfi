@@ -3,6 +3,7 @@ import { cn } from "@trackfi/ui/lib/utils"
 
 import type { RevenueFormState } from "../hooks/use-revenue-form"
 import type { RevenueScheduleType } from "../lib/revenue"
+import { m } from "../lib/i18n"
 
 const confidenceOptions: Array<{
   value: RevenueScheduleType
@@ -11,20 +12,22 @@ const confidenceOptions: Array<{
 }> = [
   {
     value: "scheduled",
-    label: "Confirmed",
-    description: "A scheduled payment you can rely on",
+    label: m.revenue_confirmed(),
+    description: m.revenue_confirmed_description(),
   },
   {
     value: "variable",
-    label: "Estimate",
-    description: "Variable income based on your best forecast",
+    label: m.revenue_estimate(),
+    description: m.revenue_estimate_description(),
   },
 ]
 
 export function RevenueConfidenceField({ form }: { form: RevenueFormState }) {
   return (
     <Field className="gap-2">
-      <FieldLabel id="revenue-confidence-label">Confidence</FieldLabel>
+      <FieldLabel id="revenue-confidence-label">
+        {m.revenue_confidence()}
+      </FieldLabel>
       <div
         className="grid gap-2.5 sm:grid-cols-2"
         role="radiogroup"

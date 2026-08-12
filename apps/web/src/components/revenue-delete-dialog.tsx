@@ -10,6 +10,7 @@ import {
 } from "@trackfi/ui/components/alert-dialog"
 
 import type { RevenueSource } from "../lib/revenue"
+import { m } from "../lib/i18n"
 
 export function RevenueDeleteDialog({
   source,
@@ -24,16 +25,15 @@ export function RevenueDeleteDialog({
     <AlertDialog open={Boolean(source)} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {source?.name}?</AlertDialogTitle>
+          <AlertDialogTitle>{m.revenue_delete_title()}</AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently removes the revenue source. This action cannot be
-            undone.
+            {m.revenue_delete_description({ name: source?.name ?? "" })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={onConfirm}>
-            Delete permanently
+            {m.revenue_delete()}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

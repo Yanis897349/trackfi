@@ -10,6 +10,7 @@ import {
   type ExpenseSummary,
 } from "../lib/expenses"
 import { displayLabel, formatMoney } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export function ExpenseCategoryAllocationCard({
   summary,
@@ -22,7 +23,9 @@ export function ExpenseCategoryAllocationCard({
   return (
     <Card className="gap-3 rounded-[10px] py-[18px] shadow-none">
       <CardHeader className="flex flex-row items-center justify-between px-[18px]">
-        <CardTitle className="text-sm">Category allocation</CardTitle>
+        <CardTitle className="text-sm">
+          {m.expenses_category_allocation()}
+        </CardTitle>
         <span className="text-xs font-semibold">
           {formatMoney(summary.spentMinor, currency)}
         </span>
@@ -54,7 +57,7 @@ export function ExpenseCategoryAllocationCard({
           })
         ) : (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            Add expenses to see category allocation.
+            {m.expenses_no_allocation()}
           </p>
         )}
       </CardContent>

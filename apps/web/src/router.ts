@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-router"
 
 import { routeTree } from "./routeTree.gen"
+import { deLocalizeUrl, localizeUrl } from "./lib/i18n"
 
 export function createAppRouter(history?: RouterHistory) {
   const queryClient = new QueryClient({
@@ -21,6 +22,10 @@ export function createAppRouter(history?: RouterHistory) {
     context: { queryClient },
     defaultPreload: "intent",
     scrollRestoration: true,
+    rewrite: {
+      input: ({ url }) => deLocalizeUrl(url),
+      output: ({ url }) => localizeUrl(url),
+    },
     ...(history ? { history } : {}),
   })
 

@@ -19,6 +19,7 @@ import {
   ExpenseFilterSelect,
   ExpenseQuickFilter,
 } from "./expense-filter-controls"
+import { m } from "../lib/i18n"
 
 export function ExpenseFilters({
   summary,
@@ -57,8 +58,8 @@ export function ExpenseFilters({
           <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="h-10 pl-9"
-            placeholder="Search merchant or description…"
-            aria-label="Search expenses"
+            placeholder={m.expenses_search()}
+            aria-label={m.expenses_search_label()}
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
           />
@@ -66,17 +67,17 @@ export function ExpenseFilters({
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <ExpenseFilterSelect
             icon={CalendarDaysIcon}
-            label="Date filter"
+            label={m.expenses_date_filter()}
             value={period}
             items={periods}
             onChange={onPeriodChange}
             className="lg:w-[170px]"
           />
           <ExpenseFilterSelect
-            label="Category filter"
+            label={m.expenses_category_filter()}
             value={category}
             items={[
-              { value: "all", label: "All categories" },
+              { value: "all", label: m.subscriptions_all_categories() },
               ...expenseCategoryOptions,
             ]}
             onChange={(value) =>
@@ -85,10 +86,10 @@ export function ExpenseFilters({
             className="lg:w-[160px]"
           />
           <ExpenseFilterSelect
-            label="Status filter"
+            label={m.expenses_status_filter()}
             value={status}
             items={[
-              { value: "all", label: "All statuses" },
+              { value: "all", label: m.expenses_all_statuses() },
               ...expenseStatusOptions,
             ]}
             onChange={(value) => onStatusChange(value as ExpenseStatus | "all")}
@@ -98,19 +99,19 @@ export function ExpenseFilters({
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[11px] font-medium text-muted-foreground">
-          Quick filters
+          {m.expenses_quick_filters()}
         </span>
         <ExpenseQuickFilter
           pressed={pendingOnly}
           onClick={() => onPendingChange(!pendingOnly)}
           icon={CheckCircle2Icon}
-          label={`Needs review ${summary.pendingCount}`}
+          label={m.expenses_needs_review({ count: summary.pendingCount })}
         />
         <ExpenseQuickFilter
           pressed={missingReceipt}
           onClick={() => onMissingReceiptChange(!missingReceipt)}
           icon={FileQuestionIcon}
-          label={`Missing receipt ${summary.missingReceiptCount}`}
+          label={`${m.expenses_missing_receipt()} ${summary.missingReceiptCount}`}
         />
       </div>
     </div>

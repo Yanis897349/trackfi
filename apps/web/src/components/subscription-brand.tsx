@@ -16,6 +16,7 @@ import {
   type SubscriptionCadence,
   type SubscriptionCategory,
 } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export interface SubscriptionPreviewDetails {
   name: string
@@ -113,11 +114,11 @@ export function SubscriptionPreview({
         </div>
         <div className="grid grid-cols-2 gap-3 border-t p-4">
           <PreviewMetric
-            label="Next renewal"
+            label={m.subscriptions_next_renewal()}
             value={formatDateOnly(details.renewalDate)}
           />
           <PreviewMetric
-            label="Cadence"
+            label={m.subscriptions_cadence()}
             value={displayLabel(details.cadence)}
           />
         </div>
@@ -128,7 +129,7 @@ export function SubscriptionPreview({
             rel="noopener noreferrer"
             className="flex items-center justify-between border-t px-4 py-3 font-medium text-primary hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
           >
-            Open subscription <ExternalLinkIcon className="size-4" />
+            {m.common_open()} <ExternalLinkIcon className="size-4" />
           </a>
         )}
       </HoverCardContent>

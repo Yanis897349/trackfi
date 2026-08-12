@@ -18,6 +18,7 @@ import {
 } from "@trackfi/ui/components/dropdown-menu"
 
 import type { Subscription, SubscriptionStatus } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export function SubscriptionActions({
   subscription,
@@ -34,29 +35,31 @@ export function SubscriptionActions({
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
         <MoreHorizontalIcon />
-        <span className="sr-only">Actions for {subscription.name}</span>
+        <span className="sr-only">
+          {m.common_actions_for({ name: subscription.name })}
+        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuItem onClick={() => onEdit(subscription)}>
-          <PencilIcon /> Edit
+          <PencilIcon /> {m.common_edit()}
         </DropdownMenuItem>
         {subscription.status === "active" && (
           <DropdownMenuItem onClick={() => onStatus(subscription, "paused")}>
-            <PauseIcon /> Pause
+            <PauseIcon /> {m.common_pause()}
           </DropdownMenuItem>
         )}
         {subscription.status === "paused" && (
           <DropdownMenuItem onClick={() => onStatus(subscription, "active")}>
-            <PlayIcon /> Resume
+            <PlayIcon /> {m.common_resume()}
           </DropdownMenuItem>
         )}
         {subscription.status === "archived" ? (
           <DropdownMenuItem onClick={() => onStatus(subscription, "active")}>
-            <RotateCcwIcon /> Restore
+            <RotateCcwIcon /> {m.common_restore()}
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem onClick={() => onStatus(subscription, "archived")}>
-            <ArchiveIcon /> Archive
+            <ArchiveIcon /> {m.common_archive()}
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
@@ -64,7 +67,7 @@ export function SubscriptionActions({
           variant="destructive"
           onClick={() => onDelete(subscription)}
         >
-          <Trash2Icon /> Delete
+          <Trash2Icon /> {m.common_delete()}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

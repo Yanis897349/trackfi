@@ -2,6 +2,7 @@ import { useRef } from "react"
 import { PaperclipIcon } from "lucide-react"
 
 import { Field, FieldLabel } from "@trackfi/ui/components/field"
+import { m } from "../lib/i18n"
 
 export function ExpenseReceiptField({
   receiptName,
@@ -15,7 +16,7 @@ export function ExpenseReceiptField({
   const fileInput = useRef<HTMLInputElement>(null)
   return (
     <Field className="gap-1.5">
-      <FieldLabel>Receipt</FieldLabel>
+      <FieldLabel>{m.expenses_receipt()}</FieldLabel>
       <div
         className="flex min-h-[58px] items-center gap-3 rounded-lg border bg-muted/20 px-3.5"
         onDragOver={(event) => event.preventDefault()}
@@ -29,10 +30,10 @@ export function ExpenseReceiptField({
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-medium">
-            {receiptName ?? "Attach receipt"}
+            {receiptName ?? m.expenses_attach_receipt()}
           </p>
           <p className="text-[11px] text-muted-foreground">
-            PDF, JPG or PNG · up to 10 MB
+            {m.expenses_receipt_format()}
           </p>
         </div>
         <input
@@ -48,7 +49,7 @@ export function ExpenseReceiptField({
             className="text-xs font-medium hover:underline"
             onClick={onRemove}
           >
-            Remove
+            {m.expenses_remove_receipt()}
           </button>
         ) : (
           <button
@@ -56,7 +57,7 @@ export function ExpenseReceiptField({
             className="text-xs font-medium hover:underline"
             onClick={() => fileInput.current?.click()}
           >
-            Browse
+            {m.common_browse()}
           </button>
         )}
       </div>

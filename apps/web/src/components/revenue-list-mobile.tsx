@@ -10,6 +10,7 @@ import {
   RevenueStatusBadge,
 } from "./revenue-list-parts"
 import { SubscriptionPagination } from "./subscription-list-parts"
+import { m } from "../lib/i18n"
 
 export function RevenueListMobile({
   sources,
@@ -41,10 +42,11 @@ export function RevenueListMobile({
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {source.nextPaymentDate
-                    ? `Next ${formatDateOnly(source.nextPaymentDate)}`
+                    ? m.revenue_next_expected_payment() +
+                      ` ${formatDateOnly(source.nextPaymentDate)}`
                     : source.scheduleType === "variable"
-                      ? "Variable monthly estimate"
-                      : "No upcoming payment"}{" "}
+                      ? m.revenue_variable_estimate()
+                      : m.revenue_no_upcoming()}{" "}
                   · {displayLabel(source.category)}
                 </p>
                 <div className="mt-3">
@@ -58,7 +60,7 @@ export function RevenueListMobile({
       ))}
       <div className="flex items-center justify-between pt-1">
         <p className="text-xs text-muted-foreground">
-          {shown} of {total} revenue sources
+          {m.revenue_count({ shown, total })}
         </p>
         <SubscriptionPagination
           hasPrevious={hasPrevious}

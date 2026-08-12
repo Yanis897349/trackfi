@@ -18,6 +18,7 @@ import {
 } from "@trackfi/ui/components/dropdown-menu"
 
 import type { RevenueSource, RevenueStatus } from "../lib/revenue"
+import { m } from "../lib/i18n"
 
 export interface RevenueListActions {
   onEdit(source: RevenueSource): void
@@ -35,29 +36,31 @@ export function RevenueActions({
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
         <MoreHorizontalIcon />
-        <span className="sr-only">Actions for {source.name}</span>
+        <span className="sr-only">
+          {m.common_actions_for({ name: source.name })}
+        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuItem onClick={() => onEdit(source)}>
-          <PencilIcon /> Edit
+          <PencilIcon /> {m.common_edit()}
         </DropdownMenuItem>
         {source.status === "active" && (
           <DropdownMenuItem onClick={() => onStatus(source, "paused")}>
-            <PauseIcon /> Pause
+            <PauseIcon /> {m.common_pause()}
           </DropdownMenuItem>
         )}
         {source.status === "paused" && (
           <DropdownMenuItem onClick={() => onStatus(source, "active")}>
-            <PlayIcon /> Resume
+            <PlayIcon /> {m.common_resume()}
           </DropdownMenuItem>
         )}
         {source.status === "archived" ? (
           <DropdownMenuItem onClick={() => onStatus(source, "active")}>
-            <RotateCcwIcon /> Restore
+            <RotateCcwIcon /> {m.common_restore()}
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem onClick={() => onStatus(source, "archived")}>
-            <ArchiveIcon /> Archive
+            <ArchiveIcon /> {m.common_archive()}
           </DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
@@ -65,7 +68,7 @@ export function RevenueActions({
           variant="destructive"
           onClick={() => onDelete(source)}
         >
-          <Trash2Icon /> Delete
+          <Trash2Icon /> {m.common_delete()}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -10,6 +10,7 @@ import { cn } from "@trackfi/ui/lib/utils"
 
 import type { RevenueSummary } from "../lib/revenue"
 import { formatMoney } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 const contributionColors = [
   "bg-emerald-600",
@@ -31,10 +32,10 @@ export function RevenueContributionCard({
       <CardHeader className="flex items-center justify-between px-4">
         <div>
           <CardTitle className="text-sm font-semibold">
-            Source contribution
+            {m.revenue_source_contribution()}
           </CardTitle>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Monthly equivalent
+            {m.subscriptions_monthly_equivalent()}
           </p>
         </div>
         <ChartPieIcon className="size-4 text-muted-foreground" />
@@ -42,7 +43,7 @@ export function RevenueContributionCard({
       <CardContent className="space-y-3 px-4">
         <div className="flex items-center justify-between rounded-md bg-muted px-2.5 py-2">
           <span className="text-[11px] text-muted-foreground">
-            Expected monthly
+            {m.revenue_expected_monthly()}
           </span>
           <span className="text-[13px] font-semibold">
             {formatMoney(summary.monthlyEquivalentMinor, currency)}
@@ -70,7 +71,9 @@ export function RevenueContributionCard({
                   <div
                     className="h-1.5 overflow-hidden rounded-full bg-muted"
                     role="meter"
-                    aria-label={`${source.name} monthly contribution`}
+                    aria-label={m.revenue_monthly_contribution({
+                      name: source.name,
+                    })}
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={percentage}
@@ -90,9 +93,7 @@ export function RevenueContributionCard({
             })}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            Add an active revenue source to see your income mix.
-          </p>
+          <p className="text-sm text-muted-foreground">{m.revenue_no_mix()}</p>
         )}
       </CardContent>
     </Card>
@@ -106,7 +107,7 @@ function contributionMix(summary: RevenueSummary) {
     ...sources.slice(0, 2),
     {
       sourceId: "other",
-      name: "Other",
+      name: m.category_other(),
       category: "other" as const,
       monthlyEquivalentMinor: sources
         .slice(2)

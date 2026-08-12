@@ -10,6 +10,7 @@ import {
 } from "@trackfi/ui/components/dropdown-menu"
 
 import type { Expense } from "../lib/expenses"
+import { m } from "../lib/i18n"
 
 export interface ExpenseListActions {
   onEdit(expense: Expense): void
@@ -25,18 +26,20 @@ export function ExpenseActions({
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
         <MoreHorizontalIcon />
-        <span className="sr-only">Actions for {expense.merchant}</span>
+        <span className="sr-only">
+          {m.common_actions_for({ name: expense.merchant })}
+        </span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuItem onClick={() => onEdit(expense)}>
-          <PencilIcon /> Edit
+          <PencilIcon /> {m.common_edit()}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"
           onClick={() => onDelete(expense)}
         >
-          <Trash2Icon /> Delete
+          <Trash2Icon /> {m.common_delete()}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

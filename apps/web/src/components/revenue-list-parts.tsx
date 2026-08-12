@@ -15,6 +15,7 @@ import { cn } from "@trackfi/ui/lib/utils"
 
 import type { RevenueSource } from "../lib/revenue"
 import { displayLabel } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export interface RevenueListPagination {
   shown: number
@@ -61,11 +62,11 @@ export function RevenueStatusBadge({ source }: { source: RevenueSource }) {
   const estimated =
     source.status === "active" && source.scheduleType === "variable"
   const label = oneTime
-    ? "One-time"
+    ? m.revenue_one_time()
     : scheduled
-      ? "Scheduled"
+      ? m.revenue_scheduled()
       : estimated
-        ? "Estimated"
+        ? m.revenue_estimated()
         : displayLabel(source.status)
 
   return (

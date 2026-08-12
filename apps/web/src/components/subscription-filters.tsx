@@ -15,6 +15,7 @@ import {
   type SubscriptionCadence,
   type SubscriptionFilter,
 } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export function SubscriptionFilters({
   search,
@@ -37,8 +38,8 @@ export function SubscriptionFilters({
         <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           className="h-10 pr-3 pl-[38px]"
-          placeholder="Search subscriptions..."
-          aria-label="Search subscriptions"
+          placeholder={m.subscriptions_search()}
+          aria-label={m.subscriptions_search()}
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
@@ -51,7 +52,7 @@ export function SubscriptionFilters({
         >
           <SelectTrigger
             className="h-10 flex-1 px-3 data-[size=default]:h-10 sm:w-[150px] sm:flex-none"
-            aria-label="Billing cycle filter"
+            aria-label={m.subscriptions_cycle_filter()}
           >
             <SelectValue />
           </SelectTrigger>
@@ -70,7 +71,7 @@ export function SubscriptionFilters({
         >
           <SelectTrigger
             className="h-10 flex-1 px-3 data-[size=default]:h-10 sm:w-[150px] sm:flex-none"
-            aria-label="Status filter"
+            aria-label={m.subscriptions_status_filter()}
           >
             <SelectValue />
           </SelectTrigger>

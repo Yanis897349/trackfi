@@ -11,6 +11,7 @@ import {
 } from "@trackfi/ui/components/dialog"
 
 import type { Expense, ExpenseInput } from "../lib/expenses"
+import { m } from "../lib/i18n"
 import { ExpenseForm, expenseFormId } from "./expense-form"
 
 export function ExpenseFormDialog({
@@ -41,11 +42,9 @@ export function ExpenseFormDialog({
       <DialogContent className="rounded-[14px] bg-[#fcfcfb] sm:max-w-[744px] [&>[data-slot=dialog-close]]:top-5 [&>[data-slot=dialog-close]]:right-5">
         <DialogHeader className="gap-1 border-b px-7 py-5">
           <DialogTitle className="text-lg font-semibold">
-            {expense ? "Edit expense" : "Add expense"}
+            {expense ? m.expenses_edit() : m.expenses_add()}
           </DialogTitle>
-          <DialogDescription>
-            Record a purchase and keep your spend controls up to date.
-          </DialogDescription>
+          <DialogDescription>{m.expenses_form_description()}</DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto">
           {open && (
@@ -64,11 +63,15 @@ export function ExpenseFormDialog({
             variant="outline"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {m.common_cancel()}
           </Button>
           <Button type="submit" form={expenseFormId} disabled={pending}>
             {!expense && <PlusIcon />}
-            {pending ? "Saving…" : expense ? "Save changes" : "Add expense"}
+            {pending
+              ? m.common_saving()
+              : expense
+                ? m.subscriptions_save_changes()
+                : m.expenses_add()}
           </Button>
         </DialogFooter>
       </DialogContent>

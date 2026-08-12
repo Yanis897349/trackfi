@@ -13,6 +13,7 @@ import { cn } from "@trackfi/ui/lib/utils"
 import type { RevenueSummary } from "../lib/revenue"
 import { forecastTrendPercentage, formatForecastTrend } from "../lib/forecast"
 import { formatMoney } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 const RevenueForecastChart = lazy(async () => {
   const module = await import("./revenue-forecast-chart")
@@ -31,10 +32,10 @@ export function RevenueForecastCard({
       <CardHeader className="flex items-center justify-between px-4">
         <div>
           <CardTitle className="text-sm font-semibold">
-            Cash-flow forecast
+            {m.revenue_cash_flow_forecast()}
           </CardTitle>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Expected take-home by month
+            {m.revenue_expected_by_month()}
           </p>
         </div>
         <ForecastTrend forecast={summary.forecast} />
@@ -44,7 +45,9 @@ export function RevenueForecastCard({
           <p className="text-2xl font-semibold tracking-tight">
             {formatMoney(summary.forecast.totalMinor, currency)}
           </p>
-          <p className="text-[11px] text-muted-foreground">forecast income</p>
+          <p className="text-[11px] text-muted-foreground">
+            {m.revenue_forecast_income()}
+          </p>
         </div>
         <Suspense fallback={<Skeleton className="mt-1 h-[118px] w-full" />}>
           <RevenueForecastChart
@@ -81,7 +84,9 @@ function ForecastTrend({ forecast }: { forecast: RevenueSummary["forecast"] }) {
           "bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400",
         !positive && !negative && "bg-muted text-muted-foreground"
       )}
-      aria-label={`${formatForecastTrend(rounded)} projected versus last month`}
+      aria-label={m.revenue_projected_last_month({
+        change: formatForecastTrend(rounded),
+      })}
     >
       <Icon className="size-3" />
       {formatForecastTrend(rounded)}

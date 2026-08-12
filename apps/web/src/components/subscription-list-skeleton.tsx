@@ -8,9 +8,10 @@ import {
   TableHeader,
   TableRow,
 } from "@trackfi/ui/components/table"
+import { m } from "../lib/i18n"
 
 export function SubscriptionListSkeleton({
-  label = "Loading services",
+  label = m.subscriptions_loading(),
   announce = true,
 }: {
   label?: string
@@ -27,13 +28,21 @@ export function SubscriptionListSkeleton({
         <Table className="text-[13px]">
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-4">Service</TableHead>
-              <TableHead className="w-[150px]">Category</TableHead>
-              <TableHead className="w-[180px]">Cost</TableHead>
-              <TableHead className="w-[170px]">Next renewal</TableHead>
-              <TableHead className="w-[120px]">Status</TableHead>
+              <TableHead className="pl-4">
+                {m.subscriptions_service()}
+              </TableHead>
+              <TableHead className="w-[150px]">
+                {m.subscriptions_category()}
+              </TableHead>
+              <TableHead className="w-[180px]">
+                {m.subscriptions_cost()}
+              </TableHead>
+              <TableHead className="w-[170px]">
+                {m.subscriptions_next_renewal()}
+              </TableHead>
+              <TableHead className="w-[120px]">{m.common_status()}</TableHead>
               <TableHead className="w-16">
-                <span className="sr-only">Actions</span>
+                <span className="sr-only">{m.common_actions()}</span>
               </TableHead>
             </TableRow>
           </TableHeader>

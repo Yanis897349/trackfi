@@ -16,6 +16,7 @@ import {
 import { SubscriptionSummary } from "../components/subscription-summary"
 import { SubscriptionsLoadingState } from "../components/subscriptions-loading-state"
 import { useSubscriptions } from "../hooks/use-subscriptions"
+import { m } from "../lib/i18n"
 
 export const Route = createFileRoute("/dashboard/subscriptions")({
   component: SubscriptionsRoute,
@@ -48,11 +49,11 @@ function SubscriptionsRoute() {
   return (
     <section className="mx-auto w-full max-w-[1120px] space-y-6">
       <ModuleHeader
-        title="Subscriptions"
-        description="Track recurring services, costs, and renewal dates."
+        title={m.nav_subscriptions()}
+        description={m.module_subscriptions_description()}
         action={
           <Button size="lg" className="px-4" onClick={state.openCreate}>
-            <PlusIcon /> Add subscription
+            <PlusIcon /> {m.subscriptions_add()}
           </Button>
         }
       />

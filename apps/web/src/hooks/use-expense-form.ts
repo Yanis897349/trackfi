@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from "react"
 
 import { localDate } from "../lib/date"
+import { intlLocale } from "../lib/i18n"
+import { m } from "../lib/i18n"
 import type {
   Expense,
   ExpenseCategory,
@@ -28,7 +30,7 @@ export function useExpenseForm({
   onSubmit(input: ExpenseInput, receipt: File | null): void
 }) {
   const fractionDigits =
-    new Intl.NumberFormat(undefined, {
+    new Intl.NumberFormat(intlLocale(), {
       style: "currency",
       currency,
     }).resolvedOptions().maximumFractionDigits ?? 2
@@ -64,11 +66,11 @@ export function useExpenseForm({
     event.preventDefault()
     const amount = Number(values.amount)
     if (!values.merchant.trim() || !Number.isFinite(amount) || amount <= 0) {
-      setValidation("Enter a merchant and a positive amount.")
+      setValidation(m.expenses_validation())
       return
     }
     if (receipt && receipt.size > 10 * 1024 * 1024) {
-      setValidation("Receipt files must be 10 MB or smaller.")
+      setValidation(m.expenses_receipt_too_large())
       return
     }
     setValidation("")

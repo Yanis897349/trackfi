@@ -1,18 +1,21 @@
 import { Card, CardContent } from "@trackfi/ui/components/card"
 import { Skeleton } from "@trackfi/ui/components/skeleton"
+import { m } from "../lib/i18n"
 
 export function FeatureFlagsLoadingState() {
   return (
     <section
       className="mx-auto w-full max-w-4xl space-y-6"
       role="status"
-      aria-label="Loading feature flags"
+      aria-label={m.admin_loading_feature_flags()}
       aria-busy="true"
     >
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">Feature flags</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          {m.admin_feature_flags_title()}
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Control staged product access without a deployment.
+          {m.admin_feature_flags_description()}
         </p>
       </div>
       <Card>

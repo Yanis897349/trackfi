@@ -1,6 +1,8 @@
+import { intlLocale } from "./i18n"
+
 export function currencySymbol(currency: string) {
   return (
-    new Intl.NumberFormat(undefined, {
+    new Intl.NumberFormat(intlLocale(), {
       style: "currency",
       currency,
       currencyDisplay: "narrowSymbol",
@@ -12,11 +14,11 @@ export function currencySymbol(currency: string) {
 
 export function formatCompactMoney(amountMinor: number, currency: string) {
   const fractionDigits =
-    new Intl.NumberFormat(undefined, {
+    new Intl.NumberFormat(intlLocale(), {
       style: "currency",
       currency,
     }).resolvedOptions().maximumFractionDigits ?? 2
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(intlLocale(), {
     style: "currency",
     currency,
     notation: "compact",

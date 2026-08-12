@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from "react"
 
+import { intlLocale } from "../lib/i18n"
+import { m } from "../lib/i18n"
+
 import type {
   Subscription,
   SubscriptionCadence,
@@ -27,7 +30,7 @@ export function useSubscriptionForm({
   onSubmit(input: SubscriptionInput): void
 }) {
   const fractionDigits =
-    new Intl.NumberFormat(undefined, {
+    new Intl.NumberFormat(intlLocale(), {
       style: "currency",
       currency,
     }).resolvedOptions().maximumFractionDigits ?? 2
@@ -63,7 +66,7 @@ export function useSubscriptionForm({
       !Number.isFinite(numericAmount) ||
       numericAmount <= 0
     ) {
-      setValidation("Enter a name, positive amount, and billing date.")
+      setValidation(m.subscriptions_validation())
       return
     }
     setValidation("")

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /en
+Allow: /fr
+Disallow: /
+Sitemap: https://trackfi-web.pages.dev/sitemap.xml

@@ -4,10 +4,10 @@ import type { AppContext, Bindings } from "./types"
 
 export async function issueInvitation(env: Bindings, entryId: string) {
   const entry = await env.DB.prepare(
-    "SELECT email FROM waitlist_entries WHERE id = ? AND status = 'approved'"
+    "SELECT email, locale FROM waitlist_entries WHERE id = ? AND status = 'approved'"
   )
     .bind(entryId)
-    .first<{ email: string }>()
+    .first<{ email: string; locale: "en" | "fr" }>()
   if (!entry) throw new Error("Approved waitlist entry not found")
 
   const token = createInvitationToken()
@@ -21,7 +21,7 @@ export async function issueInvitation(env: Bindings, entryId: string) {
     .run()
 
   try {
-    await sendInvitation(env, entry.email, token)
+    await sendInvitation(env, entry.email, token, entry.locale)
     await env.DB.prepare(
       `UPDATE waitlist_entries SET invite_sent_at = ?,
         invite_delivery_status = 'sent' WHERE id = ?`
