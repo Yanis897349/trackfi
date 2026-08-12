@@ -100,6 +100,37 @@ describe("Trackfi expenses application", () => {
     )
   })
 
+  it("returns to the previous page when a status change empties the page", async () => {
+    const expenses = Array.from({ length: 4 }, (_, index) => ({
+      ...expenseFixture(),
+      id: `expense-${index + 1}`,
+      name: `Expense ${index + 1}`,
+    }))
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      expenses,
+    })
+    const { queryClient, router } = createTestRouter("/dashboard/expenses")
+    render(<App queryClient={queryClient} router={router} />)
+
+    await screen.findAllByText("Expense 1")
+    fireEvent.click(screen.getAllByRole("button", { name: "Next page" })[0]!)
+    await screen.findAllByText("Expense 4")
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "Actions for Expense 4" })[0]!
+    )
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Archive" }))
+
+    await waitFor(() =>
+      expect(screen.queryByText("Expense 4")).not.toBeInTheDocument()
+    )
+    expect((await screen.findAllByText("Expense 1")).length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole("button", { name: "Previous page" })[0]
+    ).toBeDisabled()
+  })
+
   it("switches between scheduled and monthly-estimate fields", async () => {
     mockApi({ waitlistMode: true, session: sessionFor("user") })
     const { queryClient, router } = createTestRouter("/dashboard/expenses")

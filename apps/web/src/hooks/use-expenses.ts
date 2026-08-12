@@ -81,7 +81,17 @@ export function useExpenses() {
         method: "PATCH",
         body: JSON.stringify({ status: nextStatus }),
       }),
-    onSuccess: refresh,
+    onSuccess: async (_data, { nextStatus }) => {
+      const remainsVisible =
+        status === "all" ||
+        (status === "current"
+          ? nextStatus !== "archived"
+          : status === nextStatus)
+      if (page > 1 && list.data?.expenses.length === 1 && !remainsVisible) {
+        setPage(page - 1)
+      }
+      await refresh()
+    },
     onError: (error) => setMessage(humanizeError(error)),
   })
   const deleteMutation = useMutation({

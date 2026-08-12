@@ -24,6 +24,7 @@ export function mockApi({
   waitlistMode: boolean
 }) {
   const requests: Array<{ method: string; url: string }> = []
+  const expenseRecords = expenses.map((expense) => ({ ...expense }))
   vi.stubGlobal(
     "fetch",
     vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
@@ -41,7 +42,9 @@ export function mockApi({
       else if (url.includes("/api/settings")) {
         body = { settings: { currency, updatedAt: null } }
       } else if (url.includes("/api/expenses/summary")) {
-        const active = expenses.filter((expense) => expense.status === "active")
+        const active = expenseRecords.filter(
+          (expense) => expense.status === "active"
+        )
         const requestUrl = new URL(url, "https://trackfi.test")
         const months = Number(requestUrl.searchParams.get("months") ?? "6")
         const asOf = requestUrl.searchParams.get("asOf") ?? "2026-08-12"
@@ -77,7 +80,7 @@ export function mockApi({
             currency,
             activeExpenseCount: active.length,
             activeSubscriptionCount: subscriptions.length,
-            pausedExpenseCount: expenses.filter(
+            pausedExpenseCount: expenseRecords.filter(
               (expense) => expense.status === "paused"
             ).length,
             variableExpenseCount: active.filter(
@@ -136,11 +139,43 @@ export function mockApi({
           },
         }
       } else if (url.includes("/api/expenses")) {
-        body = {
-          expenses,
-          page: 1,
-          pageSize: 3,
-          total: expenses.length,
+        const requestUrl = new URL(url, "https://trackfi.test")
+        if (method === "PATCH") {
+          const id = requestUrl.pathname.split("/").at(-1)
+          const expense = expenseRecords.find((record) => record.id === id)
+          const update =
+            typeof init?.body === "string" ? JSON.parse(init.body) : {}
+          if (expense) Object.assign(expense, update)
+          body = { expense }
+        } else {
+          const statusFilter = requestUrl.searchParams.get("status") ?? "active"
+          const category = requestUrl.searchParams.get("category")
+          const scheduleType = requestUrl.searchParams.get("scheduleType")
+          const query = (requestUrl.searchParams.get("q") ?? "").toLowerCase()
+          const page = Number(requestUrl.searchParams.get("page") ?? "1")
+          const pageSize = Number(
+            requestUrl.searchParams.get("pageSize") ?? "25"
+          )
+          const filtered = expenseRecords.filter((expense) => {
+            const statusMatches =
+              statusFilter === "all" ||
+              (statusFilter === "current"
+                ? expense.status !== "archived"
+                : expense.status === statusFilter)
+            return (
+              statusMatches &&
+              (!category || expense.category === category) &&
+              (!scheduleType || expense.scheduleType === scheduleType) &&
+              (!query || String(expense.name).toLowerCase().includes(query))
+            )
+          })
+          const offset = (page - 1) * pageSize
+          body = {
+            expenses: filtered.slice(offset, offset + pageSize),
+            page,
+            pageSize,
+            total: filtered.length,
+          }
         }
       } else if (url.includes("/api/revenue-sources/summary")) {
         const active = revenueSources.filter(
