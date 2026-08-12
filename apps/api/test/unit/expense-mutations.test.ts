@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { deleteReceiptInBackground } from "../src/routes/expense-mutations"
-import type { AppContext } from "../src/types"
+import { deleteReceiptInBackground } from "../../src/routes/expense-mutations"
+import type { AppContext } from "../../src/types"
 
 describe("expense receipt cleanup", () => {
   it("contains cleanup failures after a database mutation has committed", async () => {
