@@ -1,4 +1,5 @@
 import { apiFetch } from "./api"
+import { localDate } from "./date"
 
 export const subscriptionCadences = [
   "weekly",
@@ -109,12 +110,6 @@ export interface SubscriptionInput {
   category: SubscriptionCategory
   websiteUrl?: string
   notes?: string
-}
-
-export function localDate() {
-  const date = new Date()
-  const offset = date.getTimezoneOffset() * 60_000
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10)
 }
 
 export function subscriptionsQueryOptions({

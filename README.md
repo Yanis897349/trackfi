@@ -1,6 +1,8 @@
 # Trackfi
 
-Trackfi is a finance tracker for managing subscriptions, recurring revenue, recurring investments, and long-term financial growth projections.
+Trackfi is a finance tracker for managing subscriptions, planned expenses,
+recurring revenue, recurring investments, and long-term financial growth
+projections.
 
 ## Local setup
 

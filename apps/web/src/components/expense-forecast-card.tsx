@@ -10,20 +10,20 @@ import {
 import { Skeleton } from "@trackfi/ui/components/skeleton"
 import { cn } from "@trackfi/ui/lib/utils"
 
-import type { RevenueSummary } from "../lib/revenue"
+import type { ExpenseSummary } from "../lib/expenses"
 import { forecastTrendPercentage, formatForecastTrend } from "../lib/forecast"
 import { formatMoney } from "../lib/subscriptions"
 
-const RevenueForecastChart = lazy(async () => {
-  const module = await import("./revenue-forecast-chart")
-  return { default: module.RevenueForecastChart }
+const ExpenseForecastChart = lazy(async () => {
+  const module = await import("./expense-forecast-chart")
+  return { default: module.ExpenseForecastChart }
 })
 
-export function RevenueForecastCard({
+export function ExpenseForecastCard({
   summary,
   currency,
 }: {
-  summary: RevenueSummary
+  summary: ExpenseSummary
   currency: string
 }) {
   return (
@@ -31,10 +31,10 @@ export function RevenueForecastCard({
       <CardHeader className="flex items-center justify-between px-4">
         <div>
           <CardTitle className="text-sm font-semibold">
-            Cash-flow forecast
+            Spending forecast
           </CardTitle>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Expected take-home by month
+            Planned expenses and subscriptions by month
           </p>
         </div>
         <ForecastTrend forecast={summary.forecast} />
@@ -44,10 +44,10 @@ export function RevenueForecastCard({
           <p className="text-2xl font-semibold tracking-tight">
             {formatMoney(summary.forecast.totalMinor, currency)}
           </p>
-          <p className="text-[11px] text-muted-foreground">forecast income</p>
+          <p className="text-[11px] text-muted-foreground">forecast spending</p>
         </div>
         <Suspense fallback={<Skeleton className="mt-1 h-[118px] w-full" />}>
-          <RevenueForecastChart
+          <ExpenseForecastChart
             forecast={summary.forecast}
             currency={currency}
           />
@@ -57,34 +57,27 @@ export function RevenueForecastCard({
   )
 }
 
-function ForecastTrend({ forecast }: { forecast: RevenueSummary["forecast"] }) {
+function ForecastTrend({ forecast }: { forecast: ExpenseSummary["forecast"] }) {
   if (forecast.previousMonthMinor === 0 || !forecast.series.length) return null
   const rounded = forecastTrendPercentage(
     forecast.series[0]!.amountMinor,
     forecast.previousMonthMinor
   )
-  const positive = rounded > 0
-  const negative = rounded < 0
-  const Icon = positive
-    ? TrendingUpIcon
-    : negative
-      ? TrendingDownIcon
-      : MinusIcon
-
+  const Icon =
+    rounded > 0 ? TrendingUpIcon : rounded < 0 ? TrendingDownIcon : MinusIcon
   return (
     <div
       className={cn(
         "flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold",
-        positive &&
-          "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400",
-        negative &&
+        rounded > 0 &&
           "bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400",
-        !positive && !negative && "bg-muted text-muted-foreground"
+        rounded < 0 &&
+          "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400",
+        rounded === 0 && "bg-muted text-muted-foreground"
       )}
       aria-label={`${formatForecastTrend(rounded)} projected versus last month`}
     >
-      <Icon className="size-3" />
-      {formatForecastTrend(rounded)}
+      <Icon className="size-3" /> {formatForecastTrend(rounded)}
     </div>
   )
 }
