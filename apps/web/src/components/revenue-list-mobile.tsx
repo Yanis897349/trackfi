@@ -32,7 +32,7 @@ export function RevenueListMobile({
         <Card key={source.id} size="sm">
           <CardContent className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 gap-3">
-              <RevenueSourceIcon />
+              <RevenueSourceIcon category={source.category} />
               <div className="min-w-0">
                 <p className="truncate font-medium">{source.name}</p>
                 <p className="mt-1 text-sm">
@@ -46,7 +46,7 @@ export function RevenueListMobile({
                   · {displayLabel(source.category)}
                 </p>
                 <div className="mt-3">
-                  <RevenueStatusBadge status={source.status} />
+                  <RevenueStatusBadge source={source} />
                 </div>
               </div>
             </div>

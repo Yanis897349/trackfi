@@ -635,10 +635,63 @@ describe("Trackfi API", () => {
         annualEquivalentMinor: 3_200_000,
         upcomingCount: 3,
         upcomingTotalMinor: 300_000,
+        forecast: {
+          months: 6,
+          totalMinor: 1_600_000,
+          previousMonthMinor: 50_000,
+          series: [
+            { month: "2024-01", amountMinor: 350_000 },
+            { month: "2024-02", amountMinor: 250_000 },
+            { month: "2024-03", amountMinor: 250_000 },
+            { month: "2024-04", amountMinor: 250_000 },
+            { month: "2024-05", amountMinor: 250_000 },
+            { month: "2024-06", amountMinor: 250_000 },
+          ],
+        },
         sourceBreakdown: [
           { name: "Primary job", monthlyEquivalentMinor: 216_667 },
           { name: "Design clients", monthlyEquivalentMinor: 50_000 },
         ],
+        upcomingIncome: [
+          {
+            name: "Primary job",
+            scheduleType: "scheduled",
+            expectedDate: "2024-01-01",
+          },
+          {
+            name: "Design clients",
+            scheduleType: "variable",
+            expectedDate: null,
+          },
+        ],
+      },
+    })
+    expect(
+      (
+        await userApi(
+          "/api/revenue-sources/summary?asOf=2024-01-01&months=5",
+          cookie
+        )
+      ).status
+    ).toBe(400)
+    await expect(
+      (
+        await userApi(
+          "/api/revenue-sources/summary?asOf=2024-01-01&months=3",
+          cookie
+        )
+      ).json()
+    ).resolves.toMatchObject({
+      summary: {
+        forecast: {
+          months: 3,
+          totalMinor: 850_000,
+          series: [
+            { month: "2024-01", amountMinor: 350_000 },
+            { month: "2024-02", amountMinor: 250_000 },
+            { month: "2024-03", amountMinor: 250_000 },
+          ],
+        },
       },
     })
     await expect(

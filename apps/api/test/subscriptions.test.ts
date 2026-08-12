@@ -13,6 +13,7 @@ import {
 import {
   nextRevenuePaymentDate,
   revenueAnnualEquivalentMinor,
+  revenueForecast,
   revenueMonthlyEquivalentMinor,
   revenuePaymentDatesInRange,
 } from "../src/revenue"
@@ -120,5 +121,60 @@ describe("subscription calculations", () => {
     expect(nextRevenuePaymentDate("2024-01-31", "monthly", "2024-02-01")).toBe(
       "2024-02-29"
     )
+  })
+
+  it("forecasts complete calendar months across year boundaries", () => {
+    expect(
+      revenueForecast(
+        [
+          {
+            amountMinor: 100,
+            scheduleType: "scheduled",
+            cadence: "weekly",
+            paymentAnchor: "2024-12-02",
+          },
+          {
+            amountMinor: 250,
+            scheduleType: "scheduled",
+            cadence: "monthly",
+            paymentAnchor: "2024-01-31",
+          },
+          {
+            amountMinor: 75,
+            scheduleType: "variable",
+            cadence: null,
+            paymentAnchor: null,
+          },
+        ],
+        "2024-12-20",
+        3
+      )
+    ).toEqual({
+      months: 3,
+      totalMinor: 2275,
+      previousMonthMinor: 325,
+      series: [
+        { month: "2024-12", amountMinor: 825 },
+        { month: "2025-01", amountMinor: 725 },
+        { month: "2025-02", amountMinor: 725 },
+      ],
+    })
+  })
+
+  it("returns a zero previous-month projection when income starts later", () => {
+    expect(
+      revenueForecast(
+        [
+          {
+            amountMinor: 500,
+            scheduleType: "scheduled",
+            cadence: "monthly",
+            paymentAnchor: "2025-01-15",
+          },
+        ],
+        "2025-01-20",
+        6
+      ).previousMonthMinor
+    ).toBe(0)
   })
 })

@@ -49,7 +49,7 @@ function RevenueRoute() {
     <section className="mx-auto w-full max-w-[1120px] space-y-6">
       <ModuleHeader
         title="Revenue"
-        description="Forecast take-home income across scheduled and variable sources."
+        description="Know what’s coming in, when it lands, and how reliable it is."
         action={
           <Button size="lg" className="px-4" onClick={state.openCreate}>
             <PlusIcon /> Add revenue source
@@ -59,43 +59,54 @@ function RevenueRoute() {
       <RevenueSummary
         summary={state.summary.data!.summary}
         currency={state.currency}
+        months={state.forecastMonths}
+        fetching={state.summary.isFetching}
+        onMonthsChange={state.setForecastMonths}
       />
-      <RevenueFilters
-        search={state.search}
-        category={state.category}
-        scheduleType={state.scheduleType}
-        status={state.status}
-        onSearchChange={state.setSearch}
-        onCategoryChange={state.setCategory}
-        onScheduleTypeChange={state.setScheduleType}
-        onStatusChange={state.setStatus}
-      />
-      {state.message && (
-        <p
-          role="alert"
-          className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
-        >
-          {state.message}
-        </p>
-      )}
-      {state.list.isLoading ? (
-        <SkeletonList />
-      ) : state.list.isError ? (
-        <ModuleError retry={() => void state.list.refetch()} />
-      ) : sources.length ? (
-        <RevenueList
-          sources={sources}
-          currency={state.currency}
-          page={state.page}
-          total={state.list.data?.total ?? sources.length}
-          onPageChange={state.setPage}
-          onEdit={state.openEdit}
-          onStatus={state.updateStatus}
-          onDelete={state.setDeleting}
+      <section className="space-y-4">
+        <div>
+          <h3 className="text-lg font-semibold">Revenue sources</h3>
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
+            Manage recurring income, variable estimates, and payment schedules.
+          </p>
+        </div>
+        <RevenueFilters
+          search={state.search}
+          category={state.category}
+          scheduleType={state.scheduleType}
+          status={state.status}
+          onSearchChange={state.setSearch}
+          onCategoryChange={state.setCategory}
+          onScheduleTypeChange={state.setScheduleType}
+          onStatusChange={state.setStatus}
         />
-      ) : (
-        <RevenueEmptyState filtered={hasFilters} onAdd={state.openCreate} />
-      )}
+        {state.message && (
+          <p
+            role="alert"
+            className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive"
+          >
+            {state.message}
+          </p>
+        )}
+        {state.list.isLoading ? (
+          <SkeletonList />
+        ) : state.list.isError ? (
+          <ModuleError retry={() => void state.list.refetch()} />
+        ) : sources.length ? (
+          <RevenueList
+            sources={sources}
+            currency={state.currency}
+            page={state.page}
+            total={state.list.data?.total ?? sources.length}
+            onPageChange={state.setPage}
+            onEdit={state.openEdit}
+            onStatus={state.updateStatus}
+            onDelete={state.setDeleting}
+          />
+        ) : (
+          <RevenueEmptyState filtered={hasFilters} onAdd={state.openCreate} />
+        )}
+      </section>
       <RevenueFormDialog
         currency={state.currency}
         source={state.editing}

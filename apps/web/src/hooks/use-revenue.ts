@@ -1,5 +1,10 @@
 import { useState } from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 
 import { apiFetch } from "../lib/api"
 import { humanizeError } from "../lib/errors"
@@ -8,6 +13,7 @@ import {
   revenueSummaryQueryOptions,
   type RevenueCategory,
   type RevenueFilter,
+  type RevenueForecastMonths,
   type RevenueScheduleType,
   type RevenueSource,
   type RevenueSourceInput,
@@ -24,12 +30,16 @@ export function useRevenue() {
   >("all")
   const [search, setSearchState] = useState("")
   const [page, setPage] = useState(1)
+  const [forecastMonths, setForecastMonths] = useState<RevenueForecastMonths>(6)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<RevenueSource | null>(null)
   const [deleting, setDeleting] = useState<RevenueSource | null>(null)
   const [message, setMessage] = useState("")
   const settings = useQuery(settingsQueryOptions())
-  const summary = useQuery(revenueSummaryQueryOptions())
+  const summary = useQuery({
+    ...revenueSummaryQueryOptions(forecastMonths),
+    placeholderData: keepPreviousData,
+  })
   const list = useQuery(
     revenueSourcesQueryOptions({
       status,
@@ -112,6 +122,7 @@ export function useRevenue() {
     deleting,
     dialogOpen,
     editing,
+    forecastMonths,
     list,
     message,
     page,
@@ -148,6 +159,7 @@ export function useRevenue() {
     setCategory(value: RevenueCategory | "all") {
       resetPage(setCategoryState, value)
     },
+    setForecastMonths,
     setDeleting,
     setPage,
     setScheduleType(value: RevenueScheduleType | "all") {

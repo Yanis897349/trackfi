@@ -21,12 +21,14 @@ export const revenueCategories = [
 ] as const
 export const revenueScheduleTypes = ["scheduled", "variable"] as const
 export const revenueStatuses = ["active", "paused", "archived"] as const
+export const revenueForecastMonths = [3, 6, 12] as const
 
 export type RevenueCadence = (typeof revenueCadences)[number]
 export type RevenueCategory = (typeof revenueCategories)[number]
 export type RevenueScheduleType = (typeof revenueScheduleTypes)[number]
 export type RevenueStatus = (typeof revenueStatuses)[number]
 export type RevenueFilter = RevenueStatus | "current" | "all"
+export type RevenueForecastMonths = (typeof revenueForecastMonths)[number]
 
 export interface RevenueSource {
   id: string
@@ -78,6 +80,24 @@ export interface RevenueSummary {
     category: RevenueCategory
     amountMinor: number
     paymentDate: string
+  }>
+  forecast: {
+    months: RevenueForecastMonths
+    totalMinor: number
+    previousMonthMinor: number
+    series: Array<{
+      month: string
+      amountMinor: number
+    }>
+  }
+  upcomingIncome: Array<{
+    id: string
+    sourceId: string
+    name: string
+    category: RevenueCategory
+    amountMinor: number
+    scheduleType: RevenueScheduleType
+    expectedDate: string | null
   }>
 }
 
@@ -139,12 +159,13 @@ export function revenueSourcesQueryOptions({
   }
 }
 
-export function revenueSummaryQueryOptions() {
+export function revenueSummaryQueryOptions(months: RevenueForecastMonths = 6) {
+  const asOf = localDate()
   return {
-    queryKey: ["revenue-summary", localDate()],
+    queryKey: ["revenue-summary", asOf, months],
     queryFn: () =>
       apiFetch<{ summary: RevenueSummary }>(
-        `/api/revenue-sources/summary?asOf=${localDate()}`
+        `/api/revenue-sources/summary?asOf=${asOf}&months=${months}`
       ),
   }
 }

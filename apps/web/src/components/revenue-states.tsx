@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router"
 import { BanknoteIcon, PlusIcon, SettingsIcon } from "lucide-react"
 
 import { Button, buttonVariants } from "@trackfi/ui/components/button"
+import { Card, CardContent, CardHeader } from "@trackfi/ui/components/card"
 import {
   Empty,
   EmptyContent,
@@ -16,10 +17,10 @@ import { ModuleHeader } from "./module-layout"
 
 export function RevenueCurrencyRequiredState() {
   return (
-    <section className="mx-auto w-full max-w-6xl space-y-6">
+    <section className="mx-auto w-full max-w-[1120px] space-y-6">
       <ModuleHeader
         title="Revenue"
-        description="Forecast take-home income across scheduled and variable sources."
+        description="Know what’s coming in, when it lands, and how reliable it is."
       />
       <Empty className="min-h-80 border">
         <EmptyHeader>
@@ -87,16 +88,59 @@ export function RevenueLoadingState() {
     >
       <ModuleHeader
         title="Revenue"
-        description="Forecast take-home income across scheduled and variable sources."
+        description="Know what’s coming in, when it lands, and how reliable it is."
+        action={<Skeleton className="h-9 w-44" />}
       />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }, (_, index) => (
-          <Skeleton key={index} className="h-[126px]" />
-        ))}
-      </div>
-      <Skeleton className="h-56" />
-      <Skeleton className="h-10" />
-      <Skeleton className="h-64" />
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-3 w-56" />
+          </div>
+          <Skeleton className="h-8 w-32" />
+        </div>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+          <OutlookCardSkeleton />
+          <OutlookCardSkeleton />
+        </div>
+        <Card className="gap-0 py-0">
+          <CardHeader className="h-12 px-4 py-3">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-3 w-48" />
+          </CardHeader>
+          <CardContent className="grid gap-2 border-t p-4 lg:grid-cols-3">
+            {Array.from({ length: 3 }, (_, index) => (
+              <Skeleton key={index} className="h-12" />
+            ))}
+          </CardContent>
+        </Card>
+      </section>
+      <section className="space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-3 w-80 max-w-full" />
+        </div>
+        <div className="flex flex-col gap-3 lg:flex-row">
+          <Skeleton className="h-10 flex-1" />
+          <Skeleton className="h-10 w-full lg:w-[470px]" />
+        </div>
+        <Skeleton className="h-72" />
+      </section>
     </section>
+  )
+}
+
+function OutlookCardSkeleton() {
+  return (
+    <Card className="h-[230px] gap-3 py-4">
+      <CardHeader className="space-y-2 px-4">
+        <Skeleton className="h-4 w-32" />
+        <Skeleton className="h-3 w-44" />
+      </CardHeader>
+      <CardContent className="space-y-3 px-4">
+        <Skeleton className="h-7 w-36" />
+        <Skeleton className="h-[118px] w-full" />
+      </CardContent>
+    </Card>
   )
 }

@@ -6,7 +6,12 @@ import {
   listRevenueSourceRows,
   serializeRevenueSource,
 } from "../revenue-database"
-import { revenuePaymentDatesInRange, type RevenueCadence } from "../revenue"
+import {
+  revenueForecast,
+  revenuePaymentDatesInRange,
+  type RevenueCadence,
+  type RevenueForecastMonths,
+} from "../revenue"
 import type { AppEnv } from "../types"
 
 export function registerRevenueSourceSummaryRoute(app: Hono<AppEnv>) {
@@ -14,7 +19,12 @@ export function registerRevenueSourceSummaryRoute(app: Hono<AppEnv>) {
     const user = await requireUser(context)
     if (user instanceof Response) return user
     const requestedAsOf = context.req.query("asOf")
-    if (requestedAsOf && !isDateOnly(requestedAsOf)) {
+    const requestedMonths = context.req.query("months") ?? "6"
+    const months = Number(requestedMonths)
+    if (
+      (requestedAsOf && !isDateOnly(requestedAsOf)) ||
+      !["3", "6", "12"].includes(requestedMonths)
+    ) {
       return context.json({ error: "invalid_request" }, 400)
     }
 
@@ -66,6 +76,35 @@ export function registerRevenueSourceSummaryRoute(app: Hono<AppEnv>) {
         (left, right) =>
           right.monthlyEquivalentMinor - left.monthlyEquivalentMinor
       )
+    const forecast = revenueForecast(
+      active,
+      asOf,
+      months as RevenueForecastMonths
+    )
+    const upcomingIncome = active
+      .map((source) => ({
+        id:
+          source.scheduleType === "scheduled"
+            ? `${source.id}:${source.nextPaymentDate}`
+            : `${source.id}:estimate:${asOf.slice(0, 7)}`,
+        sourceId: source.id,
+        name: source.name,
+        category: source.category,
+        amountMinor: source.amountMinor,
+        scheduleType: source.scheduleType,
+        expectedDate: source.nextPaymentDate,
+      }))
+      .sort((left, right) => {
+        if (left.expectedDate && right.expectedDate) {
+          return (
+            left.expectedDate.localeCompare(right.expectedDate) ||
+            left.name.localeCompare(right.name)
+          )
+        }
+        if (left.expectedDate) return -1
+        if (right.expectedDate) return 1
+        return left.name.localeCompare(right.name)
+      })
 
     return context.json({
       summary: {
@@ -87,6 +126,8 @@ export function registerRevenueSourceSummaryRoute(app: Hono<AppEnv>) {
         ),
         sourceBreakdown,
         upcoming,
+        forecast,
+        upcomingIncome,
       },
     })
   })

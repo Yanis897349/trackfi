@@ -3,6 +3,7 @@ import {
   occurrenceDatesInRange,
   type RecurrenceCadence,
 } from "./subscriptions"
+import { dateOnlyParts, daysInUtcMonth } from "./date"
 
 export const revenueCadences = [
   "weekly",
@@ -19,6 +20,19 @@ export interface RevenueCalculationInput {
   amountMinor: number
   scheduleType: "scheduled" | "variable"
   cadence: RevenueCadence | null
+}
+
+export interface RevenueForecastInput extends RevenueCalculationInput {
+  paymentAnchor: string | null
+}
+
+export type RevenueForecastMonths = 3 | 6 | 12
+
+export interface RevenueForecast {
+  months: RevenueForecastMonths
+  totalMinor: number
+  previousMonthMinor: number
+  series: Array<{ month: string; amountMinor: number }>
 }
 
 const annualMultipliers: Record<RevenueCadence, number> = {
@@ -55,4 +69,56 @@ export function revenuePaymentDatesInRange(
   through: string
 ) {
   return occurrenceDatesInRange(paymentAnchor, cadence, from, through)
+}
+
+export function revenueForecast(
+  sources: RevenueForecastInput[],
+  asOf: string,
+  months: RevenueForecastMonths
+): RevenueForecast {
+  const currentMonth = asOf.slice(0, 7)
+  const series = Array.from({ length: months }, (_, index) => {
+    const month = addCalendarMonths(currentMonth, index)
+    return { month, amountMinor: revenueForecastForMonth(sources, month) }
+  })
+
+  return {
+    months,
+    totalMinor: series.reduce((total, entry) => total + entry.amountMinor, 0),
+    previousMonthMinor: revenueForecastForMonth(
+      sources,
+      addCalendarMonths(currentMonth, -1)
+    ),
+    series,
+  }
+}
+
+function revenueForecastForMonth(
+  sources: RevenueForecastInput[],
+  month: string
+) {
+  const [year, monthNumber] = month.split("-").map(Number)
+  const through = `${month}-${daysInUtcMonth(year!, monthNumber! - 1)
+    .toString()
+    .padStart(2, "0")}`
+  const from = `${month}-01`
+
+  return sources.reduce((total, source) => {
+    if (source.scheduleType === "variable") {
+      return total + source.amountMinor
+    }
+    const occurrences = revenuePaymentDatesInRange(
+      source.paymentAnchor!,
+      source.cadence!,
+      from,
+      through
+    )
+    return total + occurrences.length * source.amountMinor
+  }, 0)
+}
+
+function addCalendarMonths(month: string, offset: number) {
+  const { year, month: monthIndex } = dateOnlyParts(`${month}-01`)
+  const date = new Date(Date.UTC(year, monthIndex + offset, 1))
+  return date.toISOString().slice(0, 7)
 }
