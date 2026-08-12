@@ -126,6 +126,10 @@ describe("shared overlay motion", () => {
 
     const cadence = screen.getByLabelText("Cadence")
     expect(cadence).toHaveTextContent("Monthly")
+    expect(cadence.querySelector('[data-slot="select-value"]')).toHaveClass(
+      "min-w-0",
+      "truncate"
+    )
     fireEvent.click(cadence)
     const yearly = await screen.findByRole("option", { name: "Yearly" })
     fireEvent.pointerDown(yearly, { pointerType: "mouse" })
