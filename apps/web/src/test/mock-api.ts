@@ -44,8 +44,7 @@ export function mockApi({
       else if (url.includes("/api/auth/update-user") && localeUpdateFails) {
         body = { message: "Unable to update user" }
         status = 500
-      }
-      else if (url.includes("/api/settings")) {
+      } else if (url.includes("/api/settings")) {
         body = { settings: { currency, updatedAt: null } }
       } else if (url.includes("/api/expenses/settings")) {
         body = {
