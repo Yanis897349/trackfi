@@ -125,10 +125,24 @@ describe("Trackfi revenue application", () => {
     const dialog = await screen.findByRole("dialog", {
       name: "Add revenue source",
     })
-    expect(dialog).toHaveTextContent("Take-home per payment (EUR)")
+    expect(dialog).toHaveTextContent(
+      "Add the net income you expect to receive and how certain it is."
+    )
+    expect(screen.getByRole("radio", { name: /Confirmed/ })).toBeChecked()
+    expect(dialog).toHaveTextContent("Take-home amount")
+    expect(screen.getByRole("textbox", { name: "Currency" })).toHaveTextContent(
+      "EUR"
+    )
     expect(
-      screen.getByRole("button", { name: "Next payment date" })
+      screen.getByRole("button", { name: "Next expected payment" })
     ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole("radio", { name: /Estimate/ }))
+    expect(screen.getByRole("radio", { name: /Estimate/ })).toBeChecked()
+    expect(dialog).toHaveTextContent("Estimated monthly take-home")
+    expect(
+      screen.queryByRole("button", { name: "Next expected payment" })
+    ).not.toBeInTheDocument()
   })
 
   it("uses a contextual skeleton while revenue loads", async () => {

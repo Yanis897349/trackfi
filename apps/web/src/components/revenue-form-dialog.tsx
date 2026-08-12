@@ -36,13 +36,15 @@ export function RevenueFormDialog({
       onOpenChange={onOpenChange}
       onOpenChangeComplete={onOpenChangeComplete}
     >
-      <DialogContent className="sm:max-w-[560px]">
-        <DialogHeader className="gap-2 border-b-0 p-6">
-          <DialogTitle className="text-lg leading-7 font-semibold">
+      <DialogContent className="rounded-xl sm:max-w-[700px] [&>[data-slot=dialog-close]]:top-6 [&>[data-slot=dialog-close]]:right-6">
+        <DialogHeader className="gap-1.5 border-b-0 px-7 pt-[26px] pb-5">
+          <DialogTitle className="text-2xl leading-8 font-bold tracking-tight">
             {source ? "Edit revenue source" : "Add revenue source"}
           </DialogTitle>
           <DialogDescription>
-            Track expected take-home income from a scheduled or variable source.
+            {source
+              ? "Update the net income you expect to receive and how certain it is."
+              : "Add the net income you expect to receive and how certain it is."}
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto">
@@ -56,25 +58,34 @@ export function RevenueFormDialog({
             />
           )}
         </div>
-        <DialogFooter className="bg-transparent sm:h-[72px]">
-          <Button
-            type="button"
-            variant="outline"
-            size="lg"
-            className="px-4"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            size="lg"
-            className="px-4"
-            form={revenueFormId}
-            disabled={pending}
-          >
-            {pending ? "Saving…" : source ? "Save changes" : "Add source"}
-          </Button>
+        <DialogFooter className="gap-3 px-7 sm:h-[72px] sm:justify-between">
+          <p className="text-xs text-muted-foreground">
+            Amounts should be after tax and fees.
+          </p>
+          <div className="flex w-full gap-2.5 sm:w-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              className="flex-1 px-4 sm:flex-none"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              size="lg"
+              className="flex-1 px-4 sm:flex-none"
+              form={revenueFormId}
+              disabled={pending}
+            >
+              {pending
+                ? "Saving…"
+                : source
+                  ? "Save changes"
+                  : "Add revenue source"}
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

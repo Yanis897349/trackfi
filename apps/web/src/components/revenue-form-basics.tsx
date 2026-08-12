@@ -1,3 +1,5 @@
+import { ChevronDownIcon } from "lucide-react"
+
 import { Field, FieldLabel } from "@trackfi/ui/components/field"
 import { Input } from "@trackfi/ui/components/input"
 import {
@@ -9,26 +11,25 @@ import {
 } from "@trackfi/ui/components/select"
 
 import type { RevenueFormState } from "../hooks/use-revenue-form"
-import {
-  revenueCategoryOptions,
-  type RevenueCategory,
-  type RevenueScheduleType,
-} from "../lib/revenue"
+import { revenueCategoryOptions, type RevenueCategory } from "../lib/revenue"
+import { RevenueConfidenceField } from "./revenue-confidence-field"
 
-const scheduleOptions = [
-  { value: "scheduled", label: "Scheduled income" },
-  { value: "variable", label: "Variable monthly estimate" },
-]
-
-export function RevenueFormBasics({ form }: { form: RevenueFormState }) {
+export function RevenueFormBasics({
+  currency,
+  form,
+}: {
+  currency: string
+  form: RevenueFormState
+}) {
   return (
     <>
-      <Field>
+      <RevenueConfidenceField form={form} />
+      <Field className="gap-2">
         <FieldLabel htmlFor="revenue-name">Source name</FieldLabel>
         <Input
           id="revenue-name"
-          className="h-10 px-3"
-          placeholder="e.g. Acme salary, Design clients"
+          className="h-[42px] px-3"
+          placeholder="e.g. Acme salary or Design clients"
           value={form.values.name}
           onChange={(event) => form.setValue("name", event.target.value)}
           maxLength={100}
@@ -36,32 +37,8 @@ export function RevenueFormBasics({ form }: { form: RevenueFormState }) {
           required
         />
       </Field>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field>
-          <FieldLabel>Income type</FieldLabel>
-          <Select
-            items={scheduleOptions}
-            value={form.values.scheduleType}
-            onValueChange={(value) =>
-              form.setValue("scheduleType", value as RevenueScheduleType)
-            }
-          >
-            <SelectTrigger
-              className="h-10 w-full px-3 data-[size=default]:h-10"
-              aria-label="Income type"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {scheduleOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field>
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
+        <Field className="gap-2">
           <FieldLabel>Category</FieldLabel>
           <Select
             items={revenueCategoryOptions}
@@ -71,7 +48,7 @@ export function RevenueFormBasics({ form }: { form: RevenueFormState }) {
             }
           >
             <SelectTrigger
-              className="h-10 w-full px-3 data-[size=default]:h-10"
+              className="h-[42px] w-full px-3 data-[size=default]:h-[42px]"
               aria-label="Category"
             >
               <SelectValue />
@@ -84,6 +61,18 @@ export function RevenueFormBasics({ form }: { form: RevenueFormState }) {
               ))}
             </SelectContent>
           </Select>
+        </Field>
+        <Field className="gap-2">
+          <FieldLabel>Currency</FieldLabel>
+          <div
+            className="flex h-[42px] items-center justify-between rounded-md border border-input bg-transparent px-3 text-sm dark:bg-input/30"
+            role="textbox"
+            aria-label="Currency"
+            aria-readonly="true"
+          >
+            <span>{currency}</span>
+            <ChevronDownIcon className="size-4 text-muted-foreground" />
+          </div>
         </Field>
       </div>
     </>

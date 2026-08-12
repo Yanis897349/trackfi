@@ -26,39 +26,43 @@ export function RevenueFormSchedule({
   const scheduled = form.values.scheduleType === "scheduled"
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field>
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_240px]">
+        <Field className="gap-2">
           <FieldLabel htmlFor="revenue-amount">
-            {scheduled
-              ? `Take-home per payment (${currency})`
-              : `Estimated monthly take-home (${currency})`}
+            {scheduled ? "Take-home amount" : "Estimated monthly take-home"}
           </FieldLabel>
-          <Input
-            id="revenue-amount"
-            className="h-10 px-3"
-            type="number"
-            placeholder="0.00"
-            min={1 / form.divisor}
-            step={1 / form.divisor}
-            value={form.values.amount}
-            onChange={(event) => form.setValue("amount", event.target.value)}
-            required
-          />
+          <div className="relative">
+            <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-sm font-medium">
+              {currencySymbol(currency)}
+            </span>
+            <Input
+              id="revenue-amount"
+              className="h-[42px] pr-3 pl-8"
+              type="number"
+              placeholder="0.00"
+              min={1 / form.divisor}
+              step={1 / form.divisor}
+              value={form.values.amount}
+              onChange={(event) => form.setValue("amount", event.target.value)}
+              required
+            />
+          </div>
         </Field>
         {scheduled && <CadenceField form={form} />}
       </div>
       {scheduled && (
-        <Field>
+        <Field className="gap-2">
           <FieldLabel htmlFor="revenue-payment-date">
-            Next payment date
+            Next expected payment
           </FieldLabel>
           <DateOnlyPicker
             id="revenue-payment-date"
+            className="h-[42px]"
             value={form.values.paymentAnchor}
             onChange={(value) => form.setValue("paymentAnchor", value)}
           />
           <FieldDescription className="text-xs">
-            Future payments are forecast from this date.
+            We’ll use this date to build your cash-flow forecast.
           </FieldDescription>
         </Field>
       )}
@@ -68,8 +72,8 @@ export function RevenueFormSchedule({
 
 function CadenceField({ form }: { form: RevenueFormState }) {
   return (
-    <Field>
-      <FieldLabel>Cadence</FieldLabel>
+    <Field className="gap-2">
+      <FieldLabel>Repeats</FieldLabel>
       <Select
         items={revenueCadenceOptions}
         value={form.values.cadence}
@@ -78,7 +82,7 @@ function CadenceField({ form }: { form: RevenueFormState }) {
         }
       >
         <SelectTrigger
-          className="h-10 w-full px-3 data-[size=default]:h-10"
+          className="h-[42px] w-full px-3 data-[size=default]:h-[42px]"
           aria-label="Cadence"
         >
           <SelectValue />
@@ -92,5 +96,17 @@ function CadenceField({ form }: { form: RevenueFormState }) {
         </SelectContent>
       </Select>
     </Field>
+  )
+}
+
+function currencySymbol(currency: string) {
+  return (
+    new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+      currencyDisplay: "narrowSymbol",
+    })
+      .formatToParts(0)
+      .find((part) => part.type === "currency")?.value ?? currency
   )
 }

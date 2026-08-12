@@ -13,11 +13,13 @@ import { cn } from "@trackfi/ui/lib/utils"
 
 export function DateOnlyPicker({
   id,
+  className,
   value,
   placeholder = "Pick a date",
   onChange,
 }: {
   id: string
+  className?: string
   value: string
   placeholder?: string
   onChange(value: string): void
@@ -35,7 +37,8 @@ export function DateOnlyPicker({
             variant="outline"
             className={cn(
               "h-10 w-full justify-start px-3 text-left font-normal",
-              !selected && "text-muted-foreground"
+              !selected && "text-muted-foreground",
+              className
             )}
           />
         }
