@@ -92,11 +92,7 @@ export function RevenueLoadingState() {
         action={<Skeleton className="h-9 w-44" />}
       />
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-5 w-36" />
-            <Skeleton className="h-3 w-56" />
-          </div>
+        <div className="flex justify-end">
           <Skeleton className="h-8 w-32" />
         </div>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">

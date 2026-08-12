@@ -67,13 +67,7 @@ export function RevenueSummary({
 }) {
   return (
     <section className="space-y-4" aria-busy={fetching}>
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <h3 className="text-lg font-semibold">Revenue outlook</h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Forecasted cash flow and incoming payments
-          </p>
-        </div>
+      <div className="flex justify-end">
         <Select
           items={forecastRangeOptions.map((value) => ({
             value: String(value),
