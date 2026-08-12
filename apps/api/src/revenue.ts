@@ -1,18 +1,15 @@
-import {
-  nextOccurrenceDate,
-  occurrenceDatesInRange,
-  type RecurrenceCadence,
-} from "./subscriptions"
+import { nextOccurrenceDate, occurrenceDatesInRange } from "./subscriptions"
 import { dateOnlyParts, daysInUtcMonth } from "./date"
 
 export const revenueCadences = [
+  "once",
   "weekly",
   "biweekly",
   "monthly",
   "quarterly",
   "semiannual",
   "yearly",
-] as const satisfies readonly RecurrenceCadence[]
+] as const
 
 export type RevenueCadence = (typeof revenueCadences)[number]
 
@@ -36,6 +33,7 @@ export interface RevenueForecast {
 }
 
 const annualMultipliers: Record<RevenueCadence, number> = {
+  once: 1,
   weekly: 52,
   biweekly: 26,
   monthly: 12,
@@ -59,6 +57,7 @@ export function nextRevenuePaymentDate(
   cadence: RevenueCadence,
   asOf: string
 ) {
+  if (cadence === "once") return paymentAnchor >= asOf ? paymentAnchor : null
   return nextOccurrenceDate(paymentAnchor, cadence, asOf)
 }
 
@@ -68,6 +67,11 @@ export function revenuePaymentDatesInRange(
   from: string,
   through: string
 ) {
+  if (cadence === "once") {
+    return paymentAnchor >= from && paymentAnchor <= through
+      ? [paymentAnchor]
+      : []
+  }
   return occurrenceDatesInRange(paymentAnchor, cadence, from, through)
 }
 

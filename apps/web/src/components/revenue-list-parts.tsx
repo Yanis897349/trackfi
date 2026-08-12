@@ -50,22 +50,30 @@ export function RevenueSourceIcon({
 }
 
 export function RevenueStatusBadge({ source }: { source: RevenueSource }) {
+  const oneTime =
+    source.status === "active" &&
+    source.scheduleType === "scheduled" &&
+    source.cadence === "once"
   const scheduled =
-    source.status === "active" && source.scheduleType === "scheduled"
+    source.status === "active" &&
+    source.scheduleType === "scheduled" &&
+    source.cadence !== "once"
   const estimated =
     source.status === "active" && source.scheduleType === "variable"
-  const label = scheduled
-    ? "Scheduled"
-    : estimated
-      ? "Estimated"
-      : displayLabel(source.status)
+  const label = oneTime
+    ? "One-time"
+    : scheduled
+      ? "Scheduled"
+      : estimated
+        ? "Estimated"
+        : displayLabel(source.status)
 
   return (
     <Badge
       variant="outline"
       className={cn(
         "h-auto gap-1.5 border-transparent px-[9px] py-[5px] leading-none",
-        scheduled &&
+        (scheduled || oneTime) &&
           "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400",
         estimated &&
           "bg-orange-50 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400",

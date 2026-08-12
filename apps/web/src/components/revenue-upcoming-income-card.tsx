@@ -79,7 +79,8 @@ export function RevenueUpcomingIncomeCard({
                     </TableCell>
                     <TableCell className="pr-4">
                       <IncomeTypeBadge
-                        scheduled={item.scheduleType === "scheduled"}
+                        scheduleType={item.scheduleType}
+                        cadence={item.cadence}
                       />
                     </TableCell>
                   </TableRow>
@@ -105,7 +106,8 @@ export function RevenueUpcomingIncomeCard({
                   </p>
                   <div className="mt-2 flex items-center gap-2">
                     <IncomeTypeBadge
-                      scheduled={item.scheduleType === "scheduled"}
+                      scheduleType={item.scheduleType}
+                      cadence={item.cadence}
                     />
                   </div>
                 </div>
@@ -125,7 +127,15 @@ export function RevenueUpcomingIncomeCard({
   )
 }
 
-function IncomeTypeBadge({ scheduled }: { scheduled: boolean }) {
+function IncomeTypeBadge({
+  scheduleType,
+  cadence,
+}: {
+  scheduleType: RevenueSummary["upcomingIncome"][number]["scheduleType"]
+  cadence: RevenueSummary["upcomingIncome"][number]["cadence"]
+}) {
+  const scheduled = scheduleType === "scheduled"
+  const oneTime = cadence === "once"
   return (
     <span
       className={cn(
@@ -142,7 +152,7 @@ function IncomeTypeBadge({ scheduled }: { scheduled: boolean }) {
         )}
         aria-hidden="true"
       />
-      {scheduled ? "Scheduled" : "Estimated"}
+      {oneTime ? "One-time" : scheduled ? "Scheduled" : "Estimated"}
     </span>
   )
 }

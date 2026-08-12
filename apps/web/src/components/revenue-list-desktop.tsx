@@ -60,10 +60,16 @@ export function RevenueListDesktop({
                       {source.name}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {formatMoney(source.monthlyEquivalentMinor, currency)}{" "}
-                      {source.scheduleType === "variable"
-                        ? "estimated monthly"
-                        : "projected monthly"}
+                      {source.cadence === "once" ? (
+                        "One-time income"
+                      ) : (
+                        <>
+                          {formatMoney(source.monthlyEquivalentMinor, currency)}{" "}
+                          {source.scheduleType === "variable"
+                            ? "estimated monthly"
+                            : "projected monthly"}
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -76,7 +82,9 @@ export function RevenueListDesktop({
               <TableCell>
                 {source.nextPaymentDate
                   ? formatDateOnly(source.nextPaymentDate)
-                  : "Variable estimate"}
+                  : source.scheduleType === "variable"
+                    ? "Variable estimate"
+                    : "No upcoming payment"}
               </TableCell>
               <TableCell>
                 <RevenueStatusBadge source={source} />

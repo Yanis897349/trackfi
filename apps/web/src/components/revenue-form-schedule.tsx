@@ -83,7 +83,7 @@ function CadenceField({ form }: { form: RevenueFormState }) {
       >
         <SelectTrigger
           className="h-[42px] w-full px-3 data-[size=default]:h-[42px]"
-          aria-label="Cadence"
+          aria-label="Repeats"
         >
           <SelectValue />
         </SelectTrigger>

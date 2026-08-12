@@ -39,10 +39,21 @@ describe("Trackfi revenue application", () => {
       monthlyEquivalentMinor: 50_000,
       annualEquivalentMinor: 600_000,
     }
+    const oneTime = {
+      ...revenueSourceFixture(),
+      id: "one-time-revenue-source",
+      name: "Signing bonus",
+      amountMinor: 120_000,
+      cadence: "once",
+      paymentAnchor: "2026-09-10",
+      nextPaymentDate: "2026-09-10",
+      monthlyEquivalentMinor: 10_000,
+      annualEquivalentMinor: 120_000,
+    }
     mockApi({
       waitlistMode: true,
       session: sessionFor("user"),
-      revenueSources: [revenueSourceFixture(), variable],
+      revenueSources: [revenueSourceFixture(), variable, oneTime],
     })
     const { queryClient, router } = createTestRouter("/dashboard/revenue")
     render(<App queryClient={queryClient} router={router} />)
@@ -59,6 +70,7 @@ describe("Trackfi revenue application", () => {
     expect(screen.queryByText("Estimate")).not.toBeInTheDocument()
     expect(screen.getAllByText("Scheduled").length).toBeGreaterThan(0)
     expect(screen.getAllByText("Estimated").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("One-time").length).toBeGreaterThan(0)
     expect(screen.getAllByText("Primary job").length).toBeGreaterThan(0)
     expect(
       screen.getByPlaceholderText("Search revenue sources...")
@@ -137,6 +149,15 @@ describe("Trackfi revenue application", () => {
     expect(
       screen.getByRole("button", { name: "Next expected payment" })
     ).toBeInTheDocument()
+
+    const repeats = screen.getByRole("combobox", { name: "Repeats" })
+    fireEvent.click(repeats)
+    const oneTime = await screen.findByRole("option", {
+      name: "Doesn’t repeat",
+    })
+    fireEvent.pointerDown(oneTime, { pointerType: "mouse" })
+    fireEvent.click(oneTime)
+    expect(repeats).toHaveTextContent("Doesn’t repeat")
 
     fireEvent.click(screen.getByRole("radio", { name: /Estimate/ }))
     expect(screen.getByRole("radio", { name: /Estimate/ })).toBeChecked()

@@ -72,6 +72,7 @@ export function registerRevenueSourceSummaryRoute(app: Hono<AppEnv>) {
         category: source.category,
         monthlyEquivalentMinor: source.monthlyEquivalentMinor,
       }))
+      .filter((source) => source.monthlyEquivalentMinor > 0)
       .sort(
         (left, right) =>
           right.monthlyEquivalentMinor - left.monthlyEquivalentMinor
@@ -82,6 +83,10 @@ export function registerRevenueSourceSummaryRoute(app: Hono<AppEnv>) {
       months as RevenueForecastMonths
     )
     const upcomingIncome = active
+      .filter(
+        (source) =>
+          source.scheduleType === "variable" || source.nextPaymentDate !== null
+      )
       .map((source) => ({
         id:
           source.scheduleType === "scheduled"
@@ -92,6 +97,7 @@ export function registerRevenueSourceSummaryRoute(app: Hono<AppEnv>) {
         category: source.category,
         amountMinor: source.amountMinor,
         scheduleType: source.scheduleType,
+        cadence: source.cadence,
         expectedDate: source.nextPaymentDate,
       }))
       .sort((left, right) => {

@@ -2,6 +2,7 @@ import { apiFetch } from "./api"
 import { displayLabel } from "./subscriptions"
 
 export const revenueCadences = [
+  "once",
   "weekly",
   "biweekly",
   "monthly",
@@ -97,13 +98,14 @@ export interface RevenueSummary {
     category: RevenueCategory
     amountMinor: number
     scheduleType: RevenueScheduleType
+    cadence: RevenueCadence | null
     expectedDate: string | null
   }>
 }
 
 export const revenueCadenceOptions = revenueCadences.map((value) => ({
   value,
-  label: displayLabel(value),
+  label: value === "once" ? "Doesn’t repeat" : displayLabel(value),
 }))
 export const revenueCategoryOptions = revenueCategories.map((value) => ({
   value,
@@ -172,11 +174,13 @@ export function revenueSummaryQueryOptions(months: RevenueForecastMonths = 6) {
 
 export function revenueAmountSuffix(source: RevenueSource) {
   if (source.scheduleType === "variable") return "estimated / month"
+  if (source.cadence === "once") return "one time"
   return `/ ${source.cadence === "biweekly" ? "2 weeks" : cadenceUnit(source.cadence!)}`
 }
 
 function cadenceUnit(cadence: RevenueCadence) {
   const units: Record<RevenueCadence, string> = {
+    once: "one time",
     weekly: "week",
     biweekly: "2 weeks",
     monthly: "month",

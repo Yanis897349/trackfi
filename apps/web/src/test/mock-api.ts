@@ -97,6 +97,7 @@ export function mockApi({
               category: source.category,
               amountMinor: source.amountMinor,
               scheduleType: source.scheduleType,
+              cadence: source.cadence,
               expectedDate: source.nextPaymentDate ?? null,
             })),
           },

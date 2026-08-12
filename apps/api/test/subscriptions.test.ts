@@ -123,6 +123,38 @@ describe("subscription calculations", () => {
     )
   })
 
+  it("includes one-time revenue only on its payment date", () => {
+    expect(nextRevenuePaymentDate("2024-02-10", "once", "2024-02-01")).toBe(
+      "2024-02-10"
+    )
+    expect(
+      nextRevenuePaymentDate("2024-02-10", "once", "2024-02-11")
+    ).toBeNull()
+    expect(
+      revenuePaymentDatesInRange(
+        "2024-02-10",
+        "once",
+        "2024-02-01",
+        "2024-02-29"
+      )
+    ).toEqual(["2024-02-10"])
+    expect(
+      revenuePaymentDatesInRange(
+        "2024-02-10",
+        "once",
+        "2024-03-01",
+        "2024-03-31"
+      )
+    ).toEqual([])
+    expect(
+      revenueAnnualEquivalentMinor({
+        amountMinor: 1200,
+        scheduleType: "scheduled",
+        cadence: "once",
+      })
+    ).toBe(1200)
+  })
+
   it("forecasts complete calendar months across year boundaries", () => {
     expect(
       revenueForecast(
@@ -145,17 +177,23 @@ describe("subscription calculations", () => {
             cadence: null,
             paymentAnchor: null,
           },
+          {
+            amountMinor: 500,
+            scheduleType: "scheduled",
+            cadence: "once",
+            paymentAnchor: "2025-01-10",
+          },
         ],
         "2024-12-20",
         3
       )
     ).toEqual({
       months: 3,
-      totalMinor: 2275,
+      totalMinor: 2775,
       previousMonthMinor: 325,
       series: [
         { month: "2024-12", amountMinor: 825 },
-        { month: "2025-01", amountMinor: 725 },
+        { month: "2025-01", amountMinor: 1225 },
         { month: "2025-02", amountMinor: 725 },
       ],
     })

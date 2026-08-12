@@ -42,7 +42,9 @@ export function RevenueListMobile({
                 <p className="mt-1 text-xs text-muted-foreground">
                   {source.nextPaymentDate
                     ? `Next ${formatDateOnly(source.nextPaymentDate)}`
-                    : "Variable monthly estimate"}{" "}
+                    : source.scheduleType === "variable"
+                      ? "Variable monthly estimate"
+                      : "No upcoming payment"}{" "}
                   · {displayLabel(source.category)}
                 </p>
                 <div className="mt-3">

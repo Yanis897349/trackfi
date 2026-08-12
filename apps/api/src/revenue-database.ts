@@ -153,8 +153,9 @@ export function deleteRevenueSourceRow(
 }
 
 export function serializeRevenueSource(row: RevenueSourceRow, asOf: string) {
+  const expiredOneTime = row.cadence === "once" && row.payment_anchor! < asOf
   const calculation = {
-    amountMinor: row.amount_minor,
+    amountMinor: expiredOneTime ? 0 : row.amount_minor,
     scheduleType: row.schedule_type,
     cadence: row.cadence,
   }
