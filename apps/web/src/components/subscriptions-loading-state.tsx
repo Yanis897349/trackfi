@@ -8,18 +8,19 @@ import { Skeleton } from "@trackfi/ui/components/skeleton"
 
 import { ModuleHeader } from "./module-layout"
 import { SubscriptionListSkeleton } from "./subscription-list-skeleton"
+import { m } from "../lib/i18n"
 
 export function SubscriptionsLoadingState() {
   return (
     <section
       className="mx-auto w-full max-w-[1120px] space-y-6"
       role="status"
-      aria-label="Loading subscriptions"
+      aria-label={m.subscriptions_loading()}
       aria-busy="true"
     >
       <ModuleHeader
-        title="Subscriptions"
-        description="Track recurring services, costs, and renewal dates."
+        title={m.nav_subscriptions()}
+        description={m.module_subscriptions_description()}
         action={<Skeleton className="h-9 w-40" />}
       />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -38,7 +39,7 @@ export function SubscriptionsLoadingState() {
       </div>
       <Card className="gap-0 py-0 sm:h-[190px]">
         <CardHeader className="h-[68px] px-5 py-4">
-          <CardTitle>Upcoming renewals</CardTitle>
+          <CardTitle>{m.subscriptions_upcoming_renewals()}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 px-5 pt-2 pb-5 sm:grid-cols-2">
           {Array.from({ length: 2 }, (_, index) => (

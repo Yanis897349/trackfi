@@ -1,4 +1,5 @@
 import type { Context } from "hono"
+import type { Locale } from "@trackfi/localization"
 
 export interface Bindings {
   DB: D1Database
@@ -17,6 +18,7 @@ export interface AuthUser {
   id: string
   email: string
   name: string
+  locale: Locale
   role: "admin" | "user"
 }
 
@@ -32,6 +34,7 @@ export type AppContext = Context<AppEnv>
 export interface WaitlistEntryRow {
   id: string
   email: string
+  locale: Locale
   status: "approved" | "pending" | "registered"
   created_at: string
   approved_at: string | null

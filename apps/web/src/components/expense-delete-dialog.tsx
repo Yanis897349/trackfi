@@ -10,6 +10,7 @@ import {
 } from "@trackfi/ui/components/alert-dialog"
 
 import type { Expense } from "../lib/expenses"
+import { m } from "../lib/i18n"
 
 export function ExpenseDeleteDialog({
   expense,
@@ -24,16 +25,17 @@ export function ExpenseDeleteDialog({
     <AlertDialog open={Boolean(expense)} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {expense?.merchant}?</AlertDialogTitle>
+          <AlertDialogTitle>{m.expenses_delete_title()}</AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently removes the transaction and its receipt. This
-            action cannot be undone.
+            {m.expenses_delete_description({
+              merchant: expense?.merchant ?? "",
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={onConfirm}>
-            Delete permanently
+            {m.expenses_delete()}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

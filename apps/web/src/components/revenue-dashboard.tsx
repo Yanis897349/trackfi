@@ -11,6 +11,7 @@ import { RevenueFormDialog } from "./revenue-form-dialog"
 import { RevenueList } from "./revenue-list"
 import { RevenueEmptyState, RevenueLoadingState } from "./revenue-states"
 import { RevenueSummary } from "./revenue-summary"
+import { m } from "../lib/i18n"
 
 export function RevenueDashboard({ currency }: { currency: string }) {
   const state = useRevenue(currency)
@@ -29,11 +30,11 @@ export function RevenueDashboard({ currency }: { currency: string }) {
   return (
     <section className="mx-auto w-full max-w-[1120px] space-y-6">
       <ModuleHeader
-        title="Revenue"
-        description="Know what’s coming in, when it lands, and how reliable it is."
+        title={m.nav_revenue()}
+        description={m.module_revenue_description()}
         action={
           <Button size="lg" className="px-4" onClick={state.openCreate}>
-            <PlusIcon /> Add revenue source
+            <PlusIcon /> {m.revenue_add()}
           </Button>
         }
       />
@@ -46,9 +47,9 @@ export function RevenueDashboard({ currency }: { currency: string }) {
       />
       <section className="space-y-4">
         <div>
-          <h3 className="text-lg font-semibold">Revenue sources</h3>
+          <h3 className="text-lg font-semibold">{m.revenue_sources()}</h3>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
-            Manage recurring income, variable estimates, and payment schedules.
+            {m.revenue_sources_description()}
           </p>
         </div>
         <RevenueFilters
@@ -112,7 +113,7 @@ function SkeletonList() {
     <div
       className="space-y-3"
       role="status"
-      aria-label="Loading revenue sources"
+      aria-label={m.revenue_loading_sources()}
       aria-busy="true"
     >
       {Array.from({ length: 3 }, (_, index) => (

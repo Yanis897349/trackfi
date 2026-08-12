@@ -17,7 +17,7 @@ export async function findWaitlistEntryByToken(
   tokenHash: string
 ) {
   return env.DB.prepare(
-    `SELECT id, email, status, created_at, approved_at, invite_expires_at,
+    `SELECT id, email, locale, status, created_at, approved_at, invite_expires_at,
       invite_sent_at, invite_delivery_status, registered_at
     FROM waitlist_entries
     WHERE invite_token_hash = ?`

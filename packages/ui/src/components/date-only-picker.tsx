@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { format, parseISO } from "date-fns"
+import { format, parseISO, type Locale } from "date-fns"
 import { CalendarIcon } from "lucide-react"
 import type { Matcher } from "react-day-picker"
 
@@ -18,6 +18,7 @@ export function DateOnlyPicker({
   value,
   placeholder = "Pick a date",
   disabled,
+  locale,
   onChange,
 }: {
   id: string
@@ -25,6 +26,7 @@ export function DateOnlyPicker({
   value: string
   placeholder?: string
   disabled?: Matcher | Matcher[]
+  locale?: Locale
   onChange(value: string): void
 }) {
   const [open, setOpen] = useState(false)
@@ -47,7 +49,9 @@ export function DateOnlyPicker({
         }
       >
         <span className="flex-1">
-          {selected ? format(selected, "PPP") : placeholder}
+          {selected
+            ? format(selected, "PPP", locale ? { locale } : undefined)
+            : placeholder}
         </span>
         <CalendarIcon className="size-4 text-muted-foreground" />
       </PopoverTrigger>
@@ -55,6 +59,7 @@ export function DateOnlyPicker({
         <Calendar
           mode="single"
           disabled={disabled}
+          {...(locale ? { locale } : {})}
           {...(selected ? { selected, defaultMonth: selected } : {})}
           onSelect={(date) => {
             if (!date) return

@@ -17,6 +17,7 @@ import {
   type RevenueFilter,
   type RevenueScheduleType,
 } from "../lib/revenue"
+import { m } from "../lib/i18n"
 
 export function RevenueFilters({
   search,
@@ -43,15 +44,15 @@ export function RevenueFilters({
         <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           className="h-10 pr-3 pl-[38px]"
-          placeholder="Search revenue sources..."
-          aria-label="Search revenue sources"
+          placeholder={m.revenue_search()}
+          aria-label={m.revenue_search_label()}
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         <FilterSelect
-          label="Category filter"
+          label={m.expenses_category_filter()}
           items={revenueCategoryFilterOptions}
           value={category}
           onChange={(value) =>
@@ -59,7 +60,7 @@ export function RevenueFilters({
           }
         />
         <FilterSelect
-          label="Income type filter"
+          label={m.revenue_all_income_types()}
           items={revenueScheduleOptions}
           value={scheduleType}
           onChange={(value) =>
@@ -67,7 +68,7 @@ export function RevenueFilters({
           }
         />
         <FilterSelect
-          label="Status filter"
+          label={m.expenses_status_filter()}
           items={revenueStatusOptions}
           value={status}
           className="col-span-2 sm:col-span-1"

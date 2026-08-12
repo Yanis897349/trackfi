@@ -13,6 +13,7 @@ import { Input } from "@trackfi/ui/components/input"
 import { AuthShell } from "../components/auth-shell"
 import { TurnstileWidget } from "../components/turnstile-widget"
 import { authClient } from "../lib/api"
+import { getLocale, localizeHref, m, setLocale } from "../lib/i18n"
 
 export const Route = createFileRoute("/login")({ component: LoginRoute })
 
@@ -33,7 +34,7 @@ function LoginRoute() {
     event.preventDefault()
     setError("")
     if (!turnstileToken) {
-      setError("Please complete the security check.")
+      setError(m.auth_complete_security_check())
       return
     }
 
@@ -43,7 +44,10 @@ function LoginRoute() {
         {
           email,
           password,
-          callbackURL: `${window.location.origin}/dashboard`,
+          callbackURL: new URL(
+            localizeHref("/dashboard"),
+            window.location.origin
+          ).href,
         },
         {
           headers: { "X-Turnstile-Token": turnstileToken },
@@ -52,14 +56,24 @@ function LoginRoute() {
       if (result.error) {
         setError(
           result.error.status === 403
-            ? "Verify your email before signing in. We sent you a new link."
-            : "The email or password is incorrect."
+            ? m.auth_verify_before_login()
+            : m.auth_invalid_credentials()
+        )
+        return
+      }
+      const accountLocale = (
+        result.data?.user as { locale?: "en" | "fr" } | undefined
+      )?.locale
+      if (accountLocale && accountLocale !== getLocale()) {
+        await setLocale(accountLocale, { reload: false })
+        window.location.assign(
+          localizeHref("/dashboard", { locale: accountLocale })
         )
         return
       }
       await navigate({ to: "/dashboard" })
     } catch {
-      setError("We couldn’t sign you in. Please try again.")
+      setError(m.auth_login_failed())
     } finally {
       setSubmitting(false)
       setTurnstileToken("")
@@ -69,13 +83,13 @@ function LoginRoute() {
 
   return (
     <AuthShell
-      title="Welcome back"
-      description="Sign in to continue to your Trackfi workspace."
+      title={m.auth_login_title()}
+      description={m.auth_login_description()}
     >
       <form onSubmit={handleSubmit}>
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor="login-email">Email address</FieldLabel>
+            <FieldLabel htmlFor="login-email">{m.auth_email()}</FieldLabel>
             <Input
               id="login-email"
               type="email"
@@ -87,12 +101,14 @@ function LoginRoute() {
           </Field>
           <Field>
             <div className="flex items-center justify-between gap-3">
-              <FieldLabel htmlFor="login-password">Password</FieldLabel>
+              <FieldLabel htmlFor="login-password">
+                {m.auth_password()}
+              </FieldLabel>
               <Link
                 to="/forgot-password"
                 className="text-xs text-muted-foreground hover:text-foreground hover:underline"
               >
-                Forgot password?
+                {m.auth_forgot_password()}
               </Link>
             </div>
             <Input
@@ -114,12 +130,12 @@ function LoginRoute() {
             />
           </div>
           <Button type="submit" size="lg" disabled={submitting}>
-            {submitting ? "Signing in…" : "Sign in"}
+            {submitting ? m.auth_signing_in() : m.auth_sign_in()}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
-            Have an invitation?{" "}
+            {m.auth_have_invitation()}{" "}
             <Link to="/" className="text-foreground hover:underline">
-              Return to Trackfi
+              {m.auth_return_trackfi()}
             </Link>
           </p>
         </FieldGroup>

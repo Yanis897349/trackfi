@@ -19,6 +19,7 @@ import { cn } from "@trackfi/ui/lib/utils"
 import { formatDateOnly, formatShortDateOnly } from "../lib/date"
 import type { RevenueSummary } from "../lib/revenue"
 import { displayLabel, formatMoney } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export function RevenueUpcomingIncomeCard({
   summary,
@@ -34,15 +35,17 @@ export function RevenueUpcomingIncomeCard({
       <CardHeader className="flex min-h-16 flex-col items-start justify-between gap-2 px-4 py-4 sm:flex-row sm:items-center">
         <div>
           <CardTitle className="text-base font-semibold">
-            Upcoming income
+            {m.revenue_upcoming_income()}
           </CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">
-            Next scheduled and estimated payments
+            {m.revenue_upcoming_description()}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <Clock3Icon className="size-4" />
-          {formatMoney(summary.upcomingTotalMinor, currency)} due in 30 days
+          {m.revenue_due_amount_30_days({
+            amount: formatMoney(summary.upcomingTotalMinor, currency),
+          })}
         </div>
       </CardHeader>
       {upcoming.length ? (
@@ -51,10 +54,16 @@ export function RevenueUpcomingIncomeCard({
             <Table className="text-[13px]">
               <TableHeader>
                 <TableRow className="hover:bg-muted">
-                  <TableHead className="pl-4">Source</TableHead>
-                  <TableHead className="w-[170px]">Expected</TableHead>
-                  <TableHead className="w-[210px]">Take-home</TableHead>
-                  <TableHead className="w-[190px] pr-4">Status</TableHead>
+                  <TableHead className="pl-4">{m.revenue_source()}</TableHead>
+                  <TableHead className="w-[170px]">
+                    {m.revenue_expected()}
+                  </TableHead>
+                  <TableHead className="w-[210px]">
+                    {m.revenue_take_home()}
+                  </TableHead>
+                  <TableHead className="w-[190px] pr-4">
+                    {m.common_status()}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -72,7 +81,7 @@ export function RevenueUpcomingIncomeCard({
                     <TableCell>
                       {item.expectedDate
                         ? formatShortDateOnly(item.expectedDate)
-                        : "This month"}
+                        : m.revenue_this_month()}
                     </TableCell>
                     <TableCell className="font-semibold">
                       {formatMoney(item.amountMinor, currency)}
@@ -101,7 +110,7 @@ export function RevenueUpcomingIncomeCard({
                   <p className="mt-1 text-sm text-muted-foreground">
                     {item.expectedDate
                       ? formatDateOnly(item.expectedDate)
-                      : "This month"}{" "}
+                      : m.revenue_this_month()}{" "}
                     · {displayLabel(item.category)}
                   </p>
                   <div className="mt-2 flex items-center gap-2">
@@ -120,7 +129,7 @@ export function RevenueUpcomingIncomeCard({
         </>
       ) : (
         <CardContent className="border-t py-6 text-sm text-muted-foreground">
-          Add an active revenue source to see upcoming income.
+          {m.revenue_no_upcoming_income()}
         </CardContent>
       )}
     </Card>
@@ -152,7 +161,11 @@ function IncomeTypeBadge({
         )}
         aria-hidden="true"
       />
-      {oneTime ? "One-time" : scheduled ? "Scheduled" : "Estimated"}
+      {oneTime
+        ? m.revenue_one_time()
+        : scheduled
+          ? m.revenue_scheduled()
+          : m.revenue_estimated()}
     </span>
   )
 }

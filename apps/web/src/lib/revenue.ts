@@ -1,6 +1,7 @@
 import { apiFetch } from "./api"
 import { localDate } from "./date"
-import { displayLabel } from "./subscriptions"
+import { cadenceLabel, categoryLabel, statusLabel } from "./labels"
+import { m } from "./i18n"
 
 export const revenueCadences = [
   "once",
@@ -106,24 +107,24 @@ export interface RevenueSummary {
 
 export const revenueCadenceOptions = revenueCadences.map((value) => ({
   value,
-  label: value === "once" ? "Doesn’t repeat" : displayLabel(value),
+  label: cadenceLabel(value),
 }))
 export const revenueCategoryOptions = revenueCategories.map((value) => ({
   value,
-  label: displayLabel(value),
+  label: categoryLabel(value),
 }))
 export const revenueCategoryFilterOptions = [
-  { value: "all" as const, label: "All categories" },
+  { value: "all" as const, label: m.subscriptions_all_categories() },
   ...revenueCategoryOptions,
 ]
 export const revenueScheduleOptions = [
-  { value: "all" as const, label: "All income types" },
-  { value: "scheduled" as const, label: "Scheduled" },
-  { value: "variable" as const, label: "Variable estimate" },
+  { value: "all" as const, label: m.revenue_all_income_types() },
+  { value: "scheduled" as const, label: m.revenue_scheduled() },
+  { value: "variable" as const, label: m.revenue_variable_estimate() },
 ]
 export const revenueStatusOptions = (
   ["active", "paused", "archived", "all"] as const
-).map((value) => ({ value, label: displayLabel(value) }))
+).map((value) => ({ value, label: statusLabel(value) }))
 
 export function revenueSourcesQueryOptions({
   status = "active",
@@ -174,20 +175,20 @@ export function revenueSummaryQueryOptions(months: RevenueForecastMonths = 6) {
 }
 
 export function revenueAmountSuffix(source: RevenueSource) {
-  if (source.scheduleType === "variable") return "estimated / month"
-  if (source.cadence === "once") return "one time"
-  return `/ ${source.cadence === "biweekly" ? "2 weeks" : cadenceUnit(source.cadence!)}`
+  if (source.scheduleType === "variable") return m.revenue_estimated_month()
+  if (source.cadence === "once") return m.revenue_one_time_suffix()
+  return cadenceSuffix(source.cadence!)
 }
 
-function cadenceUnit(cadence: RevenueCadence) {
+function cadenceSuffix(cadence: RevenueCadence) {
   const units: Record<RevenueCadence, string> = {
-    once: "one time",
-    weekly: "week",
-    biweekly: "2 weeks",
-    monthly: "month",
-    quarterly: "quarter",
-    semiannual: "6 months",
-    yearly: "year",
+    once: m.revenue_one_time_suffix(),
+    weekly: m.revenue_per_week(),
+    biweekly: m.revenue_per_two_weeks(),
+    monthly: m.revenue_per_month(),
+    quarterly: m.revenue_per_quarter(),
+    semiannual: m.revenue_per_six_months(),
+    yearly: m.revenue_per_year(),
   }
   return units[cadence]
 }

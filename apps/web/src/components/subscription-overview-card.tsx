@@ -18,6 +18,7 @@ import {
   formatMoney,
   subscriptionSummaryQueryOptions,
 } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export function SubscriptionOverviewCard() {
   const query = useQuery(subscriptionSummaryQueryOptions())
@@ -28,15 +29,17 @@ export function SubscriptionOverviewCard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <CalendarClockIcon className="size-4" />
-          Subscriptions
+          {m.nav_subscriptions()}
         </CardTitle>
-        <CardDescription>Recurring costs and the next 30 days.</CardDescription>
+        <CardDescription>
+          {m.subscriptions_overview_description()}
+        </CardDescription>
         <CardAction>
           <Link
             to="/dashboard/subscriptions"
             className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
           >
-            Open <ArrowRightIcon />
+            {m.common_open()} <ArrowRightIcon />
           </Link>
         </CardAction>
       </CardHeader>
@@ -45,7 +48,7 @@ export function SubscriptionOverviewCard() {
           <div
             className="grid grid-cols-2 gap-3"
             role="status"
-            aria-label="Loading subscription overview"
+            aria-label={m.subscriptions_loading()}
             aria-busy="true"
           >
             <Skeleton className="h-14" />
@@ -53,13 +56,15 @@ export function SubscriptionOverviewCard() {
           </div>
         ) : query.isError ? (
           <p className="text-sm text-muted-foreground">
-            Subscription insights are temporarily unavailable.
+            {m.subscriptions_unavailable()}
           </p>
         ) : !summary?.currency ? (
           <div className="rounded-lg bg-muted/60 p-3">
-            <p className="text-sm font-medium">Choose your currency</p>
+            <p className="text-sm font-medium">
+              {m.subscriptions_choose_currency_title()}
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Set an account currency before adding recurring services.
+              {m.subscriptions_choose_currency_description()}
             </p>
             <Link
               to="/dashboard/settings"
@@ -68,20 +73,20 @@ export function SubscriptionOverviewCard() {
                 "mt-3"
               )}
             >
-              Open settings
+              {m.subscriptions_open_settings()}
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <Metric
-              label="Monthly equivalent"
+              label={m.subscriptions_monthly_equivalent()}
               value={formatMoney(
                 summary.monthlyEquivalentMinor,
                 summary.currency
               )}
             />
             <Metric
-              label="Due in 30 days"
+              label={m.subscriptions_due_30_days()}
               value={String(summary.upcomingCount)}
             />
           </div>

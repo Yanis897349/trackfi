@@ -1,4 +1,5 @@
 import { apiFetch } from "./api"
+import { intlLocale } from "./i18n"
 
 export interface UserSettings {
   currency: string | null
@@ -13,10 +14,11 @@ export function settingsQueryOptions() {
 }
 
 export function supportedCurrencies() {
-  const names = new Intl.DisplayNames([navigator.language], {
+  const locale = intlLocale()
+  const names = new Intl.DisplayNames([locale], {
     type: "currency",
   })
   return Intl.supportedValuesOf("currency")
     .map((code) => ({ code, name: names.of(code) ?? code }))
-    .sort((left, right) => left.name.localeCompare(right.name))
+    .sort((left, right) => left.name.localeCompare(right.name, locale))
 }

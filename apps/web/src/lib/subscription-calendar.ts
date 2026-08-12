@@ -1,4 +1,5 @@
 import type { SubscriptionCategory } from "./subscriptions"
+import { intlLocale } from "./i18n"
 
 export function monthDate(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), 1, 12)
@@ -13,7 +14,7 @@ export function formatMonthKey(date: Date) {
 }
 
 export function formatMonthTitle(date: Date) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(intlLocale(), {
     month: "long",
     year: "numeric",
   }).format(date)

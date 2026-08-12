@@ -26,13 +26,14 @@ import {
 import { formatDate } from "../lib/date"
 import type { WaitlistEntry, WaitlistStatus } from "../lib/waitlist"
 import { WaitlistAdminTableSkeleton } from "./waitlist-admin-table-skeleton"
+import { m } from "../lib/i18n"
+import { statusLabel } from "../lib/labels"
 
 interface WaitlistAdminTableProps {
   entries: WaitlistEntry[]
   invitationPending: boolean
   isLoading: boolean
   onInvitation: (input: { action: "approve" | "resend"; id: string }) => void
-  status: WaitlistStatus | "all"
 }
 
 const columnHelper = createColumnHelper<WaitlistEntry>()
@@ -42,29 +43,28 @@ export function WaitlistAdminTable({
   invitationPending,
   isLoading,
   onInvitation,
-  status,
 }: WaitlistAdminTableProps) {
   const columns = useMemo(
     () => [
       columnHelper.accessor("email", {
-        header: "Email",
+        header: m.admin_email(),
         cell: (info) => <span className="font-medium">{info.getValue()}</span>,
       }),
       columnHelper.accessor("created_at", {
-        header: "Joined",
+        header: m.admin_joined(),
         cell: (info) => formatDate(info.getValue()),
       }),
       columnHelper.accessor("status", {
-        header: "Status",
+        header: m.common_status(),
         cell: (info) => <StatusBadge status={info.getValue()} />,
       }),
       columnHelper.accessor("invite_delivery_status", {
-        header: "Invitation",
-        cell: (info) => info.getValue().replace("_", " "),
+        header: m.admin_invitation(),
+        cell: (info) => deliveryLabel(info.getValue()),
       }),
       columnHelper.display({
         id: "actions",
-        header: () => <span className="sr-only">Actions</span>,
+        header: () => <span className="sr-only">{m.common_actions()}</span>,
         cell: ({ row }) => {
           const entry = row.original
           if (entry.status === "registered") return null
@@ -82,7 +82,9 @@ export function WaitlistAdminTable({
                   })
                 }
               >
-                {entry.status === "pending" ? "Approve" : "Resend invite"}
+                {entry.status === "pending"
+                  ? m.admin_approve()
+                  : m.admin_resend_invite()}
               </Button>
             </div>
           )
@@ -100,7 +102,7 @@ export function WaitlistAdminTable({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Emails</CardTitle>
+        <CardTitle>{m.admin_waitlist_emails()}</CardTitle>
       </CardHeader>
       <CardContent className="px-0">
         <Table>
@@ -142,7 +144,7 @@ export function WaitlistAdminTable({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No {status === "all" ? "waitlist" : status} entries.
+                  {m.admin_no_entries()}
                 </TableCell>
               </TableRow>
             )}
@@ -156,7 +158,17 @@ export function WaitlistAdminTable({
 function StatusBadge({ status }: { status: WaitlistStatus }) {
   return (
     <Badge variant={status === "pending" ? "secondary" : "outline"}>
-      {status}
+      {statusLabel(status)}
     </Badge>
   )
+}
+
+function deliveryLabel(value: WaitlistEntry["invite_delivery_status"]) {
+  const labels = {
+    not_sent: m.admin_delivery_not_sent,
+    sending: m.admin_delivery_sending,
+    sent: m.admin_delivery_sent,
+    failed: m.admin_delivery_failed,
+  }
+  return labels[value]?.() ?? m.common_unknown()
 }

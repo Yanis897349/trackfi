@@ -8,6 +8,7 @@ import {
   type Subscription,
   type SubscriptionStatus,
 } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export interface SubscriptionListActions {
   onEdit(subscription: Subscription): void
@@ -35,7 +36,7 @@ export function SubscriptionPagination({
         onClick={onPrevious}
       >
         <ChevronLeftIcon />
-        <span className="sr-only">Previous page</span>
+        <span className="sr-only">{m.pagination_previous()}</span>
       </Button>
       <Button
         variant="outline"
@@ -44,7 +45,7 @@ export function SubscriptionPagination({
         onClick={onNext}
       >
         <ChevronRightIcon />
-        <span className="sr-only">Next page</span>
+        <span className="sr-only">{m.pagination_next()}</span>
       </Button>
     </div>
   )

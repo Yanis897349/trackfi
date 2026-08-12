@@ -11,6 +11,7 @@ import {
 import { Input } from "@trackfi/ui/components/input"
 
 import { authClient } from "../lib/api"
+import { getLocale, localizeHref, m } from "../lib/i18n"
 import { AuthShell, FormMessage } from "./auth-shell"
 import { TurnstileWidget } from "./turnstile-widget"
 
@@ -43,11 +44,11 @@ export function RegisterForm({
     event.preventDefault()
     setError("")
     if (password !== confirmation) {
-      setError("Passwords must match.")
+      setError(m.auth_passwords_match())
       return
     }
     if (!turnstileToken) {
-      setError("Please complete the security check.")
+      setError(m.auth_complete_security_check())
       return
     }
 
@@ -58,8 +59,10 @@ export function RegisterForm({
           name,
           email,
           password,
-          callbackURL: `${window.location.origin}/login`,
-        },
+          callbackURL: new URL(localizeHref("/login"), window.location.origin)
+            .href,
+          locale: getLocale(),
+        } as never,
         {
           headers: {
             "X-Turnstile-Token": turnstileToken,
@@ -72,16 +75,14 @@ export function RegisterForm({
       if (result.error) {
         setError(
           result.error.status === 403
-            ? "This invitation is invalid or has expired."
-            : "We couldn’t create the account. Check your details and try again."
+            ? m.auth_invitation_invalid()
+            : m.auth_register_failed()
         )
         return
       }
       setSubmitted(true)
     } catch {
-      setError(
-        "We couldn’t create the account. Check your details and try again."
-      )
+      setError(m.auth_register_failed())
     } finally {
       setSubmitting(false)
       setTurnstileToken("")
@@ -91,27 +92,29 @@ export function RegisterForm({
 
   return (
     <AuthShell
-      title={submitted ? "Check your inbox" : "Create your account"}
+      title={submitted ? m.auth_check_inbox_title() : m.auth_register_title()}
       description={
         submitted
-          ? "Verify your email to finish setting up Trackfi."
-          : "Start building a clearer view of your finances."
+          ? m.auth_check_inbox_description()
+          : m.auth_register_description()
       }
     >
       {submitted ? (
         <div className="space-y-4 text-center">
           <FormMessage tone="success">
-            We sent a verification link to {email}.
+            {m.auth_verification_sent({ email })}
           </FormMessage>
           <Link to="/login" className="text-sm underline underline-offset-4">
-            Return to sign in
+            {m.auth_return_sign_in()}
           </Link>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="register-name">Full name</FieldLabel>
+              <FieldLabel htmlFor="register-name">
+                {m.auth_full_name()}
+              </FieldLabel>
               <Input
                 id="register-name"
                 autoComplete="name"
@@ -122,7 +125,7 @@ export function RegisterForm({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="register-email">Email address</FieldLabel>
+              <FieldLabel htmlFor="register-email">{m.auth_email()}</FieldLabel>
               <Input
                 id="register-email"
                 type="email"
@@ -134,7 +137,9 @@ export function RegisterForm({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="register-password">Password</FieldLabel>
+              <FieldLabel htmlFor="register-password">
+                {m.auth_password()}
+              </FieldLabel>
               <Input
                 id="register-password"
                 type="password"
@@ -148,7 +153,7 @@ export function RegisterForm({
             </Field>
             <Field>
               <FieldLabel htmlFor="register-confirmation">
-                Confirm password
+                {m.auth_confirm_password()}
               </FieldLabel>
               <Input
                 id="register-confirmation"
@@ -169,12 +174,12 @@ export function RegisterForm({
               />
             </div>
             <Button type="submit" size="lg" disabled={submitting}>
-              {submitting ? "Creating account…" : "Create account"}
+              {submitting ? m.auth_creating_account() : m.auth_create_account()}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
-              Already have access?{" "}
+              {m.auth_already_access()}{" "}
               <Link to="/login" className="text-foreground hover:underline">
-                Sign in
+                {m.auth_sign_in()}
               </Link>
             </p>
           </FieldGroup>

@@ -146,9 +146,9 @@ describe("Trackfi expenses application", () => {
     )
     fireEvent.click(await screen.findByRole("menuitem", { name: "Delete" }))
     expect(
-      await screen.findByRole("heading", { name: "Delete Rent?" })
+      await screen.findByRole("heading", { name: "Delete expense?" })
     ).toBeInTheDocument()
-    fireEvent.click(screen.getByRole("button", { name: "Delete permanently" }))
+    fireEvent.click(screen.getByRole("button", { name: "Delete expense" }))
     await waitFor(() =>
       expect(
         requests.some(

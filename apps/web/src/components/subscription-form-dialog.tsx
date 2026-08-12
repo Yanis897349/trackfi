@@ -9,6 +9,7 @@ import {
 } from "@trackfi/ui/components/dialog"
 
 import type { Subscription, SubscriptionInput } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 import { SubscriptionForm, subscriptionFormId } from "./subscription-form"
 
 export function SubscriptionFormDialog({
@@ -39,11 +40,10 @@ export function SubscriptionFormDialog({
       <DialogContent className="sm:max-w-[560px]">
         <DialogHeader className="gap-2 border-b-0 p-6">
           <DialogTitle className="text-lg leading-7 font-semibold">
-            {subscription ? "Edit subscription" : "Add subscription"}
+            {subscription ? m.subscriptions_edit() : m.subscriptions_add()}
           </DialogTitle>
           <DialogDescription>
-            Track a recurring service, its cost, and the next expected billing
-            date.
+            {m.subscriptions_form_description()}
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto">
@@ -62,7 +62,7 @@ export function SubscriptionFormDialog({
             className="px-4"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {m.common_cancel()}
           </Button>
           <Button
             type="submit"
@@ -72,10 +72,10 @@ export function SubscriptionFormDialog({
             disabled={pending}
           >
             {pending
-              ? "Saving…"
+              ? m.common_saving()
               : subscription
-                ? "Save changes"
-                : "Add subscription"}
+                ? m.subscriptions_save_changes()
+                : m.subscriptions_add()}
           </Button>
         </DialogFooter>
       </DialogContent>

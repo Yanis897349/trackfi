@@ -28,6 +28,7 @@ import {
 } from "../lib/expenses"
 import { ExpenseReceiptField } from "./expense-receipt-field"
 import { ExpenseStatusField } from "./expense-status-field"
+import { dateFnsLocale, m } from "../lib/i18n"
 
 export const expenseFormId = "expense-form"
 
@@ -50,7 +51,7 @@ export function ExpenseForm({
       <FieldGroup className="gap-[15px]">
         <Field className="gap-1.5">
           <FieldLabel htmlFor="expense-merchant">
-            Merchant or expense name
+            {m.expenses_merchant_name()}
           </FieldLabel>
           <div className="relative">
             <ReceiptTextIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -60,7 +61,7 @@ export function ExpenseForm({
               required
               maxLength={100}
               className="h-10 pl-9"
-              placeholder="e.g. Acme Coffee Roasters"
+              placeholder={m.expenses_merchant_placeholder()}
               value={form.values.merchant}
               onChange={(event) =>
                 form.setValue("merchant", event.target.value)
@@ -70,7 +71,9 @@ export function ExpenseForm({
         </Field>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field className="gap-1.5">
-            <FieldLabel htmlFor="expense-amount">Amount</FieldLabel>
+            <FieldLabel htmlFor="expense-amount">
+              {m.expenses_amount()}
+            </FieldLabel>
             <div className="relative">
               <span className="absolute top-1/2 left-3 -translate-y-1/2 text-sm text-muted-foreground">
                 {currencySymbol(currency)}
@@ -91,16 +94,18 @@ export function ExpenseForm({
             </div>
           </Field>
           <Field className="gap-1.5">
-            <FieldLabel htmlFor="expense-date">Date</FieldLabel>
+            <FieldLabel htmlFor="expense-date">{m.expenses_date()}</FieldLabel>
             <DateOnlyPicker
               id="expense-date"
               value={form.values.transactionDate}
               onChange={(value) => form.setValue("transactionDate", value)}
+              locale={dateFnsLocale()}
+              placeholder={m.calendar_pick_date()}
             />
           </Field>
         </div>
         <Field className="gap-1.5">
-          <FieldLabel>Category</FieldLabel>
+          <FieldLabel>{m.subscriptions_category()}</FieldLabel>
           <Select
             items={expenseCategoryOptions}
             value={form.values.category}
@@ -110,7 +115,7 @@ export function ExpenseForm({
           >
             <SelectTrigger
               className="h-10 w-full data-[size=default]:h-10"
-              aria-label="Category"
+              aria-label={m.subscriptions_category()}
             >
               <SelectValue />
             </SelectTrigger>
@@ -137,13 +142,13 @@ export function ExpenseForm({
         />
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-medium">Reimbursable expense</p>
+            <p className="text-xs font-medium">{m.expenses_reimbursable()}</p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Mark this purchase for repayment
+              {m.expenses_reimbursable_description()}
             </p>
           </div>
           <Switch
-            aria-label="Reimbursable expense"
+            aria-label={m.expenses_reimbursable()}
             checked={form.values.reimbursable}
             onCheckedChange={(checked) =>
               form.setValue("reimbursable", checked)
@@ -151,11 +156,11 @@ export function ExpenseForm({
           />
         </div>
         <Field className="gap-1.5">
-          <FieldLabel htmlFor="expense-notes">Note</FieldLabel>
+          <FieldLabel htmlFor="expense-notes">{m.expenses_note()}</FieldLabel>
           <Textarea
             id="expense-notes"
             className="h-[62px] min-h-[62px] resize-none"
-            placeholder="Add context for approvers (optional)"
+            placeholder={m.expenses_note_placeholder()}
             value={form.values.notes}
             onChange={(event) => form.setValue("notes", event.target.value)}
             maxLength={2000}

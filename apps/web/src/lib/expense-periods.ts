@@ -5,6 +5,7 @@ import {
   formatMonthDateOnly,
 } from "./date"
 import type { ExpenseSummary } from "./expenses"
+import { m } from "./i18n"
 
 export function expensePeriodOptions(summary: ExpenseSummary) {
   const periods = [
@@ -29,6 +30,6 @@ export function expensePeriodOptions(summary: ExpenseSummary) {
     ...periods
       .sort((left, right) => left.month - right.month)
       .map(({ value, label }) => ({ value, label })),
-    { value: "all", label: "All time" },
+    { value: "all", label: m.expenses_all_time() },
   ]
 }

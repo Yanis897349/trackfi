@@ -14,6 +14,7 @@ import {
   type SubscriptionListActions,
   SubscriptionStatusBadge,
 } from "./subscription-list-parts"
+import { m } from "../lib/i18n"
 
 export function SubscriptionListMobile({
   subscriptions,
@@ -57,8 +58,10 @@ export function SubscriptionListMobile({
                   {cadenceSuffix(subscription.cadence)}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Renews {formatDateOnly(subscription.nextRenewalDate)} ·{" "}
-                  {displayLabel(subscription.category)}
+                  {m.subscriptions_renews({
+                    date: formatDateOnly(subscription.nextRenewalDate),
+                  })}{" "}
+                  · {displayLabel(subscription.category)}
                 </p>
                 <div className="mt-3">
                   <SubscriptionStatusBadge status={subscription.status} />
@@ -76,7 +79,7 @@ export function SubscriptionListMobile({
       ))}
       <div className="flex items-center justify-between pt-1">
         <p className="text-xs text-muted-foreground">
-          {shown} of {total} subscriptions
+          {m.subscriptions_count({ shown, total })}
         </p>
         <SubscriptionPagination
           hasPrevious={hasPrevious}

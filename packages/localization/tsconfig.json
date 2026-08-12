@@ -1,0 +1,7 @@
+{
+  "extends": "@trackfi/typescript-config/base.json",
+  "compilerOptions": {
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts"]
+}

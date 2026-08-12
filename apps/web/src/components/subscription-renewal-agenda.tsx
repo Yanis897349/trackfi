@@ -14,6 +14,7 @@ import {
   type RenewalOccurrence,
 } from "../lib/subscriptions"
 import { BrandLogo, SubscriptionPreview } from "./subscription-brand"
+import { intlLocale, m } from "../lib/i18n"
 
 export function SubscriptionRenewalAgenda({
   calendar,
@@ -27,10 +28,12 @@ export function SubscriptionRenewalAgenda({
   return (
     <Card className="gap-0 py-0">
       <CardHeader className="border-b py-4">
-        <CardTitle>Upcoming</CardTitle>
+        <CardTitle>{m.calendar_upcoming()}</CardTitle>
         <p className="text-xs text-muted-foreground">
-          {calendar.renewalCount} renewals ·{" "}
-          {formatMoney(calendar.totalMinor, currency)} due
+          {m.calendar_renewal_count({ count: calendar.renewalCount })} ·{" "}
+          {m.calendar_due({
+            amount: formatMoney(calendar.totalMinor, currency),
+          })}
         </p>
       </CardHeader>
       <CardContent className="max-h-[34rem] overflow-y-auto px-0 py-1">
@@ -44,13 +47,13 @@ export function SubscriptionRenewalAgenda({
           ))
         ) : (
           <p className="p-4 text-sm text-muted-foreground">
-            No renewals appear in this calendar range.
+            {m.calendar_no_renewals()}
           </p>
         )}
       </CardContent>
       <CardFooter className="justify-between bg-card px-4 py-4">
         <span className="text-xs text-muted-foreground">
-          {formatMonthTitle(month)} total
+          {m.calendar_month_total({ month: formatMonthTitle(month) })}
         </span>
         <span className="font-semibold">
           {formatMoney(calendar.monthTotalMinor, currency)}
@@ -77,7 +80,7 @@ function RenewalAgendaItem({
       <span className="flex w-full items-center gap-3 px-4 py-3 hover:bg-muted/50">
         <span className="w-9 shrink-0 text-center">
           <span className="block text-[10px] font-semibold text-muted-foreground uppercase">
-            {new Intl.DateTimeFormat(undefined, {
+            {new Intl.DateTimeFormat(intlLocale(), {
               month: "short",
               timeZone: "UTC",
             }).format(date)}

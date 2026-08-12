@@ -1,5 +1,12 @@
 import { apiFetch } from "./api"
 import { localDate } from "./date"
+import { intlLocale, m } from "./i18n"
+import {
+  cadenceLabel,
+  categoryLabel,
+  localizedLabel,
+  statusLabel,
+} from "./labels"
 
 export const subscriptionCadences = [
   "weekly",
@@ -22,22 +29,22 @@ export const subscriptionStatuses = ["active", "paused", "archived"] as const
 
 export const subscriptionCadenceOptions = subscriptionCadences.map((value) => ({
   value,
-  label: displayLabel(value),
+  label: cadenceLabel(value),
 }))
 export const subscriptionCadenceFilterOptions = [
-  { value: "all" as const, label: "All cycles" },
+  { value: "all" as const, label: m.subscriptions_all_cycles() },
   ...subscriptionCadenceOptions,
 ]
 export const subscriptionCategoryOptions = subscriptionCategories.map(
-  (value) => ({ value, label: displayLabel(value) })
+  (value) => ({ value, label: categoryLabel(value) })
 )
 export const subscriptionCategoryFilterOptions = [
-  { value: "all" as const, label: "All categories" },
+  { value: "all" as const, label: m.subscriptions_all_categories() },
   ...subscriptionCategoryOptions,
 ]
 export const subscriptionFilterOptions = (
   ["active", "paused", "archived", "all"] as const
-).map((value) => ({ value, label: displayLabel(value) }))
+).map((value) => ({ value, label: statusLabel(value) }))
 
 export type SubscriptionCadence = (typeof subscriptionCadences)[number]
 export type SubscriptionCategory = (typeof subscriptionCategories)[number]
@@ -166,11 +173,11 @@ export function subscriptionSummaryQueryOptions() {
 
 export function formatMoney(amountMinor: number, currency: string) {
   const fractionDigits =
-    new Intl.NumberFormat(undefined, {
+    new Intl.NumberFormat(intlLocale(), {
       style: "currency",
       currency,
     }).resolvedOptions().maximumFractionDigits ?? 2
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(intlLocale(), {
     style: "currency",
     currency,
   }).format(amountMinor / 10 ** fractionDigits)
@@ -178,19 +185,19 @@ export function formatMoney(amountMinor: number, currency: string) {
 
 export function monthlyComparisonLabel(summary: SubscriptionSummary) {
   const previous = summary.monthlyComparison?.previousMonthlyEquivalentMinor
-  if (previous === undefined) return "Tracking changes"
+  if (previous === undefined) return m.subscriptions_tracking_changes()
   if (previous === 0) {
     return summary.monthlyEquivalentMinor > 0
-      ? "New since last month"
-      : "No change vs last month"
+      ? m.subscriptions_new_last_month()
+      : m.subscriptions_no_change()
   }
   const change = Math.round(
     ((summary.monthlyEquivalentMinor - previous) / previous) * 100
   )
-  if (change === 0) return "No change vs last month"
-  return `${change > 0 ? "+" : "−"}${Math.abs(change)}% vs last month`
+  if (change === 0) return m.subscriptions_no_change()
+  return m.subscriptions_change_last_month({
+    change: `${change > 0 ? "+" : "−"}${Math.abs(change)}`,
+  })
 }
 
-export function displayLabel(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1)
-}
+export const displayLabel = localizedLabel

@@ -13,7 +13,7 @@
     "db:migrate:local": "pnpm --filter @trackfi/api run db:migrate:local",
     "db:migrate:remote": "pnpm --filter @trackfi/api run db:migrate:remote",
     "deploy:api": "pnpm --filter @trackfi/api run deploy",
-    "deploy:web": "wrangler pages deploy apps/web/dist --project-name trackfi-web --branch main",
+    "deploy:web": "pnpm --filter @trackfi/web deploy",
     "dev": "VITE_API_URL=${VITE_API_URL:-http://localhost:${API_PORT:-8787}} APP_ORIGIN=${APP_ORIGIN:-http://localhost:${WEB_PORT:-5173}} AUTH_BASE_URL=${AUTH_BASE_URL:-http://localhost:${API_PORT:-8787}} concurrently --kill-others-on-fail --names api,web --prefix-colors green,blue \"pnpm --filter @trackfi/api dev\" \"sh -c 'until curl --silent --fail http://localhost:${API_PORT:-8787}/health >/dev/null 2>&1; do sleep 0.2; done; pnpm --filter @trackfi/web dev'\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -22,6 +22,7 @@
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
+    "@inlang/paraglide-js": "^2.23.2",
     "concurrently": "^9.2.1",
     "prettier": "^3.8.3",
     "prettier-plugin-tailwindcss": "^0.8.0",

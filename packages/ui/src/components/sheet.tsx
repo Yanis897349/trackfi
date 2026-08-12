@@ -9,6 +9,7 @@ import { Button } from "@trackfi/ui/components/button"
 import { useControlledOpen } from "@trackfi/ui/hooks/use-controlled-open"
 import { spring } from "@trackfi/ui/lib/springs"
 import { XIcon } from "lucide-react"
+import { useUiText } from "@trackfi/ui/components/ui-text"
 
 const SheetOpenContext = React.createContext(false)
 
@@ -92,6 +93,7 @@ function SheetContent({
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
 }) {
+  const text = useUiText()
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -129,7 +131,7 @@ function SheetContent({
             }
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{text.close}</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

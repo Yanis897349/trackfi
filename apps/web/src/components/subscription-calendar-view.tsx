@@ -26,6 +26,7 @@ import {
 import { formatMoney, type RenewalCalendar } from "../lib/subscriptions"
 import { SubscriptionRenewalAgenda } from "./subscription-renewal-agenda"
 import { SubscriptionRenewalMonth } from "./subscription-renewal-month"
+import { m } from "../lib/i18n"
 
 export function SubscriptionCalendarView({
   calendar,
@@ -50,17 +51,19 @@ export function SubscriptionCalendarView({
             "w-fit px-4"
           )}
         >
-          <ArrowLeftIcon /> Back to subscriptions
+          <ArrowLeftIcon /> {m.calendar_back()}
         </Link>
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-[13px]">
           <CalendarStat icon={CalendarCheckIcon}>
-            {calendar.renewalCount} renewals
+            {m.calendar_renewal_count({ count: calendar.renewalCount })}
           </CalendarStat>
           <CalendarStat icon={WalletCardsIcon}>
-            {formatMoney(calendar.totalMinor, currency)} due
+            {m.calendar_due({
+              amount: formatMoney(calendar.totalMinor, currency),
+            })}
           </CalendarStat>
           <CalendarStat icon={TagsIcon}>
-            {calendar.categoryCount} categories
+            {m.calendar_category_count({ count: calendar.categoryCount })}
           </CalendarStat>
         </div>
       </div>
@@ -82,7 +85,7 @@ export function SubscriptionCalendarView({
                 onClick={() => onMonthChange(shiftMonth(month, -1))}
               >
                 <ChevronLeftIcon />
-                <span className="sr-only">Previous month</span>
+                <span className="sr-only">{m.calendar_previous_month()}</span>
               </Button>
               <Button
                 variant="outline"
@@ -90,7 +93,7 @@ export function SubscriptionCalendarView({
                 onClick={() => onMonthChange(shiftMonth(month, 1))}
               >
                 <ChevronRightIcon />
-                <span className="sr-only">Next month</span>
+                <span className="sr-only">{m.calendar_next_month()}</span>
               </Button>
             </div>
             <CardTitle className="text-center text-base">
@@ -100,7 +103,7 @@ export function SubscriptionCalendarView({
               variant="outline"
               onClick={() => onMonthChange(monthDate(new Date()))}
             >
-              Today
+              {m.common_today()}
             </Button>
           </CardHeader>
           <CardContent className="overflow-x-auto px-0">

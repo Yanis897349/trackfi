@@ -1,5 +1,6 @@
 import type { Hono } from "hono"
 import { z } from "zod"
+import { preferredLocale } from "@trackfi/localization"
 
 import { isAdminEmail } from "../config"
 import {
@@ -37,21 +38,25 @@ export function registerPublicRoutes(app: Hono<AppEnv>) {
     }
 
     const parsed = z
-      .object({ email: emailSchema })
+      .object({ email: emailSchema, locale: z.enum(["en", "fr"]).optional() })
       .safeParse(await context.req.json().catch(() => null))
     if (!parsed.success) return context.json({ error: "invalid_email" }, 400)
 
     const id = crypto.randomUUID()
     const now = new Date().toISOString()
+    const locale =
+      parsed.data.locale ??
+      preferredLocale(context.req.header("accept-language"))
     const isAdmin = isAdminEmail(context.env, parsed.data.email)
     const insert = await context.env.DB.prepare(
       `INSERT OR IGNORE INTO waitlist_entries
-        (id, email, status, created_at, approved_at)
-      VALUES (?, ?, ?, ?, ?)`
+        (id, email, locale, status, created_at, approved_at)
+      VALUES (?, ?, ?, ?, ?, ?)`
     )
       .bind(
         id,
         parsed.data.email,
+        locale,
         isAdmin ? "approved" : "pending",
         now,
         isAdmin ? now : null
@@ -61,8 +66,14 @@ export function registerPublicRoutes(app: Hono<AppEnv>) {
     if (insert.meta.changes > 0) {
       const email = isAdmin
         ? issueInvitation(context.env, id)
-        : sendWaitlistConfirmation(context.env, parsed.data.email)
+        : sendWaitlistConfirmation(context.env, parsed.data.email, locale)
       context.executionCtx.waitUntil(email)
+    } else {
+      await context.env.DB.prepare(
+        "UPDATE waitlist_entries SET locale = ? WHERE email = ?"
+      )
+        .bind(locale, parsed.data.email)
+        .run()
     }
 
     return context.json({ accepted: true }, 202)

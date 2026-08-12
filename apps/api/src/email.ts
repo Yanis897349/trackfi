@@ -1,4 +1,7 @@
+import type { Locale } from "@trackfi/localization"
+
 import { getAppOrigin, getAuthBaseUrl } from "./config"
+import * as m from "./paraglide/messages.js"
 import type { Bindings } from "./types"
 
 type EmailKind = "invite" | "reset" | "verification" | "waitlist"
@@ -7,6 +10,7 @@ interface SendEmailInput {
   env: Bindings
   html: string
   idempotencyKey?: string
+  locale: Locale
   subject: string
   text: string
   to: string
@@ -27,8 +31,8 @@ function escapeHtml(value: string) {
   )
 }
 
-function emailLayout(content: string) {
-  return `<!doctype html><html><body style="margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#171717"><div style="max-width:560px;margin:0 auto;padding:40px 20px"><div style="background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:32px"><p style="margin:0 0 24px;font-size:14px;font-weight:700">Trackfi</p>${content}</div><p style="color:#737373;font-size:12px;line-height:18px;margin:18px 4px">You received this transactional message because your email was used with Trackfi.</p></div></body></html>`
+function emailLayout(content: string, locale: Locale) {
+  return `<!doctype html><html lang="${locale}"><body style="margin:0;background:#f5f5f5;font-family:Arial,sans-serif;color:#171717"><div style="max-width:560px;margin:0 auto;padding:40px 20px"><div style="background:#fff;border:1px solid #e5e5e5;border-radius:16px;padding:32px"><p style="margin:0 0 24px;font-size:14px;font-weight:700">Trackfi</p>${content}</div><p style="color:#737373;font-size:12px;line-height:18px;margin:18px 4px">${escapeHtml(m.email_footer({}, { locale }))}</p></div></body></html>`
 }
 
 function emailButton(label: string, url: string) {
@@ -55,7 +59,7 @@ async function sendEmail(input: SendEmailInput) {
       from: input.env.EMAIL_FROM ?? "Trackfi <onboarding@resend.dev>",
       to: [input.to],
       subject: input.subject,
-      html: emailLayout(input.html),
+      html: emailLayout(input.html, input.locale),
       text: input.text,
       tags: [{ name: "type", value: input.type }],
     }),
@@ -66,53 +70,72 @@ async function sendEmail(input: SendEmailInput) {
   }
 }
 
-export function sendWaitlistConfirmation(env: Bindings, email: string) {
+export function sendWaitlistConfirmation(
+  env: Bindings,
+  email: string,
+  locale: Locale = "en"
+) {
   return sendEmail({
     env,
+    locale,
     to: email,
     type: "waitlist",
-    subject: "You're on the Trackfi waitlist",
+    subject: m.email_waitlist_subject({}, { locale }),
     idempotencyKey: `waitlist-confirmation/${email}`,
-    html: '<h1 style="font-size:24px;margin:0 0 12px">You’re on the list.</h1><p style="font-size:15px;line-height:24px;margin:0;color:#525252">We’ll email you when your Trackfi access is ready.</p>',
-    text: "You're on the Trackfi waitlist. We'll email you when your access is ready.",
+    html: `<h1 style="font-size:24px;margin:0 0 12px">${escapeHtml(m.email_waitlist_title({}, { locale }))}</h1><p style="font-size:15px;line-height:24px;margin:0;color:#525252">${escapeHtml(m.email_waitlist_body({}, { locale }))}</p>`,
+    text: m.email_waitlist_text({}, { locale }),
   })
 }
 
-export function sendInvitation(env: Bindings, email: string, token: string) {
-  const url = `${getAppOrigin(env)}/register?invite=${encodeURIComponent(token)}`
+export function sendInvitation(
+  env: Bindings,
+  email: string,
+  token: string,
+  locale: Locale = "en"
+) {
+  const url = `${getAppOrigin(env)}/${locale}/register?invite=${encodeURIComponent(token)}`
   return sendEmail({
     env,
+    locale,
     to: email,
     type: "invite",
-    subject: "Your Trackfi invitation is ready",
+    subject: m.email_invite_subject({}, { locale }),
     idempotencyKey: `waitlist-invitation/${email}/${token.slice(0, 16)}`,
-    html: `<h1 style="font-size:24px;margin:0 0 12px">Welcome to Trackfi.</h1><p style="font-size:15px;line-height:24px;margin:0 0 24px;color:#525252">Your invitation is valid for seven days.</p>${emailButton("Create your account", url)}`,
-    text: `Your Trackfi invitation is valid for seven days. Create your account: ${url}`,
+    html: `<h1 style="font-size:24px;margin:0 0 12px">${escapeHtml(m.email_invite_title({}, { locale }))}</h1><p style="font-size:15px;line-height:24px;margin:0 0 24px;color:#525252">${escapeHtml(m.email_invite_body({}, { locale }))}</p>${emailButton(m.email_invite_button({}, { locale }), url)}`,
+    text: m.email_invite_text({ url }, { locale }),
   })
 }
 
 export function sendVerificationEmail(
   env: Bindings,
   email: string,
-  url: string
+  url: string,
+  locale: Locale = "en"
 ) {
   return sendEmail({
     env,
+    locale,
     to: email,
     type: "verification",
-    subject: "Verify your Trackfi email",
-    html: `<h1 style="font-size:24px;margin:0 0 12px">Verify your email.</h1><p style="font-size:15px;line-height:24px;margin:0 0 24px;color:#525252">Confirm this address to finish setting up your account.</p>${emailButton("Verify email", url)}`,
-    text: `Verify your Trackfi email: ${url}`,
+    subject: m.email_verify_subject({}, { locale }),
+    html: `<h1 style="font-size:24px;margin:0 0 12px">${escapeHtml(m.email_verify_title({}, { locale }))}</h1><p style="font-size:15px;line-height:24px;margin:0 0 24px;color:#525252">${escapeHtml(m.email_verify_body({}, { locale }))}</p>${emailButton(m.email_verify_button({}, { locale }), url)}`,
+    text: m.email_verify_text({ url }, { locale }),
   })
 }
 
-export function sendPasswordReset(env: Bindings, email: string, url: string) {
+export function sendPasswordReset(
+  env: Bindings,
+  email: string,
+  url: string,
+  locale: Locale = "en"
+) {
   return sendEmail({
     env,
+    locale,
     to: email,
     type: "reset",
-    subject: "Reset your Trackfi password",
-    html: `<h1 style="font-size:24px;margin:0 0 12px">Reset your password.</h1><p style="font-size:15px;line-height:24px;margin:0 0 24px;color:#525252">Use this secure link to choose a new password.</p>${emailButton("Reset password", url)}`,
-    text: `Reset your Trackfi password: ${url}`,
+    subject: m.email_reset_subject({}, { locale }),
+    html: `<h1 style="font-size:24px;margin:0 0 12px">${escapeHtml(m.email_reset_title({}, { locale }))}</h1><p style="font-size:15px;line-height:24px;margin:0 0 24px;color:#525252">${escapeHtml(m.email_reset_body({}, { locale }))}</p>${emailButton(m.email_reset_button({}, { locale }), url)}`,
+    text: m.email_reset_text({ url }, { locale }),
   })
 }

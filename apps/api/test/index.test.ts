@@ -23,8 +23,14 @@ import revenueSourcesMigration from "../migrations/20260812120000_create_revenue
 import oneTimeRevenueMigration from "../migrations/20260812130000_add_one_time_revenue_cadence.sql?raw"
 import expensesMigration from "../migrations/20260812140000_create_expenses.sql?raw"
 import expenseTransactionsMigration from "../migrations/20260812150000_create_expense_transactions.sql?raw"
+import localesMigration from "../migrations/20260813100000_add_locales.sql?raw"
 import { createAuth } from "../src/auth"
-import { sendInvitation } from "../src/email"
+import {
+  sendInvitation,
+  sendPasswordReset,
+  sendVerificationEmail,
+  sendWaitlistConfirmation,
+} from "../src/email"
 import { sha256 } from "../src/security"
 import type { Bindings } from "../src/types"
 
@@ -43,6 +49,7 @@ const migrationQueries = [
   oneTimeRevenueMigration,
   expensesMigration,
   expenseTransactionsMigration,
+  localesMigration,
 ].flatMap((sql) =>
   sql
     .split(";")
@@ -111,6 +118,30 @@ describe("Trackfi API", () => {
     expect(result.results).toEqual([
       { email: "person@example.com", status: "pending" },
     ])
+  })
+
+  it("persists explicit and negotiated waitlist locales and updates duplicates", async () => {
+    await joinWaitlistWithLocale("french@example.com", {
+      acceptLanguage: "fr-FR,fr;q=0.9,en;q=0.8",
+    })
+    await joinWaitlistWithLocale("french@example.com", { locale: "en" })
+
+    const entry = await env.DB.prepare(
+      "SELECT locale FROM waitlist_entries WHERE email = ?"
+    )
+      .bind("french@example.com")
+      .first<{ locale: string }>()
+    expect(entry?.locale).toBe("en")
+
+    await joinWaitlistWithLocale("negotiated@example.com", {
+      acceptLanguage: "fr-CA,fr;q=0.8",
+    })
+    const negotiated = await env.DB.prepare(
+      "SELECT locale FROM waitlist_entries WHERE email = ?"
+    )
+      .bind("negotiated@example.com")
+      .first<{ locale: string }>()
+    expect(negotiated?.locale).toBe("fr")
   })
 
   it("validates usable invitations without storing their raw token", async () => {
@@ -267,6 +298,30 @@ describe("Trackfi API", () => {
     expect(entry?.registered_at).not.toBeNull()
   })
 
+  it("persists locale on Better Auth users", async () => {
+    await env.DB.prepare(
+      "UPDATE feature_flags SET enabled = 0 WHERE key = 'waitlist_mode'"
+    ).run()
+    const auth = createAuth(env as unknown as Bindings)
+    const email = `french-${crypto.randomUUID()}@example.com`
+    await auth.api.signUpEmail({
+      body: {
+        name: "Utilisateur Trackfi",
+        email,
+        password: "correct-horse-battery-staple",
+        locale: "fr",
+      } as never,
+      headers: new Headers({ Origin: "http://localhost:5173" }),
+    })
+
+    const user = await env.DB.prepare(
+      'SELECT locale FROM "user" WHERE email = ?'
+    )
+      .bind(email)
+      .first<{ locale: string }>()
+    expect(user?.locale).toBe("fr")
+  })
+
   it("allows open registration through Better Auth and assigns a user role", async () => {
     await env.DB.prepare(
       "UPDATE feature_flags SET enabled = 0 WHERE key = 'waitlist_mode'"
@@ -408,6 +463,79 @@ describe("Trackfi API", () => {
         "e".repeat(64)
       )
     ).rejects.toThrow("status 503")
+  })
+
+  it("localizes every transactional email and callback URL", async () => {
+    const payloads: Array<Record<string, unknown>> = []
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+        payloads.push(JSON.parse(String(init?.body)) as Record<string, unknown>)
+        return Response.json({ id: "email-id" })
+      })
+    )
+
+    const emailEnv = {
+      ...(env as unknown as Bindings),
+      RESEND_API_KEY: "re_test",
+    }
+    const cases = [
+      {
+        locale: "en" as const,
+        subjects: [
+          "You’re on the Trackfi waitlist",
+          "Your Trackfi invitation is ready",
+          "Verify your Trackfi email",
+          "Reset your Trackfi password",
+        ],
+      },
+      {
+        locale: "fr" as const,
+        subjects: [
+          "Vous êtes sur la liste d’attente Trackfi",
+          "Votre invitation Trackfi est prête",
+          "Vérifiez votre adresse e-mail Trackfi",
+          "Réinitialisez votre mot de passe Trackfi",
+        ],
+      },
+    ]
+
+    for (const { locale } of cases) {
+      await sendWaitlistConfirmation(
+        emailEnv,
+        `${locale}-waitlist@example.com`,
+        locale
+      )
+      await sendInvitation(
+        emailEnv,
+        `${locale}-invite@example.com`,
+        locale.repeat(32),
+        locale
+      )
+      await sendVerificationEmail(
+        emailEnv,
+        `${locale}-verify@example.com`,
+        `https://trackfi.test/${locale}/verify`,
+        locale
+      )
+      await sendPasswordReset(
+        emailEnv,
+        `${locale}-reset@example.com`,
+        `https://trackfi.test/${locale}/reset-password`,
+        locale
+      )
+    }
+
+    for (const [caseIndex, { locale, subjects }] of cases.entries()) {
+      const localePayloads = payloads.slice(caseIndex * 4, caseIndex * 4 + 4)
+      expect(localePayloads.map((payload) => payload.subject)).toEqual(subjects)
+      for (const payload of localePayloads) {
+        expect(payload.html).toContain(`<html lang="${locale}">`)
+      }
+      expect(localePayloads[1]?.html).toContain(`/${locale}/register?invite=`)
+      expect(localePayloads[2]?.text).toContain(`/${locale}/verify`)
+      expect(localePayloads[3]?.text).toContain(`/${locale}/reset-password`)
+    }
   })
 
   it("rejects admin endpoints without a session", async () => {
@@ -1357,6 +1485,26 @@ function joinWaitlist(email: string, clientIp: string = crypto.randomUUID()) {
         "CF-Connecting-IP": clientIp,
       },
       body: JSON.stringify({ email }),
+    })
+  )
+}
+
+function joinWaitlistWithLocale(
+  email: string,
+  options: { acceptLanguage?: string; locale?: "en" | "fr" }
+) {
+  return exports.default.fetch(
+    new Request("https://trackfi.test/api/waitlist", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Turnstile-Token": "test-token",
+        "CF-Connecting-IP": crypto.randomUUID(),
+        ...(options.acceptLanguage
+          ? { "Accept-Language": options.acceptLanguage }
+          : {}),
+      },
+      body: JSON.stringify({ email, locale: options.locale }),
     })
   )
 }

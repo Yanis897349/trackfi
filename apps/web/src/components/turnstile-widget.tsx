@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState } from "react"
 import { Skeleton } from "@trackfi/ui/components/skeleton"
 
 import { TURNSTILE_SITE_KEY } from "../lib/api"
+import { getLocale, m } from "../lib/i18n"
 
 declare global {
   interface Window {
@@ -14,6 +15,7 @@ declare global {
           "expired-callback": () => void
           sitekey: string
           theme: "auto"
+          language: "en" | "fr"
         }
       ) => string
       remove: (widgetId: string) => void
@@ -68,6 +70,7 @@ export function TurnstileWidget({
         widgetId = window.turnstile.render(containerRef.current, {
           sitekey: TURNSTILE_SITE_KEY,
           theme: "auto",
+          language: getLocale(),
           callback: onTokenChange,
           "expired-callback": () => onTokenChange(""),
         })
@@ -90,12 +93,12 @@ export function TurnstileWidget({
         <div
           className="absolute inset-0"
           role="status"
-          aria-label="Loading security check"
+          aria-label={m.auth_loading_security_check()}
         >
           <Skeleton className="h-[65px] w-[300px] max-w-full" />
         </div>
       )}
-      <div id={id} ref={containerRef} aria-label="Security check" />
+      <div id={id} ref={containerRef} aria-label={m.auth_security_check()} />
     </div>
   )
 }

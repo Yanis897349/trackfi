@@ -4,18 +4,20 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "wrangler deploy --dry-run --outdir dist",
+    "build": "pnpm i18n:compile && wrangler deploy --dry-run --outdir dist",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "db:migrate:remote": "wrangler d1 migrations apply DB --remote",
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev --port ${API_PORT:-8787} --var APP_ORIGIN:${APP_ORIGIN:-http://localhost:5173} --var AUTH_BASE_URL:${AUTH_BASE_URL:-http://localhost:8787}",
+    "deploy": "pnpm i18n:compile && wrangler deploy",
+    "dev": "pnpm i18n:compile && wrangler dev --port ${API_PORT:-8787} --var APP_ORIGIN:${APP_ORIGIN:-http://localhost:5173} --var AUTH_BASE_URL:${AUTH_BASE_URL:-http://localhost:8787}",
+    "i18n:compile": "node scripts/compile-localization.mjs",
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": "pnpm i18n:compile && vitest run",
     "test:watch": "vitest",
-    "typecheck": "wrangler types --check --env-interface CloudflareBindings && tsc --noEmit"
+    "typecheck": "pnpm i18n:compile && wrangler types --check --env-interface CloudflareBindings && tsc --noEmit"
   },
   "dependencies": {
+    "@trackfi/localization": "workspace:*",
     "better-auth": "^1.6.26",
     "hono": "^4.13.1",
     "zod": "^4.4.3"

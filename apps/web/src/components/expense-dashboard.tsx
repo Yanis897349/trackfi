@@ -12,6 +12,7 @@ import { ExpenseSettingsDialog } from "./expense-settings-dialog"
 import { ExpenseEmptyState, ExpenseLoadingState } from "./expense-states"
 import { ExpenseSummary } from "./expense-summary"
 import { ModuleError, ModuleHeader } from "./module-layout"
+import { m } from "../lib/i18n"
 
 export function ExpenseDashboard({ currency }: { currency: string }) {
   const state = useExpenses()
@@ -38,8 +39,8 @@ export function ExpenseDashboard({ currency }: { currency: string }) {
   return (
     <section className="mx-auto w-full max-w-[1120px] space-y-6">
       <ModuleHeader
-        title="Expenses"
-        description="Understand where money goes and keep spending on track."
+        title={m.nav_expenses()}
+        description={m.module_expenses_description()}
         action={
           <div className="flex gap-2">
             <Button
@@ -47,10 +48,10 @@ export function ExpenseDashboard({ currency }: { currency: string }) {
               size="lg"
               onClick={() => state.setSettingsOpen(true)}
             >
-              <Settings2Icon /> Budget settings
+              <Settings2Icon /> {m.expenses_budget_settings()}
             </Button>
             <Button size="lg" onClick={state.openCreate}>
-              <PlusIcon /> Add expense
+              <PlusIcon /> {m.expenses_add()}
             </Button>
           </div>
         }
@@ -58,9 +59,9 @@ export function ExpenseDashboard({ currency }: { currency: string }) {
       <ExpenseSummary summary={summary} currency={currency} />
       <section className="space-y-3">
         <div>
-          <h3 className="text-lg font-semibold">Transactions</h3>
+          <h3 className="text-lg font-semibold">{m.expenses_transactions()}</h3>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
-            Review, categorize, and resolve spending activity.
+            {m.expenses_transactions_description()}
           </p>
         </div>
         <ExpenseFilters
@@ -89,7 +90,7 @@ export function ExpenseDashboard({ currency }: { currency: string }) {
         {state.list.isLoading ? (
           <div
             role="status"
-            aria-label="Loading expense list"
+            aria-label={m.expenses_loading_list()}
             className="space-y-2"
           >
             {Array.from({ length: 5 }, (_, index) => (

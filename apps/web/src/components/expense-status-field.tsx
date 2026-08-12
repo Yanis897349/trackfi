@@ -2,6 +2,7 @@ import { Field, FieldLabel } from "@trackfi/ui/components/field"
 import { cn } from "@trackfi/ui/lib/utils"
 
 import { expenseStatusOptions, type ExpenseStatus } from "../lib/expenses"
+import { m } from "../lib/i18n"
 
 export function ExpenseStatusField({
   value,
@@ -12,7 +13,7 @@ export function ExpenseStatusField({
 }) {
   return (
     <Field className="gap-1.5">
-      <FieldLabel id="expense-status-label">Status</FieldLabel>
+      <FieldLabel id="expense-status-label">{m.common_status()}</FieldLabel>
       <div
         className="grid grid-cols-3 gap-1 rounded-lg bg-muted p-1"
         role="radiogroup"

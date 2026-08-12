@@ -16,6 +16,7 @@ import { cn } from "@trackfi/ui/lib/utils"
 
 import { expenseSummaryQueryOptions } from "../lib/expenses"
 import { formatMoney } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export function ExpenseOverviewCard() {
   const query = useQuery(expenseSummaryQueryOptions())
@@ -24,15 +25,15 @@ export function ExpenseOverviewCard() {
     <Card className="h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <ReceiptTextIcon className="size-4" /> Expenses
+          <ReceiptTextIcon className="size-4" /> {m.nav_expenses()}
         </CardTitle>
-        <CardDescription>Current spending and budget pace.</CardDescription>
+        <CardDescription>{m.expenses_overview_description()}</CardDescription>
         <CardAction>
           <Link
             to="/dashboard/expenses"
             className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
           >
-            Open <ArrowRightIcon />
+            {m.common_open()} <ArrowRightIcon />
           </Link>
         </CardAction>
       </CardHeader>
@@ -41,30 +42,30 @@ export function ExpenseOverviewCard() {
           <div
             className="grid grid-cols-2 gap-3"
             role="status"
-            aria-label="Loading expense overview"
+            aria-label={m.expenses_loading()}
           >
             <Skeleton className="h-14" />
             <Skeleton className="h-14" />
           </div>
         ) : query.isError ? (
           <p className="text-sm text-muted-foreground">
-            Expense insights are temporarily unavailable.
+            {m.expenses_unavailable()}
           </p>
         ) : !summary?.currency ? (
           <p className="text-sm text-muted-foreground">
-            Choose an account currency to start tracking expenses.
+            {m.expenses_choose_currency_description()}
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <Metric
-              label="Spent this period"
+              label={m.expenses_spent_period()}
               value={formatMoney(summary.spentMinor, summary.currency)}
             />
             <Metric
-              label="Budget remaining"
+              label={m.expenses_budget_remaining()}
               value={
                 summary.remainingMinor === null
-                  ? "Not set"
+                  ? m.expenses_not_set()
                   : formatMoney(summary.remainingMinor, summary.currency)
               }
             />

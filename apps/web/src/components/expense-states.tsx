@@ -14,27 +14,28 @@ import {
 import { Skeleton } from "@trackfi/ui/components/skeleton"
 
 import { ModuleHeader } from "./module-layout"
+import { m } from "../lib/i18n"
 
 export function ExpenseCurrencyRequiredState() {
   return (
     <section className="mx-auto w-full max-w-[1120px] space-y-6">
       <ModuleHeader
-        title="Expenses"
-        description="Understand where money goes and keep spending on track."
+        title={m.nav_expenses()}
+        description={m.module_expenses_description()}
       />
       <Empty className="min-h-80 border">
         <EmptyHeader>
           <EmptyMedia variant="icon">
             <SettingsIcon />
           </EmptyMedia>
-          <EmptyTitle>Choose an account currency first</EmptyTitle>
+          <EmptyTitle>{m.subscriptions_choose_currency_title()}</EmptyTitle>
           <EmptyDescription>
-            Expense transactions and budgets use your account currency.
+            {m.expenses_choose_currency_description()}
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Link to="/dashboard/settings" className={buttonVariants()}>
-            Open settings
+            {m.subscriptions_open_settings()}
           </Link>
         </EmptyContent>
       </Empty>
@@ -56,18 +57,18 @@ export function ExpenseEmptyState({
           <ReceiptTextIcon />
         </EmptyMedia>
         <EmptyTitle>
-          {filtered ? "No matching expenses" : "Add your first expense"}
+          {filtered ? m.expenses_no_match_title() : m.expenses_empty_title()}
         </EmptyTitle>
         <EmptyDescription>
           {filtered
-            ? "Try changing your search or filters."
-            : "Record a purchase to start tracking your spending and budget pace."}
+            ? m.expenses_no_match_description()
+            : m.expenses_empty_description()}
         </EmptyDescription>
       </EmptyHeader>
       {!filtered && (
         <EmptyContent>
           <Button onClick={onAdd}>
-            <PlusIcon /> Add expense
+            <PlusIcon /> {m.expenses_add()}
           </Button>
         </EmptyContent>
       )}
@@ -80,12 +81,12 @@ export function ExpenseLoadingState() {
     <section
       className="mx-auto w-full max-w-[1120px] space-y-6"
       role="status"
-      aria-label="Loading expenses"
+      aria-label={m.expenses_loading()}
       aria-busy="true"
     >
       <ModuleHeader
-        title="Expenses"
-        description="Understand where money goes and keep spending on track."
+        title={m.nav_expenses()}
+        description={m.module_expenses_description()}
         action={<Skeleton className="h-9 w-36" />}
       />
       <section className="space-y-4">

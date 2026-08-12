@@ -15,6 +15,7 @@ import {
 import { RevenueContributionCard } from "./revenue-contribution-card"
 import { RevenueForecastCard } from "./revenue-forecast-card"
 import { RevenueUpcomingIncomeCard } from "./revenue-upcoming-income-card"
+import { m } from "../lib/i18n"
 
 const forecastRangeOptions = [3, 6, 12] as const
 
@@ -37,7 +38,7 @@ export function RevenueSummary({
         <Select
           items={forecastRangeOptions.map((value) => ({
             value: String(value),
-            label: `Next ${value} months`,
+            label: m.revenue_next_months({ count: value }),
           }))}
           value={String(months)}
           onValueChange={(value) =>
@@ -45,7 +46,7 @@ export function RevenueSummary({
           }
         >
           <SelectTrigger
-            aria-label="Forecast range"
+            aria-label={m.revenue_forecast_range()}
             className="h-8 w-full gap-2 bg-card px-2.5 text-xs sm:w-auto"
             disabled={fetching}
           >
@@ -55,7 +56,7 @@ export function RevenueSummary({
           <SelectContent align="end">
             {forecastRangeOptions.map((value) => (
               <SelectItem key={value} value={String(value)}>
-                Next {value} months
+                {m.revenue_next_months({ count: value })}
               </SelectItem>
             ))}
           </SelectContent>

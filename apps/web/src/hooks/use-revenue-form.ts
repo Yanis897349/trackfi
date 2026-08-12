@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from "react"
 
+import { intlLocale } from "../lib/i18n"
+import { m } from "../lib/i18n"
+
 import type {
   RevenueCadence,
   RevenueCategory,
@@ -28,7 +31,7 @@ export function useRevenueForm({
   onSubmit(input: RevenueSourceInput): void
 }) {
   const fractionDigits =
-    new Intl.NumberFormat(undefined, {
+    new Intl.NumberFormat(intlLocale(), {
       style: "currency",
       currency,
     }).resolvedOptions().maximumFractionDigits ?? 2
@@ -66,8 +69,8 @@ export function useRevenueForm({
     ) {
       setValidation(
         values.scheduleType === "scheduled"
-          ? "Enter a source, positive amount, and next payment date."
-          : "Enter a source and positive monthly estimate."
+          ? m.revenue_validation_scheduled()
+          : m.revenue_validation_variable()
       )
       return
     }

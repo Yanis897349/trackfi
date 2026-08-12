@@ -10,6 +10,7 @@ import {
 } from "@trackfi/ui/components/alert-dialog"
 
 import type { Subscription } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export function SubscriptionDeleteDialog({
   subscription,
@@ -24,16 +25,17 @@ export function SubscriptionDeleteDialog({
     <AlertDialog open={Boolean(subscription)} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {subscription?.name}?</AlertDialogTitle>
+          <AlertDialogTitle>{m.subscriptions_delete_title()}</AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently removes the subscription. This action cannot be
-            undone.
+            {m.subscriptions_delete_description({
+              name: subscription?.name ?? "",
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={onConfirm}>
-            Delete permanently
+            {m.subscriptions_delete()}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

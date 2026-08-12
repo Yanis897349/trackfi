@@ -11,10 +11,11 @@ import { formatCompactMoney } from "../lib/currency"
 import { formatShortMonth } from "../lib/date"
 import type { RevenueSummary } from "../lib/revenue"
 import { formatMoney } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 const chartConfig = {
   amountMinor: {
-    label: "Forecast income",
+    label: m.revenue_forecast_income(),
     color: "#10b981",
   },
 } satisfies ChartConfig
@@ -57,7 +58,9 @@ export function RevenueForecastChart({
               hideIndicator
               formatter={(value) => (
                 <div className="flex min-w-36 items-center justify-between gap-4">
-                  <span className="text-muted-foreground">Forecast income</span>
+                  <span className="text-muted-foreground">
+                    {m.revenue_forecast_income()}
+                  </span>
                   <span className="font-medium text-foreground tabular-nums">
                     {formatMoney(Number(value), currency)}
                   </span>

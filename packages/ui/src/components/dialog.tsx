@@ -9,6 +9,7 @@ import { Button } from "@trackfi/ui/components/button"
 import { useControlledOpen } from "@trackfi/ui/hooks/use-controlled-open"
 import { spring } from "@trackfi/ui/lib/springs"
 import { cn } from "@trackfi/ui/lib/utils"
+import { useUiText } from "@trackfi/ui/components/ui-text"
 
 const DialogOpenContext = React.createContext(false)
 
@@ -83,6 +84,7 @@ function DialogContent({
   showCloseButton = true,
   ...props
 }: DialogPrimitive.Popup.Props & { showCloseButton?: boolean }) {
+  const text = useUiText()
   return (
     <DialogPortal>
       <DialogOverlay />
@@ -122,7 +124,7 @@ function DialogContent({
             }
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{text.close}</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Popup>

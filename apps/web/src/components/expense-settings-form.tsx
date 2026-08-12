@@ -13,6 +13,7 @@ import { Switch } from "@trackfi/ui/components/switch"
 import { currencySymbol } from "../lib/currency"
 import { currentMonthDateOnly } from "../lib/date"
 import type { ExpenseSettings } from "../lib/expenses"
+import { dateFnsLocale, intlLocale, m } from "../lib/i18n"
 import {
   ExpenseMoneyField,
   ExpensePercentField,
@@ -32,7 +33,7 @@ export function ExpenseSettingsForm({
   onSave(settings: ExpenseSettings): void
 }) {
   const fractionDigits =
-    new Intl.NumberFormat(undefined, {
+    new Intl.NumberFormat(intlLocale(), {
       style: "currency",
       currency,
     }).resolvedOptions().maximumFractionDigits ?? 2
@@ -76,9 +77,7 @@ export function ExpenseSettingsForm({
       approaching >= limit ||
       limit > 200
     ) {
-      setValidation(
-        "Enter positive budget targets and thresholds where approaching is lower than the limit."
-      )
+      setValidation(m.expenses_budget_validation())
       return
     }
     setValidation("")
@@ -99,15 +98,17 @@ export function ExpenseSettingsForm({
     <form id={expenseSettingsFormId} className="space-y-5" onSubmit={submit}>
       <section className="space-y-3">
         <div>
-          <h3 className="text-sm font-semibold">Budget & pace</h3>
+          <h3 className="text-sm font-semibold">
+            {m.expenses_budget_and_pace()}
+          </h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Define the monthly limit and the daily pace you want to maintain.
+            {m.expenses_budget_pace_description()}
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <ExpenseMoneyField
             id="monthly-budget"
-            label="Monthly budget"
+            label={m.expenses_monthly_budget()}
             value={budget}
             symbol={currencySymbol(currency)}
             step={1 / divisor}
@@ -115,7 +116,7 @@ export function ExpenseSettingsForm({
           />
           <ExpenseMoneyField
             id="daily-target"
-            label="Daily spending target"
+            label={m.expenses_daily_target()}
             value={dailyTarget}
             symbol={currencySymbol(currency)}
             step={1 / divisor}
@@ -125,29 +126,35 @@ export function ExpenseSettingsForm({
       </section>
       <section className="space-y-3 border-t pt-4">
         <div>
-          <h3 className="text-sm font-semibold">Budget period</h3>
+          <h3 className="text-sm font-semibold">
+            {m.expenses_budget_period()}
+          </h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Choose when your monthly plan resets.
+            {m.expenses_budget_period_description()}
           </p>
         </div>
         <Field className="gap-1.5">
-          <FieldLabel htmlFor="expense-reset-day">Reset day</FieldLabel>
+          <FieldLabel htmlFor="expense-reset-day">
+            {m.expenses_reset_day()}
+          </FieldLabel>
           <DateOnlyPicker
             id="expense-reset-day"
             value={currentMonthDateOnly(resetDay)}
             disabled={(date) => date.getDate() > 28}
             onChange={(value) => setResetDay(Number(value.slice(-2)))}
+            locale={dateFnsLocale()}
+            placeholder={m.calendar_pick_date()}
           />
         </Field>
         <div className="flex items-center justify-between gap-4 border-t pt-4">
           <div>
-            <p className="text-xs font-medium">Roll over unused budget</p>
+            <p className="text-xs font-medium">{m.expenses_rollover()}</p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Carry any remaining amount into the next budget period.
+              {m.expenses_rollover_description()}
             </p>
           </div>
           <Switch
-            aria-label="Roll over unused budget"
+            aria-label={m.expenses_rollover_label()}
             checked={rolloverEnabled}
             className="focus-visible:border-orange-500 focus-visible:ring-orange-500/30 data-checked:bg-[#F4510B]"
             onCheckedChange={setRolloverEnabled}
@@ -156,29 +163,30 @@ export function ExpenseSettingsForm({
       </section>
       <section className="space-y-3 border-t pt-4">
         <div>
-          <h3 className="text-sm font-semibold">Alert thresholds</h3>
+          <h3 className="text-sm font-semibold">
+            {m.expenses_alert_thresholds()}
+          </h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Set the levels that will power future spending notifications.
+            {m.expenses_thresholds_description()}
           </p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <ExpensePercentField
             id="approaching-budget"
-            label="Approaching budget"
+            label={m.expenses_approaching_budget()}
             value={approachingThreshold}
             warning
             onChange={setApproachingThreshold}
           />
           <ExpensePercentField
             id="budget-limit"
-            label="Budget limit reached"
+            label={m.expenses_budget_limit()}
             value={limitThreshold}
             onChange={setLimitThreshold}
           />
         </div>
         <FieldDescription className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-[11px]">
-          <BellIcon className="size-3.5" /> In-app and email delivery will be
-          added with the notification center.
+          <BellIcon className="size-3.5" /> {m.expenses_notifications_later()}
         </FieldDescription>
       </section>
       {(validation || error) && <FieldError>{validation || error}</FieldError>}

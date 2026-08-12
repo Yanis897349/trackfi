@@ -27,17 +27,22 @@ import {
 } from "@trackfi/ui/components/sidebar"
 
 import { authClient, type CurrentUser } from "../lib/api"
+import { m } from "../lib/i18n"
 import { modules } from "../modules"
+import { LanguageSelector } from "./language-selector"
 
-const titles: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/dashboard/waitlist": "Waitlist approvals",
-  "/dashboard/feature-flags": "Feature flags",
-  "/dashboard/settings": "Settings",
-  "/dashboard/subscriptions": "Subscriptions",
-  "/dashboard/expenses": "Expenses",
-  "/dashboard/revenue": "Revenue",
-  "/dashboard/subscriptions/calendar": "Renewal calendar",
+function titleForPath(pathname: string) {
+  const titles: Record<string, string> = {
+    "/dashboard": m.nav_dashboard(),
+    "/dashboard/waitlist": m.nav_waitlist(),
+    "/dashboard/feature-flags": m.nav_feature_flags(),
+    "/dashboard/settings": m.nav_settings(),
+    "/dashboard/subscriptions": m.nav_subscriptions(),
+    "/dashboard/expenses": m.nav_expenses(),
+    "/dashboard/revenue": m.nav_revenue(),
+    "/dashboard/subscriptions/calendar": m.nav_renewal_calendar(),
+  }
+  return titles[pathname] ?? m.nav_dashboard()
 }
 
 export function DashboardShell({
@@ -49,7 +54,7 @@ export function DashboardShell({
 }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const title = titles[location.pathname] ?? "Dashboard"
+  const title = titleForPath(location.pathname)
 
   async function signOut() {
     await authClient.signOut()
@@ -74,24 +79,24 @@ export function DashboardShell({
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+            <SidebarGroupLabel>{m.nav_workspace()}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    tooltip="Dashboard"
+                    tooltip={m.nav_dashboard()}
                     isActive={location.pathname === "/dashboard"}
                     render={<Link to="/dashboard" />}
                   >
                     <LayoutDashboardIcon />
-                    <span>Dashboard</span>
+                    <span>{m.nav_dashboard()}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
           <SidebarGroup>
-            <SidebarGroupLabel>Modules</SidebarGroupLabel>
+            <SidebarGroupLabel>{m.nav_modules()}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {modules.map((module) => (
@@ -114,29 +119,29 @@ export function DashboardShell({
           </SidebarGroup>
           {user.role === "admin" && (
             <SidebarGroup>
-              <SidebarGroupLabel>Admin</SidebarGroupLabel>
+              <SidebarGroupLabel>{m.nav_admin()}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      tooltip="Waitlist approvals"
+                      tooltip={m.nav_waitlist()}
                       isActive={location.pathname === "/dashboard/waitlist"}
                       render={<Link to="/dashboard/waitlist" />}
                     >
                       <MailCheckIcon />
-                      <span>Waitlist approvals</span>
+                      <span>{m.nav_waitlist()}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      tooltip="Feature flags"
+                      tooltip={m.nav_feature_flags()}
                       isActive={
                         location.pathname === "/dashboard/feature-flags"
                       }
                       render={<Link to="/dashboard/feature-flags" />}
                     >
                       <FlagIcon />
-                      <span>Feature flags</span>
+                      <span>{m.nav_feature_flags()}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -148,12 +153,12 @@ export function DashboardShell({
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
-                    tooltip="Settings"
+                    tooltip={m.nav_settings()}
                     isActive={location.pathname === "/dashboard/settings"}
                     render={<Link to="/dashboard/settings" />}
                   >
                     <SettingsIcon />
-                    <span>Settings</span>
+                    <span>{m.nav_settings()}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -179,7 +184,7 @@ export function DashboardShell({
               className="group-data-[collapsible=icon]:hidden"
             >
               <LogOutIcon />
-              <span className="sr-only">Sign out</span>
+              <span className="sr-only">{m.nav_sign_out()}</span>
             </Button>
           </div>
         </SidebarFooter>
@@ -190,6 +195,7 @@ export function DashboardShell({
           <SidebarTrigger className="-ml-1" />
           <div className="h-4 w-px bg-border" />
           <h1 className="text-sm font-medium">{title}</h1>
+          <LanguageSelector className="ml-auto" user={user} />
         </header>
         <div className="flex flex-1 flex-col p-4 md:p-6">{children}</div>
       </SidebarInset>

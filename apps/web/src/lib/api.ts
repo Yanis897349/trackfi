@@ -1,4 +1,5 @@
 import { createAuthClient } from "better-auth/react"
+import type { Locale } from "@trackfi/localization"
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8787"
 export const TURNSTILE_SITE_KEY =
@@ -14,6 +15,7 @@ export interface CurrentUser {
   email: string
   id: string
   name: string
+  locale: Locale
   role: "admin" | "user"
 }
 

@@ -9,6 +9,7 @@ import {
 } from "@trackfi/ui/components/dialog"
 
 import type { RevenueSource, RevenueSourceInput } from "../lib/revenue"
+import { m } from "../lib/i18n"
 import { RevenueForm, revenueFormId } from "./revenue-form"
 
 export function RevenueFormDialog({
@@ -39,12 +40,12 @@ export function RevenueFormDialog({
       <DialogContent className="rounded-xl sm:max-w-[700px] [&>[data-slot=dialog-close]]:top-6 [&>[data-slot=dialog-close]]:right-6">
         <DialogHeader className="gap-1.5 border-b-0 px-7 pt-[26px] pb-5">
           <DialogTitle className="text-2xl leading-8 font-bold tracking-tight">
-            {source ? "Edit revenue source" : "Add revenue source"}
+            {source ? m.revenue_edit() : m.revenue_add()}
           </DialogTitle>
           <DialogDescription>
             {source
-              ? "Update the net income you expect to receive and how certain it is."
-              : "Add the net income you expect to receive and how certain it is."}
+              ? m.revenue_edit_description()
+              : m.revenue_add_description()}
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto">
@@ -67,7 +68,7 @@ export function RevenueFormDialog({
               className="flex-1 px-4 sm:flex-none"
               onClick={() => onOpenChange(false)}
             >
-              Cancel
+              {m.common_cancel()}
             </Button>
             <Button
               type="submit"
@@ -77,10 +78,10 @@ export function RevenueFormDialog({
               disabled={pending}
             >
               {pending
-                ? "Saving…"
+                ? m.common_saving()
                 : source
-                  ? "Save changes"
-                  : "Add revenue source"}
+                  ? m.subscriptions_save_changes()
+                  : m.revenue_add()}
             </Button>
           </div>
         </DialogFooter>

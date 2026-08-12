@@ -1,6 +1,7 @@
 import { apiFetch } from "./api"
 import { localDate } from "./date"
-import { displayLabel } from "./subscriptions"
+import { categoryLabel, statusLabel } from "./labels"
+import { m } from "./i18n"
 
 export const expenseCategories = [
   "housing",
@@ -92,11 +93,13 @@ export interface ExpenseSummary {
 export const expenseCategoryOptions = expenseCategories.map((value) => ({
   value,
   label:
-    value === "entertainment" ? "Meals & entertainment" : displayLabel(value),
+    value === "entertainment"
+      ? m.category_meals_entertainment()
+      : categoryLabel(value),
 }))
 export const expenseStatusOptions = expenseStatuses.map((value) => ({
   value,
-  label: displayLabel(value),
+  label: statusLabel(value),
 }))
 
 export function expenseSummaryQueryOptions() {

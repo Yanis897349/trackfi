@@ -13,6 +13,7 @@ import {
   subscriptionCategoryOptions,
   type SubscriptionCategory,
 } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export function SubscriptionFormDetails({
   category,
@@ -33,7 +34,7 @@ export function SubscriptionFormDetails({
     <>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field>
-          <FieldLabel>Category</FieldLabel>
+          <FieldLabel>{m.subscriptions_category()}</FieldLabel>
           <Select
             items={subscriptionCategoryOptions}
             value={category}
@@ -43,7 +44,7 @@ export function SubscriptionFormDetails({
           >
             <SelectTrigger
               className="h-10 w-full px-3 data-[size=default]:h-10"
-              aria-label="Category"
+              aria-label={m.subscriptions_category()}
             >
               <SelectValue />
             </SelectTrigger>
@@ -57,7 +58,9 @@ export function SubscriptionFormDetails({
           </Select>
         </Field>
         <Field>
-          <FieldLabel htmlFor="subscription-website">Website</FieldLabel>
+          <FieldLabel htmlFor="subscription-website">
+            {m.subscriptions_website()}
+          </FieldLabel>
           <Input
             id="subscription-website"
             className="h-10 px-3"
@@ -69,12 +72,14 @@ export function SubscriptionFormDetails({
         </Field>
       </div>
       <Field>
-        <FieldLabel htmlFor="subscription-notes">Notes</FieldLabel>
+        <FieldLabel htmlFor="subscription-notes">
+          {m.subscriptions_notes()}
+        </FieldLabel>
         <Textarea
           id="subscription-notes"
           className="min-h-[88px] px-3 py-2"
           maxLength={2000}
-          placeholder="Optional details, owner, or cancellation terms…"
+          placeholder={m.subscriptions_notes_placeholder()}
           value={notes}
           onChange={(event) => onNotesChange(event.target.value)}
         />

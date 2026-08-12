@@ -1,18 +1,20 @@
+import { intlLocale } from "./i18n"
+
 export function formatDate(value: string | Date) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(intlLocale(), {
     dateStyle: "medium",
   }).format(typeof value === "string" ? new Date(value) : value)
 }
 
 export function formatDateOnly(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(intlLocale(), {
     dateStyle: "medium",
     timeZone: "UTC",
   }).format(new Date(`${value}T00:00:00Z`))
 }
 
 export function formatShortDateOnly(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(intlLocale(), {
     month: "short",
     day: "numeric",
     timeZone: "UTC",
@@ -20,7 +22,7 @@ export function formatShortDateOnly(value: string) {
 }
 
 export function formatShortMonth(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(intlLocale(), {
     month: "short",
     timeZone: "UTC",
   }).format(new Date(`${value}-01T00:00:00Z`))
@@ -53,7 +55,7 @@ export function addDateOnlyDays(value: string, amount: number) {
 }
 
 export function formatMonthDateOnly(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(intlLocale(), {
     month: "long",
     timeZone: "UTC",
   }).format(new Date(`${value}T00:00:00Z`))

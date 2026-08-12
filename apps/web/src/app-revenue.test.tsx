@@ -28,7 +28,7 @@ describe("Trackfi revenue application", () => {
     ).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "Open settings" })).toHaveAttribute(
       "href",
-      "/dashboard/settings"
+      "/en/dashboard/settings"
     )
     expect(
       requests.some(({ url }) => url.includes("/api/revenue-sources"))
@@ -86,7 +86,7 @@ describe("Trackfi revenue application", () => {
     expect(screen.getAllByText("One-time").length).toBeGreaterThan(0)
     expect(screen.getAllByText("Primary job").length).toBeGreaterThan(0)
     expect(
-      screen.getByPlaceholderText("Search revenue sources...")
+      screen.getByPlaceholderText("Search revenue sources…")
     ).toBeInTheDocument()
   })
 

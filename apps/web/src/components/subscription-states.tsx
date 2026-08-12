@@ -12,10 +12,11 @@ import {
 } from "@trackfi/ui/components/empty"
 
 import { ModuleHeader } from "./module-layout"
+import { m } from "../lib/i18n"
 
 export function CurrencyRequiredState({
-  title = "Subscriptions",
-  description = "Track recurring services, costs, and renewal dates.",
+  title = m.nav_subscriptions(),
+  description = m.module_subscriptions_description(),
 }: {
   title?: string
   description?: string
@@ -28,15 +29,14 @@ export function CurrencyRequiredState({
           <EmptyMedia variant="icon">
             <SettingsIcon />
           </EmptyMedia>
-          <EmptyTitle>Choose an account currency first</EmptyTitle>
+          <EmptyTitle>{m.subscriptions_choose_currency_title()}</EmptyTitle>
           <EmptyDescription>
-            Your subscriptions will share one currency so totals stay accurate
-            and easy to understand.
+            {m.subscriptions_choose_currency_description()}
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Link to="/dashboard/settings" className={buttonVariants()}>
-            Open settings
+            {m.subscriptions_open_settings()}
           </Link>
         </EmptyContent>
       </Empty>
@@ -59,19 +59,19 @@ export function SubscriptionEmptyState({
         </EmptyMedia>
         <EmptyTitle>
           {filtered
-            ? "No matching subscriptions"
-            : "Add your first subscription"}
+            ? m.subscriptions_no_match_title()
+            : m.subscriptions_empty_title()}
         </EmptyTitle>
         <EmptyDescription>
           {filtered
-            ? "Try changing your search or filters."
-            : "Track a recurring service to see totals and renewal insights."}
+            ? m.subscriptions_no_match_description()
+            : m.subscriptions_empty_description()}
         </EmptyDescription>
       </EmptyHeader>
       {!filtered && (
         <EmptyContent>
           <Button onClick={onAdd}>
-            <PlusIcon /> Add subscription
+            <PlusIcon /> {m.subscriptions_add()}
           </Button>
         </EmptyContent>
       )}

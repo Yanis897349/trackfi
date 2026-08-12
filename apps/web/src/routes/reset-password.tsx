@@ -13,6 +13,7 @@ import { Input } from "@trackfi/ui/components/input"
 
 import { AuthShell, FormMessage } from "../components/auth-shell"
 import { authClient } from "../lib/api"
+import { m } from "../lib/i18n"
 
 export const Route = createFileRoute("/reset-password")({
   validateSearch: z.object({
@@ -30,20 +31,17 @@ function ResetPasswordRoute() {
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const displayedError =
-    error ||
-    (callbackError || !token
-      ? "This reset link is invalid or has expired."
-      : "")
+    error || (callbackError || !token ? m.auth_reset_invalid() : "")
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError("")
     if (!token) {
-      setError("This reset link is invalid or has expired.")
+      setError(m.auth_reset_invalid())
       return
     }
     if (password !== confirmation) {
-      setError("Passwords must match.")
+      setError(m.auth_passwords_match())
       return
     }
 
@@ -54,7 +52,7 @@ function ResetPasswordRoute() {
     })
     setSubmitting(false)
     if (result.error) {
-      setError("This reset link is invalid or has expired.")
+      setError(m.auth_reset_invalid())
       return
     }
     setSubmitted(true)
@@ -62,21 +60,23 @@ function ResetPasswordRoute() {
 
   return (
     <AuthShell
-      title="Choose a new password"
-      description="Use at least eight characters."
+      title={m.auth_reset_title()}
+      description={m.auth_reset_description()}
     >
       {submitted ? (
         <div className="space-y-4 text-center">
-          <FormMessage tone="success">Your password is updated.</FormMessage>
+          <FormMessage tone="success">{m.auth_password_updated()}</FormMessage>
           <Link to="/login" className="text-sm underline underline-offset-4">
-            Sign in
+            {m.auth_sign_in()}
           </Link>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="reset-password">New password</FieldLabel>
+              <FieldLabel htmlFor="reset-password">
+                {m.auth_new_password()}
+              </FieldLabel>
               <Input
                 id="reset-password"
                 type="password"
@@ -90,7 +90,7 @@ function ResetPasswordRoute() {
             </Field>
             <Field>
               <FieldLabel htmlFor="reset-confirmation">
-                Confirm password
+                {m.auth_confirm_password()}
               </FieldLabel>
               <Input
                 id="reset-confirmation"
@@ -105,7 +105,7 @@ function ResetPasswordRoute() {
             </Field>
             {displayedError && <FieldError>{displayedError}</FieldError>}
             <Button type="submit" size="lg" disabled={submitting || !token}>
-              {submitting ? "Updating…" : "Update password"}
+              {submitting ? m.auth_updating() : m.auth_update_password()}
             </Button>
           </FieldGroup>
         </form>

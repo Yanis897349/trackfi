@@ -13,6 +13,7 @@ import { Input } from "@trackfi/ui/components/input"
 import { AuthShell, FormMessage } from "../components/auth-shell"
 import { TurnstileWidget } from "../components/turnstile-widget"
 import { authClient } from "../lib/api"
+import { localizeHref, m } from "../lib/i18n"
 
 export const Route = createFileRoute("/forgot-password")({
   component: ForgotPasswordRoute,
@@ -34,23 +35,29 @@ function ForgotPasswordRoute() {
     event.preventDefault()
     setError("")
     if (!turnstileToken) {
-      setError("Please complete the security check.")
+      setError(m.auth_complete_security_check())
       return
     }
 
     setSubmitting(true)
     try {
       const result = await authClient.requestPasswordReset(
-        { email, redirectTo: `${window.location.origin}/reset-password` },
+        {
+          email,
+          redirectTo: new URL(
+            localizeHref("/reset-password"),
+            window.location.origin
+          ).href,
+        },
         { headers: { "X-Turnstile-Token": turnstileToken } }
       )
       if (result.error) {
-        setError("We couldn’t start the reset. Please try again.")
+        setError(m.auth_reset_request_failed())
         return
       }
       setSubmitted(true)
     } catch {
-      setError("We couldn’t start the reset. Please try again.")
+      setError(m.auth_reset_request_failed())
     } finally {
       setSubmitting(false)
       setTurnstileToken("")
@@ -60,23 +67,21 @@ function ForgotPasswordRoute() {
 
   return (
     <AuthShell
-      title="Reset your password"
-      description="We’ll send a secure reset link if the account exists."
+      title={m.auth_reset_request_title()}
+      description={m.auth_reset_request_description()}
     >
       {submitted ? (
         <div className="space-y-4 text-center">
-          <FormMessage tone="success">
-            Check your inbox for the next step.
-          </FormMessage>
+          <FormMessage tone="success">{m.auth_reset_sent()}</FormMessage>
           <Link to="/login" className="text-sm underline underline-offset-4">
-            Return to sign in
+            {m.auth_return_sign_in()}
           </Link>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="forgot-email">Email address</FieldLabel>
+              <FieldLabel htmlFor="forgot-email">{m.auth_email()}</FieldLabel>
               <Input
                 id="forgot-email"
                 type="email"
@@ -94,13 +99,13 @@ function ForgotPasswordRoute() {
               />
             </div>
             <Button type="submit" size="lg" disabled={submitting}>
-              {submitting ? "Sending…" : "Send reset link"}
+              {submitting ? m.auth_sending() : m.auth_send_reset()}
             </Button>
             <Link
               to="/login"
               className="text-center text-sm text-muted-foreground hover:text-foreground hover:underline"
             >
-              Back to sign in
+              {m.auth_back_sign_in()}
             </Link>
           </FieldGroup>
         </form>

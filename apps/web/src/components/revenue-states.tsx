@@ -14,28 +14,28 @@ import {
 import { Skeleton } from "@trackfi/ui/components/skeleton"
 
 import { ModuleHeader } from "./module-layout"
+import { m } from "../lib/i18n"
 
 export function RevenueCurrencyRequiredState() {
   return (
     <section className="mx-auto w-full max-w-[1120px] space-y-6">
       <ModuleHeader
-        title="Revenue"
-        description="Know what’s coming in, when it lands, and how reliable it is."
+        title={m.nav_revenue()}
+        description={m.module_revenue_description()}
       />
       <Empty className="min-h-80 border">
         <EmptyHeader>
           <EmptyMedia variant="icon">
             <SettingsIcon />
           </EmptyMedia>
-          <EmptyTitle>Choose an account currency first</EmptyTitle>
+          <EmptyTitle>{m.subscriptions_choose_currency_title()}</EmptyTitle>
           <EmptyDescription>
-            Revenue and subscription totals share one currency so your financial
-            overview stays consistent.
+            {m.revenue_choose_currency_description()}
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
           <Link to="/dashboard/settings" className={buttonVariants()}>
-            Open settings
+            {m.subscriptions_open_settings()}
           </Link>
         </EmptyContent>
       </Empty>
@@ -57,20 +57,18 @@ export function RevenueEmptyState({
           <BanknoteIcon />
         </EmptyMedia>
         <EmptyTitle>
-          {filtered
-            ? "No matching revenue sources"
-            : "Add your first revenue source"}
+          {filtered ? m.revenue_no_match_title() : m.revenue_empty_title()}
         </EmptyTitle>
         <EmptyDescription>
           {filtered
-            ? "Try changing your search or filters."
-            : "Add expected income to see monthly forecasts and source insights."}
+            ? m.revenue_no_match_description()
+            : m.revenue_empty_description()}
         </EmptyDescription>
       </EmptyHeader>
       {!filtered && (
         <EmptyContent>
           <Button onClick={onAdd}>
-            <PlusIcon /> Add revenue source
+            <PlusIcon /> {m.revenue_add()}
           </Button>
         </EmptyContent>
       )}
@@ -83,12 +81,12 @@ export function RevenueLoadingState() {
     <section
       className="mx-auto w-full max-w-[1120px] space-y-6"
       role="status"
-      aria-label="Loading revenue"
+      aria-label={m.revenue_loading()}
       aria-busy="true"
     >
       <ModuleHeader
-        title="Revenue"
-        description="Know what’s coming in, when it lands, and how reliable it is."
+        title={m.nav_revenue()}
+        description={m.module_revenue_description()}
         action={<Skeleton className="h-9 w-44" />}
       />
       <section className="space-y-4">

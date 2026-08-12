@@ -16,6 +16,7 @@ import { cn } from "@trackfi/ui/lib/utils"
 
 import { revenueSummaryQueryOptions } from "../lib/revenue"
 import { formatMoney } from "../lib/subscriptions"
+import { m } from "../lib/i18n"
 
 export function RevenueOverviewCard() {
   const query = useQuery(revenueSummaryQueryOptions())
@@ -24,15 +25,15 @@ export function RevenueOverviewCard() {
     <Card className="h-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <BanknoteIcon className="size-4" /> Revenue
+          <BanknoteIcon className="size-4" /> {m.nav_revenue()}
         </CardTitle>
-        <CardDescription>Expected take-home income by source.</CardDescription>
+        <CardDescription>{m.revenue_expected_by_source()}</CardDescription>
         <CardAction>
           <Link
             to="/dashboard/revenue"
             className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
           >
-            Open <ArrowRightIcon />
+            {m.common_open()} <ArrowRightIcon />
           </Link>
         </CardAction>
       </CardHeader>
@@ -41,20 +42,22 @@ export function RevenueOverviewCard() {
           <div
             className="grid grid-cols-2 gap-3"
             role="status"
-            aria-label="Loading revenue overview"
+            aria-label={m.revenue_loading()}
           >
             <Skeleton className="h-14" />
             <Skeleton className="h-14" />
           </div>
         ) : query.isError ? (
           <p className="text-sm text-muted-foreground">
-            Revenue insights are temporarily unavailable.
+            {m.revenue_unavailable()}
           </p>
         ) : !summary?.currency ? (
           <div className="rounded-lg bg-muted/60 p-3">
-            <p className="text-sm font-medium">Choose your currency</p>
+            <p className="text-sm font-medium">
+              {m.subscriptions_choose_currency_title()}
+            </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Set an account currency before adding revenue sources.
+              {m.revenue_choose_currency_description()}
             </p>
             <Link
               to="/dashboard/settings"
@@ -63,20 +66,20 @@ export function RevenueOverviewCard() {
                 "mt-3"
               )}
             >
-              Open settings
+              {m.subscriptions_open_settings()}
             </Link>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <Metric
-              label="Expected monthly"
+              label={m.revenue_expected_monthly()}
               value={formatMoney(
                 summary.monthlyEquivalentMinor,
                 summary.currency
               )}
             />
             <Metric
-              label="Due in 30 days"
+              label={m.revenue_due_30_days()}
               value={formatMoney(summary.upcomingTotalMinor, summary.currency)}
             />
           </div>

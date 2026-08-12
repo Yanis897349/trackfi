@@ -7,22 +7,23 @@ import {
 import { Skeleton } from "@trackfi/ui/components/skeleton"
 
 import { ModuleHeader } from "./module-layout"
+import { m } from "../lib/i18n"
 
 export function SettingsLoadingState() {
   return (
     <section
       className="mx-auto w-full max-w-3xl space-y-6"
       role="status"
-      aria-label="Loading settings"
+      aria-label={m.settings_loading()}
       aria-busy="true"
     >
       <ModuleHeader
-        title="Settings"
-        description="Manage preferences shared by every Trackfi module."
+        title={m.settings_title()}
+        description={m.settings_description()}
       />
       <Card>
         <CardHeader>
-          <CardTitle>Account currency</CardTitle>
+          <CardTitle>{m.settings_account_currency()}</CardTitle>
         </CardHeader>
         <CardContent className="max-w-lg space-y-4">
           <div className="space-y-2">

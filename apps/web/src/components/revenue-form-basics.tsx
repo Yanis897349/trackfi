@@ -11,17 +11,20 @@ import {
 import type { RevenueFormState } from "../hooks/use-revenue-form"
 import { revenueCategoryOptions, type RevenueCategory } from "../lib/revenue"
 import { RevenueConfidenceField } from "./revenue-confidence-field"
+import { m } from "../lib/i18n"
 
 export function RevenueFormBasics({ form }: { form: RevenueFormState }) {
   return (
     <>
       <RevenueConfidenceField form={form} />
       <Field className="gap-2">
-        <FieldLabel htmlFor="revenue-name">Source name</FieldLabel>
+        <FieldLabel htmlFor="revenue-name">
+          {m.revenue_source_name()}
+        </FieldLabel>
         <Input
           id="revenue-name"
           className="h-[42px] px-3"
-          placeholder="e.g. Acme salary or Design clients"
+          placeholder={m.revenue_source_placeholder()}
           value={form.values.name}
           onChange={(event) => form.setValue("name", event.target.value)}
           maxLength={100}
@@ -30,7 +33,7 @@ export function RevenueFormBasics({ form }: { form: RevenueFormState }) {
         />
       </Field>
       <Field className="gap-2">
-        <FieldLabel>Category</FieldLabel>
+        <FieldLabel>{m.subscriptions_category()}</FieldLabel>
         <Select
           items={revenueCategoryOptions}
           value={form.values.category}
@@ -40,7 +43,7 @@ export function RevenueFormBasics({ form }: { form: RevenueFormState }) {
         >
           <SelectTrigger
             className="h-[42px] w-full px-3 data-[size=default]:h-[42px]"
-            aria-label="Category"
+            aria-label={m.subscriptions_category()}
           >
             <SelectValue />
           </SelectTrigger>
