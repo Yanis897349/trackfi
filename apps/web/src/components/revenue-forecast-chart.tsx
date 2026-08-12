@@ -7,6 +7,8 @@ import {
   type ChartConfig,
 } from "@trackfi/ui/components/chart"
 
+import { formatCompactMoney } from "../lib/currency"
+import { formatShortMonth } from "../lib/date"
 import type { RevenueSummary } from "../lib/revenue"
 import { formatMoney } from "../lib/subscriptions"
 
@@ -26,7 +28,7 @@ export function RevenueForecastChart({
 }) {
   const data = forecast.series.map((entry) => ({
     ...entry,
-    label: formatMonth(entry.month),
+    label: formatShortMonth(entry.month),
   }))
 
   return (
@@ -90,27 +92,6 @@ export function RevenueForecastChart({
       </BarChart>
     </ChartContainer>
   )
-}
-
-function formatMonth(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    timeZone: "UTC",
-  }).format(new Date(`${value}-01T00:00:00Z`))
-}
-
-function formatCompactMoney(amountMinor: number, currency: string) {
-  const fractionDigits =
-    new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-    }).resolvedOptions().maximumFractionDigits ?? 2
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency,
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(amountMinor / 10 ** fractionDigits)
 }
 
 function barOpacity(index: number, length: number) {
