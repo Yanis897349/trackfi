@@ -100,13 +100,13 @@ export function RevenueLoadingState() {
           <OutlookCardSkeleton />
         </div>
         <Card className="gap-0 py-0">
-          <CardHeader className="h-12 px-4 py-3">
+          <CardHeader className="h-16 px-4 py-4">
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-3 w-48" />
           </CardHeader>
           <CardContent className="grid gap-2 border-t p-4 lg:grid-cols-3">
             {Array.from({ length: 3 }, (_, index) => (
-              <Skeleton key={index} className="h-12" />
+              <Skeleton key={index} className="h-[72px]" />
             ))}
           </CardContent>
         </Card>

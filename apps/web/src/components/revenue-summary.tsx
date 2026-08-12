@@ -328,61 +328,53 @@ function UpcomingIncomeCard({
 
   return (
     <Card className="gap-0 py-0 shadow-xs">
-      <CardHeader className="flex min-h-12 flex-col items-start justify-between gap-2 px-4 py-3 sm:flex-row sm:items-center">
+      <CardHeader className="flex min-h-16 flex-col items-start justify-between gap-2 px-4 py-4 sm:flex-row sm:items-center">
         <div>
-          <CardTitle className="text-sm font-semibold">
+          <CardTitle className="text-base font-semibold">
             Upcoming income
           </CardTitle>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             Next scheduled and estimated payments
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-          <Clock3Icon className="size-3.5" />
+        <div className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <Clock3Icon className="size-4" />
           {formatMoney(summary.upcomingTotalMinor, currency)} due in 30 days
         </div>
       </CardHeader>
       {upcoming.length ? (
         <>
           <div className="hidden lg:block">
-            <Table className="text-[11px]">
+            <Table className="text-[13px]">
               <TableHeader>
-                <TableRow className="h-[30px] hover:bg-muted">
-                  <TableHead className="h-[30px] pl-4 text-[10px]">
-                    Source
-                  </TableHead>
-                  <TableHead className="h-[30px] w-[150px] text-[10px]">
-                    Expected
-                  </TableHead>
-                  <TableHead className="h-[30px] w-[190px] text-[10px]">
-                    Take-home
-                  </TableHead>
-                  <TableHead className="h-[30px] w-[190px] pr-4 text-[10px]">
-                    Status
-                  </TableHead>
+                <TableRow className="hover:bg-muted">
+                  <TableHead className="pl-4">Source</TableHead>
+                  <TableHead className="w-[170px]">Expected</TableHead>
+                  <TableHead className="w-[210px]">Take-home</TableHead>
+                  <TableHead className="w-[190px] pr-4">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {upcoming.map((item) => (
                   <TableRow
                     key={item.id}
-                    className="h-[39px] hover:bg-muted/30"
+                    className="h-[72px] hover:bg-muted/30"
                   >
-                    <TableCell className="py-1 pl-4">
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-[10px] text-muted-foreground">
+                    <TableCell className="pl-4">
+                      <p className="text-sm font-semibold">{item.name}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
                         {displayLabel(item.category)}
                       </p>
                     </TableCell>
-                    <TableCell className="py-1">
+                    <TableCell>
                       {item.expectedDate
                         ? formatUpcomingDate(item.expectedDate)
                         : "This month"}
                     </TableCell>
-                    <TableCell className="py-1 font-semibold">
+                    <TableCell className="font-semibold">
                       {formatMoney(item.amountMinor, currency)}
                     </TableCell>
-                    <TableCell className="py-1 pr-4">
+                    <TableCell className="pr-4">
                       <IncomeTypeBadge
                         scheduled={item.scheduleType === "scheduled"}
                       />
@@ -396,11 +388,13 @@ function UpcomingIncomeCard({
             {upcoming.map((item) => (
               <div
                 key={item.id}
-                className="flex items-start justify-between gap-3 rounded-lg bg-muted/60 p-3"
+                className="flex items-start justify-between gap-4 rounded-lg bg-muted/60 p-4"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold">{item.name}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="truncate text-base font-semibold">
+                    {item.name}
+                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     {item.expectedDate
                       ? formatDateOnly(item.expectedDate)
                       : "This month"}{" "}
@@ -412,7 +406,7 @@ function UpcomingIncomeCard({
                     />
                   </div>
                 </div>
-                <p className="shrink-0 text-sm font-semibold">
+                <p className="shrink-0 text-base font-semibold">
                   {formatMoney(item.amountMinor, currency)}
                 </p>
               </div>
@@ -432,7 +426,7 @@ function IncomeTypeBadge({ scheduled }: { scheduled: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-medium",
+        "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium",
         scheduled
           ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400"
           : "bg-muted text-muted-foreground"
