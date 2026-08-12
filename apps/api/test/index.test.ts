@@ -20,6 +20,7 @@ import userSettingsMigration from "../migrations/20260811140700_create_user_sett
 import subscriptionsMigration from "../migrations/20260811140800_create_subscriptions.sql?raw"
 import subscriptionSnapshotsMigration from "../migrations/20260811140900_create_subscription_spend_snapshots.sql?raw"
 import revenueSourcesMigration from "../migrations/20260812120000_create_revenue_sources.sql?raw"
+import oneTimeRevenueMigration from "../migrations/20260812130000_add_one_time_revenue_cadence.sql?raw"
 import { createAuth } from "../src/auth"
 import { sendInvitation } from "../src/email"
 import { sha256 } from "../src/security"
@@ -37,6 +38,7 @@ const migrationQueries = [
   subscriptionsMigration,
   subscriptionSnapshotsMigration,
   revenueSourcesMigration,
+  oneTimeRevenueMigration,
 ].flatMap((sql) =>
   sql
     .split(";")
@@ -635,10 +637,63 @@ describe("Trackfi API", () => {
         annualEquivalentMinor: 3_200_000,
         upcomingCount: 3,
         upcomingTotalMinor: 300_000,
+        forecast: {
+          months: 6,
+          totalMinor: 1_600_000,
+          previousMonthMinor: 50_000,
+          series: [
+            { month: "2024-01", amountMinor: 350_000 },
+            { month: "2024-02", amountMinor: 250_000 },
+            { month: "2024-03", amountMinor: 250_000 },
+            { month: "2024-04", amountMinor: 250_000 },
+            { month: "2024-05", amountMinor: 250_000 },
+            { month: "2024-06", amountMinor: 250_000 },
+          ],
+        },
         sourceBreakdown: [
           { name: "Primary job", monthlyEquivalentMinor: 216_667 },
           { name: "Design clients", monthlyEquivalentMinor: 50_000 },
         ],
+        upcomingIncome: [
+          {
+            name: "Primary job",
+            scheduleType: "scheduled",
+            expectedDate: "2024-01-01",
+          },
+          {
+            name: "Design clients",
+            scheduleType: "variable",
+            expectedDate: null,
+          },
+        ],
+      },
+    })
+    expect(
+      (
+        await userApi(
+          "/api/revenue-sources/summary?asOf=2024-01-01&months=5",
+          cookie
+        )
+      ).status
+    ).toBe(400)
+    await expect(
+      (
+        await userApi(
+          "/api/revenue-sources/summary?asOf=2024-01-01&months=3",
+          cookie
+        )
+      ).json()
+    ).resolves.toMatchObject({
+      summary: {
+        forecast: {
+          months: 3,
+          totalMinor: 850_000,
+          series: [
+            { month: "2024-01", amountMinor: 350_000 },
+            { month: "2024-02", amountMinor: 250_000 },
+            { month: "2024-03", amountMinor: 250_000 },
+          ],
+        },
       },
     })
     await expect(
@@ -723,6 +778,98 @@ describe("Trackfi API", () => {
         )
       ).status
     ).toBe(204)
+  })
+
+  it("forecasts one-time revenue exactly once", async () => {
+    const cookie = await createUserSession()
+    await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "EUR" },
+    })
+
+    const created = await userApi("/api/revenue-sources", cookie, {
+      method: "POST",
+      body: revenueBody({
+        name: "Signing bonus",
+        amountMinor: 120_000,
+        cadence: "once",
+        paymentAnchor: "2099-02-10",
+      }),
+    })
+    expect(created.status).toBe(201)
+    await expect(created.json()).resolves.toMatchObject({
+      revenueSource: {
+        cadence: "once",
+        nextPaymentDate: "2099-02-10",
+        annualEquivalentMinor: 120_000,
+        monthlyEquivalentMinor: 10_000,
+      },
+    })
+
+    await expect(
+      (
+        await userApi(
+          "/api/revenue-sources/summary?asOf=2099-01-20&months=3",
+          cookie
+        )
+      ).json()
+    ).resolves.toMatchObject({
+      summary: {
+        activeCount: 1,
+        upcomingCount: 1,
+        upcomingTotalMinor: 120_000,
+        forecast: {
+          totalMinor: 120_000,
+          previousMonthMinor: 0,
+          series: [
+            { month: "2099-01", amountMinor: 0 },
+            { month: "2099-02", amountMinor: 120_000 },
+            { month: "2099-03", amountMinor: 0 },
+          ],
+        },
+        upcomingIncome: [
+          {
+            name: "Signing bonus",
+            cadence: "once",
+            expectedDate: "2099-02-10",
+          },
+        ],
+      },
+    })
+
+    await expect(
+      (
+        await userApi(
+          "/api/revenue-sources?status=active&asOf=2099-03-01",
+          cookie
+        )
+      ).json()
+    ).resolves.toMatchObject({
+      revenueSources: [
+        {
+          name: "Signing bonus",
+          nextPaymentDate: null,
+          annualEquivalentMinor: 0,
+          monthlyEquivalentMinor: 0,
+        },
+      ],
+    })
+    await expect(
+      (
+        await userApi(
+          "/api/revenue-sources/summary?asOf=2099-03-01&months=3",
+          cookie
+        )
+      ).json()
+    ).resolves.toMatchObject({
+      summary: {
+        activeCount: 1,
+        annualEquivalentMinor: 0,
+        sourceBreakdown: [],
+        upcomingIncome: [],
+        forecast: { totalMinor: 0 },
+      },
+    })
   })
 
   it("preserves subscription metadata when archiving and restoring", async () => {

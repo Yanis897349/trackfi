@@ -2,6 +2,7 @@ import { apiFetch } from "./api"
 import { displayLabel } from "./subscriptions"
 
 export const revenueCadences = [
+  "once",
   "weekly",
   "biweekly",
   "monthly",
@@ -21,12 +22,14 @@ export const revenueCategories = [
 ] as const
 export const revenueScheduleTypes = ["scheduled", "variable"] as const
 export const revenueStatuses = ["active", "paused", "archived"] as const
+export const revenueForecastMonths = [3, 6, 12] as const
 
 export type RevenueCadence = (typeof revenueCadences)[number]
 export type RevenueCategory = (typeof revenueCategories)[number]
 export type RevenueScheduleType = (typeof revenueScheduleTypes)[number]
 export type RevenueStatus = (typeof revenueStatuses)[number]
 export type RevenueFilter = RevenueStatus | "current" | "all"
+export type RevenueForecastMonths = (typeof revenueForecastMonths)[number]
 
 export interface RevenueSource {
   id: string
@@ -79,11 +82,30 @@ export interface RevenueSummary {
     amountMinor: number
     paymentDate: string
   }>
+  forecast: {
+    months: RevenueForecastMonths
+    totalMinor: number
+    previousMonthMinor: number
+    series: Array<{
+      month: string
+      amountMinor: number
+    }>
+  }
+  upcomingIncome: Array<{
+    id: string
+    sourceId: string
+    name: string
+    category: RevenueCategory
+    amountMinor: number
+    scheduleType: RevenueScheduleType
+    cadence: RevenueCadence | null
+    expectedDate: string | null
+  }>
 }
 
 export const revenueCadenceOptions = revenueCadences.map((value) => ({
   value,
-  label: displayLabel(value),
+  label: value === "once" ? "Doesn’t repeat" : displayLabel(value),
 }))
 export const revenueCategoryOptions = revenueCategories.map((value) => ({
   value,
@@ -139,23 +161,26 @@ export function revenueSourcesQueryOptions({
   }
 }
 
-export function revenueSummaryQueryOptions() {
+export function revenueSummaryQueryOptions(months: RevenueForecastMonths = 6) {
+  const asOf = localDate()
   return {
-    queryKey: ["revenue-summary", localDate()],
+    queryKey: ["revenue-summary", asOf, months],
     queryFn: () =>
       apiFetch<{ summary: RevenueSummary }>(
-        `/api/revenue-sources/summary?asOf=${localDate()}`
+        `/api/revenue-sources/summary?asOf=${asOf}&months=${months}`
       ),
   }
 }
 
 export function revenueAmountSuffix(source: RevenueSource) {
   if (source.scheduleType === "variable") return "estimated / month"
+  if (source.cadence === "once") return "one time"
   return `/ ${source.cadence === "biweekly" ? "2 weeks" : cadenceUnit(source.cadence!)}`
 }
 
 function cadenceUnit(cadence: RevenueCadence) {
   const units: Record<RevenueCadence, string> = {
+    once: "one time",
     weekly: "week",
     biweekly: "2 weeks",
     monthly: "month",

@@ -10,3 +10,18 @@ export function formatDateOnly(value: string) {
     timeZone: "UTC",
   }).format(new Date(`${value}T00:00:00Z`))
 }
+
+export function formatShortDateOnly(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00Z`))
+}
+
+export function formatShortMonth(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(`${value}-01T00:00:00Z`))
+}

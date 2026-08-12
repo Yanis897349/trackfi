@@ -41,7 +41,7 @@ export function useRevenueForm({
     category: source?.category ?? "salary",
     name: source?.name ?? "",
     notes: source?.notes ?? "",
-    paymentAnchor: source?.nextPaymentDate ?? "",
+    paymentAnchor: source?.nextPaymentDate ?? source?.paymentAnchor ?? "",
     scheduleType: source?.scheduleType ?? "scheduled",
   }))
   const [paymentAnchorChanged, setPaymentAnchorChanged] = useState(false)

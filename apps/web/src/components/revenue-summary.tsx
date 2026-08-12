@@ -1,157 +1,73 @@
-import {
-  BanknoteIcon,
-  CalendarClockIcon,
-  ChartNoAxesColumnIncreasingIcon,
-  CircleDollarSignIcon,
-} from "lucide-react"
+import { CalendarDaysIcon } from "lucide-react"
 
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@trackfi/ui/components/card"
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@trackfi/ui/components/select"
 
-import type { RevenueSummary as Summary } from "../lib/revenue"
-import { formatMoney } from "../lib/subscriptions"
+import {
+  type RevenueForecastMonths,
+  type RevenueSummary as Summary,
+} from "../lib/revenue"
+import { RevenueContributionCard } from "./revenue-contribution-card"
+import { RevenueForecastCard } from "./revenue-forecast-card"
+import { RevenueUpcomingIncomeCard } from "./revenue-upcoming-income-card"
+
+const forecastRangeOptions = [3, 6, 12] as const
 
 export function RevenueSummary({
   summary,
   currency,
+  months,
+  fetching,
+  onMonthsChange,
 }: {
   summary: Summary
   currency: string
+  months: RevenueForecastMonths
+  fetching: boolean
+  onMonthsChange(months: RevenueForecastMonths): void
 }) {
-  const breakdown = sourceMix(summary)
-  const largest = Math.max(
-    ...breakdown.map((source) => source.monthlyEquivalentMinor),
-    1
-  )
   return (
-    <>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Active sources"
-          value={String(summary.activeCount)}
-          context={
-            summary.activeCount === 0
-              ? "No active sources"
-              : summary.pausedCount
-                ? `${summary.pausedCount} paused`
-                : summary.variableCount
-                  ? `${summary.variableCount} variable estimate${summary.variableCount === 1 ? "" : "s"}`
-                  : "Scheduled and earning"
+    <section className="space-y-4" aria-busy={fetching}>
+      <div className="flex justify-end">
+        <Select
+          items={forecastRangeOptions.map((value) => ({
+            value: String(value),
+            label: `Next ${value} months`,
+          }))}
+          value={String(months)}
+          onValueChange={(value) =>
+            value && onMonthsChange(Number(value) as RevenueForecastMonths)
           }
-          icon={BanknoteIcon}
-        />
-        <MetricCard
-          label="Expected monthly"
-          value={formatMoney(summary.monthlyEquivalentMinor, currency)}
-          context="Normalized take-home forecast"
-          icon={CircleDollarSignIcon}
-        />
-        <MetricCard
-          label="Annual forecast"
-          value={formatMoney(summary.annualEquivalentMinor, currency)}
-          context={`Across ${summary.activeCategoryCount} ${summary.activeCategoryCount === 1 ? "category" : "categories"}`}
-          icon={ChartNoAxesColumnIncreasingIcon}
-        />
-        <MetricCard
-          label="Due in 30 days"
-          value={formatMoney(summary.upcomingTotalMinor, currency)}
-          context={`${summary.upcomingCount} scheduled ${summary.upcomingCount === 1 ? "payment" : "payments"}`}
-          icon={CalendarClockIcon}
-        />
+        >
+          <SelectTrigger
+            aria-label="Forecast range"
+            className="h-8 w-full gap-2 bg-card px-2.5 text-xs sm:w-auto"
+            disabled={fetching}
+          >
+            <CalendarDaysIcon className="size-3.5 text-muted-foreground" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="end">
+            {forecastRangeOptions.map((value) => (
+              <SelectItem key={value} value={String(value)}>
+                Next {value} months
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-      <Card className="gap-4 shadow-xs">
-        <CardHeader>
-          <CardTitle>Revenue by source</CardTitle>
-          <p className="text-[13px] text-muted-foreground">
-            Monthly-equivalent contribution from active income sources.
-          </p>
-        </CardHeader>
-        <CardContent>
-          {breakdown.length ? (
-            <div className="space-y-4">
-              {breakdown.map((source) => (
-                <div key={source.sourceId} className="space-y-1.5">
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="truncate font-medium">{source.name}</span>
-                    <span className="shrink-0 text-muted-foreground">
-                      {formatMoney(source.monthlyEquivalentMinor, currency)} /
-                      month
-                    </span>
-                  </div>
-                  <div
-                    className="h-2 overflow-hidden rounded-full bg-muted"
-                    role="meter"
-                    aria-label={`${source.name} monthly revenue`}
-                    aria-valuemin={0}
-                    aria-valuemax={largest}
-                    aria-valuenow={source.monthlyEquivalentMinor}
-                  >
-                    <div
-                      className="h-full rounded-full bg-emerald-600"
-                      style={{
-                        width: `${Math.max(2, (source.monthlyEquivalentMinor / largest) * 100)}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              Add an active revenue source to see your income mix.
-            </p>
-          )}
-        </CardContent>
-      </Card>
-    </>
-  )
-}
 
-function sourceMix(summary: Summary) {
-  if (summary.sourceBreakdown.length <= 5) return summary.sourceBreakdown
-  const top = summary.sourceBreakdown.slice(0, 5)
-  return [
-    ...top,
-    {
-      sourceId: "other",
-      name: "Other",
-      category: "other" as const,
-      monthlyEquivalentMinor: summary.sourceBreakdown
-        .slice(5)
-        .reduce((total, source) => total + source.monthlyEquivalentMinor, 0),
-    },
-  ]
-}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+        <RevenueForecastCard summary={summary} currency={currency} />
+        <RevenueContributionCard summary={summary} currency={currency} />
+      </div>
 
-function MetricCard({
-  label,
-  value,
-  context,
-  icon: Icon,
-}: {
-  label: string
-  value: string
-  context: string
-  icon: typeof CalendarClockIcon
-}) {
-  return (
-    <Card className="h-[126px] shadow-xs">
-      <CardContent className="flex h-full flex-col justify-center gap-2.5 px-5">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-[13px] font-medium text-muted-foreground">
-            {label}
-          </p>
-          <Icon className="size-4 text-muted-foreground" />
-        </div>
-        <p className="text-[26px] leading-none font-normal tracking-[-0.6px]">
-          {value}
-        </p>
-        <p className="text-xs text-muted-foreground">{context}</p>
-      </CardContent>
-    </Card>
+      <RevenueUpcomingIncomeCard summary={summary} currency={currency} />
+    </section>
   )
 }

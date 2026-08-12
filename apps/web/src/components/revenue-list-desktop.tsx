@@ -54,14 +54,22 @@ export function RevenueListDesktop({
             <TableRow key={source.id} className="h-[72px]">
               <TableCell className="pl-4">
                 <div className="flex items-center gap-3">
-                  <RevenueSourceIcon />
+                  <RevenueSourceIcon category={source.category} />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">
                       {source.name}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {formatMoney(source.monthlyEquivalentMinor, currency)} /
-                      month
+                      {source.cadence === "once" ? (
+                        "One-time income"
+                      ) : (
+                        <>
+                          {formatMoney(source.monthlyEquivalentMinor, currency)}{" "}
+                          {source.scheduleType === "variable"
+                            ? "estimated monthly"
+                            : "projected monthly"}
+                        </>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -74,10 +82,12 @@ export function RevenueListDesktop({
               <TableCell>
                 {source.nextPaymentDate
                   ? formatDateOnly(source.nextPaymentDate)
-                  : "Variable estimate"}
+                  : source.scheduleType === "variable"
+                    ? "Variable estimate"
+                    : "No upcoming payment"}
               </TableCell>
               <TableCell>
-                <RevenueStatusBadge status={source.status} />
+                <RevenueStatusBadge source={source} />
               </TableCell>
               <TableCell className="text-right">
                 <RevenueActions source={source} {...actions} />

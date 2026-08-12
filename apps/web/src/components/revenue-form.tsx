@@ -27,15 +27,16 @@ export function RevenueForm({
   const form = useRevenueForm({ currency, source, onSubmit })
 
   return (
-    <form id={revenueFormId} className="px-6 pb-6" onSubmit={form.submit}>
-      <FieldGroup className="gap-[18px]">
+    <form id={revenueFormId} className="px-7 pb-6" onSubmit={form.submit}>
+      <FieldGroup className="gap-5">
         <RevenueFormBasics form={form} />
         <RevenueFormSchedule currency={currency} form={form} />
-        <Field>
-          <FieldLabel htmlFor="revenue-notes">Notes</FieldLabel>
+        <Field className="gap-2">
+          <FieldLabel htmlFor="revenue-notes">Note</FieldLabel>
           <Textarea
             id="revenue-notes"
-            placeholder="Optional details about this income source"
+            className="h-[58px] min-h-[58px] resize-none px-3 py-2.5"
+            placeholder="Optional context about this income source"
             value={form.values.notes}
             onChange={(event) => form.setValue("notes", event.target.value)}
             maxLength={2000}

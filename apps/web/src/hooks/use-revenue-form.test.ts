@@ -57,6 +57,31 @@ describe("useRevenueForm", () => {
 
     expect(submissions[0]?.paymentAnchor).toBe("2024-01-31")
   })
+
+  it("preserves the payment date when editing an expired one-time source", () => {
+    const submissions: RevenueSourceInput[] = []
+    const { result } = renderHook(() =>
+      useRevenueForm({
+        currency: "EUR",
+        source: {
+          ...source,
+          cadence: "once",
+          paymentAnchor: "2024-01-31",
+          nextPaymentDate: null,
+          monthlyEquivalentMinor: 0,
+          annualEquivalentMinor: 0,
+        },
+        onSubmit: (input) => submissions.push(input),
+      })
+    )
+
+    expect(result.current.values.paymentAnchor).toBe("2024-01-31")
+
+    act(() => result.current.submit(submitEvent()))
+
+    expect(submissions).toHaveLength(1)
+    expect(submissions[0]?.paymentAnchor).toBe("2024-01-31")
+  })
 })
 
 function submitEvent() {

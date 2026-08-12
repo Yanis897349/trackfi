@@ -1,3 +1,10 @@
+import {
+  addDateOnlyDays,
+  addDateOnlyMonths,
+  dateOnlyDayDifference,
+  dateOnlyParts,
+} from "./date"
+
 export const subscriptionCadences = [
   "weekly",
   "monthly",
@@ -52,10 +59,10 @@ export function nextOccurrenceDate(
   const elapsedMonths =
     (current.year - anchor.year) * 12 + current.month - anchor.month
   let periods = Math.max(0, Math.floor(elapsedMonths / interval))
-  let candidate = addCalendarMonths(billingAnchor, periods * interval)
+  let candidate = addDateOnlyMonths(billingAnchor, periods * interval)
   while (candidate < asOf) {
     periods += 1
-    candidate = addCalendarMonths(billingAnchor, periods * interval)
+    candidate = addDateOnlyMonths(billingAnchor, periods * interval)
   }
   return candidate
 }
@@ -114,25 +121,3 @@ export function occurrenceDatesInRange(
   }
   return dates
 }
-
-function addCalendarMonths(anchorValue: string, months: number) {
-  const anchor = dateOnlyParts(anchorValue)
-  const absoluteMonth = anchor.year * 12 + anchor.month + months
-  const year = Math.floor(absoluteMonth / 12)
-  const month = absoluteMonth % 12
-  const anchorLastDay = daysInUtcMonth(anchor.year, anchor.month)
-  const targetLastDay = daysInUtcMonth(year, month)
-  const day =
-    anchor.day === anchorLastDay
-      ? targetLastDay
-      : Math.min(anchor.day, targetLastDay)
-  return `${year.toString().padStart(4, "0")}-${(month + 1)
-    .toString()
-    .padStart(2, "0")}-${day.toString().padStart(2, "0")}`
-}
-import {
-  dateOnlyDayDifference,
-  dateOnlyParts,
-  daysInUtcMonth,
-  addDateOnlyDays,
-} from "./date"
