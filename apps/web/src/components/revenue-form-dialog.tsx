@@ -58,10 +58,7 @@ export function RevenueFormDialog({
             />
           )}
         </div>
-        <DialogFooter className="gap-3 px-7 sm:h-[72px] sm:justify-between">
-          <p className="text-xs text-muted-foreground">
-            Amounts should be after tax and fees.
-          </p>
+        <DialogFooter className="gap-3 px-7 sm:h-[72px]">
           <div className="flex w-full gap-2.5 sm:w-auto">
             <Button
               type="button"

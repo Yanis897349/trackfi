@@ -37,9 +37,13 @@ export function RevenueConfidenceField({ form }: { form: RevenueFormState }) {
               key={option.value}
               className={cn(
                 "flex min-h-[72px] cursor-pointer items-center gap-2.5 rounded-lg border-[1.5px] p-3 transition-colors",
-                selected
-                  ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40"
-                  : "border-border bg-background hover:bg-muted/50"
+                !selected && "border-border bg-background hover:bg-muted/50",
+                selected &&
+                  option.value === "scheduled" &&
+                  "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/50",
+                selected &&
+                  option.value === "variable" &&
+                  "border-orange-500 bg-orange-50 dark:bg-orange-950/50"
               )}
             >
               <input
@@ -48,7 +52,13 @@ export function RevenueConfidenceField({ form }: { form: RevenueFormState }) {
                 value={option.value}
                 checked={selected}
                 onChange={() => form.setValue("scheduleType", option.value)}
-                className="size-4 shrink-0 appearance-none rounded-full border-[1.5px] border-muted-foreground/60 bg-background outline-none checked:border-emerald-600 checked:bg-emerald-600 focus-visible:ring-3 focus-visible:ring-emerald-500/30"
+                className={cn(
+                  "size-4 shrink-0 appearance-none rounded-full border-[1.5px] border-muted-foreground/60 bg-background outline-none focus-visible:ring-3",
+                  option.value === "scheduled" &&
+                    "checked:border-emerald-600 checked:bg-emerald-600 focus-visible:ring-emerald-500/30",
+                  option.value === "variable" &&
+                    "checked:border-orange-600 checked:bg-orange-600 focus-visible:ring-orange-500/30"
+                )}
               />
               <span className="min-w-0">
                 <span className="block text-sm font-semibold">

@@ -130,8 +130,9 @@ describe("Trackfi revenue application", () => {
     )
     expect(screen.getByRole("radio", { name: /Confirmed/ })).toBeChecked()
     expect(dialog).toHaveTextContent("Take-home amount")
-    expect(screen.getByRole("textbox", { name: "Currency" })).toHaveTextContent(
-      "EUR"
+    expect(screen.queryByText("Currency")).not.toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent(
+      "Amounts should be after tax and fees."
     )
     expect(
       screen.getByRole("button", { name: "Next expected payment" })
@@ -139,6 +140,9 @@ describe("Trackfi revenue application", () => {
 
     fireEvent.click(screen.getByRole("radio", { name: /Estimate/ }))
     expect(screen.getByRole("radio", { name: /Estimate/ })).toBeChecked()
+    expect(screen.getByText("Estimate").closest("label")).toHaveClass(
+      "bg-orange-50"
+    )
     expect(dialog).toHaveTextContent("Estimated monthly take-home")
     expect(
       screen.queryByRole("button", { name: "Next expected payment" })

@@ -29,7 +29,7 @@ export function RevenueForm({
   return (
     <form id={revenueFormId} className="px-7 pb-6" onSubmit={form.submit}>
       <FieldGroup className="gap-5">
-        <RevenueFormBasics currency={currency} form={form} />
+        <RevenueFormBasics form={form} />
         <RevenueFormSchedule currency={currency} form={form} />
         <Field className="gap-2">
           <FieldLabel htmlFor="revenue-notes">Note</FieldLabel>
