@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "turbo run build",
-    "check": "pnpm format:check && turbo run lint typecheck test build",
+    "check": "pnpm format:check && turbo run lint && turbo run typecheck && turbo run test && turbo run build",
     "db:migrate:local": "pnpm --filter @trackfi/api run db:migrate:local",
     "db:migrate:remote": "pnpm --filter @trackfi/api run db:migrate:remote",
     "deploy:api": "pnpm --filter @trackfi/api run deploy",
