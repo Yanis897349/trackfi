@@ -35,6 +35,7 @@ const titles: Record<string, string> = {
   "/dashboard/feature-flags": "Feature flags",
   "/dashboard/settings": "Settings",
   "/dashboard/subscriptions": "Subscriptions",
+  "/dashboard/revenue": "Revenue",
   "/dashboard/subscriptions/calendar": "Renewal calendar",
 }
 

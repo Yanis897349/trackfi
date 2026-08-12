@@ -11,13 +11,15 @@ import {
 } from "@trackfi/ui/components/popover"
 import { cn } from "@trackfi/ui/lib/utils"
 
-export function SubscriptionDatePicker({
+export function DateOnlyPicker({
   id,
   value,
+  placeholder = "Pick a date",
   onChange,
 }: {
   id: string
   value: string
+  placeholder?: string
   onChange(value: string): void
 }) {
   const [open, setOpen] = useState(false)
@@ -39,7 +41,7 @@ export function SubscriptionDatePicker({
         }
       >
         <span className="flex-1">
-          {selected ? format(selected, "PPP") : "Pick a date"}
+          {selected ? format(selected, "PPP") : placeholder}
         </span>
         <CalendarIcon className="size-4 text-muted-foreground" />
       </PopoverTrigger>

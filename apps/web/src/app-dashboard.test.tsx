@@ -23,6 +23,7 @@ describe("Trackfi dashboard application", () => {
     expect(screen.getByText("Waitlist approvals")).toBeInTheDocument()
     expect(screen.getByText("Feature flags")).toBeInTheDocument()
     expect(screen.getAllByText("Subscriptions").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Revenue").length).toBeGreaterThan(0)
     expect(screen.getByText("Settings")).toBeInTheDocument()
   })
 
@@ -43,6 +44,7 @@ describe("Trackfi dashboard application", () => {
     expect(screen.queryByText("Waitlist approvals")).not.toBeInTheDocument()
     expect(screen.queryByText("Feature flags")).not.toBeInTheDocument()
     expect(screen.getAllByText("Subscriptions").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Revenue").length).toBeGreaterThan(0)
     expect(screen.getByText("Settings")).toBeInTheDocument()
   })
 

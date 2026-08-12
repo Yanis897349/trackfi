@@ -6,6 +6,7 @@ import {
   FieldLabel,
 } from "@trackfi/ui/components/field"
 import { Input } from "@trackfi/ui/components/input"
+import { DateOnlyPicker } from "@trackfi/ui/components/date-only-picker"
 import {
   Select,
   SelectContent,
@@ -21,7 +22,6 @@ import {
   type SubscriptionInput,
 } from "../lib/subscriptions"
 import { useSubscriptionForm } from "../hooks/use-subscription-form"
-import { SubscriptionDatePicker } from "./subscription-date-picker"
 import { SubscriptionFormDetails } from "./subscription-form-details"
 
 export const subscriptionFormId = "subscription-form"
@@ -99,7 +99,7 @@ export function SubscriptionForm({
         </div>
         <Field>
           <FieldLabel htmlFor="subscription-date">Next billing date</FieldLabel>
-          <SubscriptionDatePicker
+          <DateOnlyPicker
             id="subscription-date"
             value={form.values.billingAnchor}
             onChange={(value) => form.setValue("billingAnchor", value)}

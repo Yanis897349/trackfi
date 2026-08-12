@@ -53,16 +53,24 @@ export function registerSettingsRoutes(app: Hono<AppEnv>) {
       existing.currency !== parsed.data.currency &&
       !parsed.data.confirmRelabel
     ) {
-      const subscriptions = await context.env.DB.prepare(
-        "SELECT COUNT(*) AS count FROM subscriptions WHERE user_id = ?"
-      )
-        .bind(user.id)
-        .first<{ count: number }>()
-      if ((subscriptions?.count ?? 0) > 0) {
+      const [subscriptions, revenueSources] = await Promise.all([
+        context.env.DB.prepare(
+          "SELECT COUNT(*) AS count FROM subscriptions WHERE user_id = ?"
+        )
+          .bind(user.id)
+          .first<{ count: number }>(),
+        context.env.DB.prepare(
+          "SELECT COUNT(*) AS count FROM revenue_sources WHERE user_id = ?"
+        )
+          .bind(user.id)
+          .first<{ count: number }>(),
+      ])
+      if ((subscriptions?.count ?? 0) + (revenueSources?.count ?? 0) > 0) {
         return context.json(
           {
             error: "currency_change_requires_confirmation",
-            subscriptionCount: subscriptions!.count,
+            subscriptionCount: subscriptions?.count ?? 0,
+            revenueSourceCount: revenueSources?.count ?? 0,
           },
           409
         )
@@ -89,9 +97,18 @@ export function registerSettingsRoutes(app: Hono<AppEnv>) {
         )
         WHERE user_id = ?`
       ).bind(nextScale / previousScale, user.id)
+      const relabelRevenueSources = context.env.DB.prepare(
+        `UPDATE revenue_sources
+        SET amount_minor = MAX(
+          1,
+          CAST(ROUND(amount_minor * ?) AS INTEGER)
+        )
+        WHERE user_id = ?`
+      ).bind(nextScale / previousScale, user.id)
 
       await context.env.DB.batch([
         relabelSubscriptions,
+        relabelRevenueSources,
         saveSettings,
         subscriptionSpendSnapshotStatement(
           context.env.DB,
