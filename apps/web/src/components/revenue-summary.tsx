@@ -363,9 +363,6 @@ function UpcomingIncomeCard({
                   <TableHead className="h-[30px] w-[190px] text-[10px]">
                     Take-home
                   </TableHead>
-                  <TableHead className="h-[30px] w-[180px] text-[10px]">
-                    Confidence
-                  </TableHead>
                   <TableHead className="h-[30px] w-[190px] pr-4 text-[10px]">
                     Status
                   </TableHead>
@@ -390,11 +387,6 @@ function UpcomingIncomeCard({
                     </TableCell>
                     <TableCell className="py-1 font-semibold">
                       {formatMoney(item.amountMinor, currency)}
-                    </TableCell>
-                    <TableCell className="py-1">
-                      <ConfidenceLabel
-                        scheduled={item.scheduleType === "scheduled"}
-                      />
                     </TableCell>
                     <TableCell className="py-1 pr-4">
                       <IncomeTypeBadge
@@ -421,9 +413,6 @@ function UpcomingIncomeCard({
                     · {displayLabel(item.category)}
                   </p>
                   <div className="mt-2 flex items-center gap-2">
-                    <ConfidenceLabel
-                      scheduled={item.scheduleType === "scheduled"}
-                    />
                     <IncomeTypeBadge
                       scheduled={item.scheduleType === "scheduled"}
                     />
@@ -442,21 +431,6 @@ function UpcomingIncomeCard({
         </CardContent>
       )}
     </Card>
-  )
-}
-
-function ConfidenceLabel({ scheduled }: { scheduled: boolean }) {
-  return (
-    <span
-      className={cn(
-        "text-[11px] font-medium",
-        scheduled
-          ? "text-emerald-700 dark:text-emerald-400"
-          : "text-orange-700 dark:text-orange-400"
-      )}
-    >
-      {scheduled ? "Confirmed" : "Estimate"}
-    </span>
   )
 }
 
