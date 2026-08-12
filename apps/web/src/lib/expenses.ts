@@ -2,15 +2,6 @@ import { apiFetch } from "./api"
 import { localDate } from "./date"
 import { displayLabel } from "./subscriptions"
 
-export const expenseCadences = [
-  "once",
-  "weekly",
-  "biweekly",
-  "monthly",
-  "quarterly",
-  "semiannual",
-  "yearly",
-] as const
 export const expenseCategories = [
   "housing",
   "food",
@@ -20,126 +11,145 @@ export const expenseCategories = [
   "entertainment",
   "shopping",
   "software",
+  "infrastructure",
   "finance",
   "education",
   "travel",
   "other",
 ] as const
-export const expenseScheduleTypes = ["scheduled", "variable"] as const
-export const expenseStatuses = ["active", "paused", "archived"] as const
-export const expenseForecastMonths = [3, 6, 12] as const
+export const expenseStatuses = ["pending", "approved", "declined"] as const
 
-export type ExpenseCadence = (typeof expenseCadences)[number]
 export type ExpenseCategory = (typeof expenseCategories)[number]
-export type ExpenseScheduleType = (typeof expenseScheduleTypes)[number]
 export type ExpenseStatus = (typeof expenseStatuses)[number]
-export type ExpenseFilter = ExpenseStatus | "current" | "all"
-export type ExpenseForecastMonths = (typeof expenseForecastMonths)[number]
+
+export interface ExpenseReceipt {
+  name: string
+  contentType: string
+  size: number
+  url: string
+}
 
 export interface Expense {
   id: string
-  name: string
+  merchant: string
   amountMinor: number
-  scheduleType: ExpenseScheduleType
-  cadence: ExpenseCadence | null
-  expenseAnchor: string | null
-  nextExpenseDate: string | null
+  transactionDate: string
   category: ExpenseCategory
-  notes: string | null
   status: ExpenseStatus
-  monthlyEquivalentMinor: number
-  annualEquivalentMinor: number
+  reimbursable: boolean
+  notes: string | null
+  receipt: ExpenseReceipt | null
   createdAt: string
   updatedAt: string
 }
 
 export interface ExpenseInput {
-  name: string
+  merchant: string
   amountMinor: number
-  scheduleType: ExpenseScheduleType
-  cadence: ExpenseCadence | null
-  expenseAnchor: string | null
+  transactionDate: string
   category: ExpenseCategory
+  status: ExpenseStatus
+  reimbursable: boolean
   notes: string
+  removeReceipt?: boolean
+}
+
+export interface ExpenseSettings {
+  monthlyBudgetMinor: number | null
+  dailyTargetMinor: number | null
+  budgetPeriod: "monthly"
+  resetDay: number
+  rolloverEnabled: boolean
+  approachingThreshold: number
+  limitThreshold: number
+  updatedAt: string | null
 }
 
 export interface ExpenseSummary {
   currency: string | null
-  activeExpenseCount: number
-  activeSubscriptionCount: number
-  pausedExpenseCount: number
-  variableExpenseCount: number
-  forecast: {
-    months: ExpenseForecastMonths
-    totalMinor: number
-    previousMonthMinor: number
-    averageMonthlyMinor: number
-    series: Array<{ month: string; amountMinor: number }>
+  settings: ExpenseSettings
+  period: {
+    start: string
+    end: string
+    elapsedDays: number
+    totalDays: number
+    remainingDays: number
   }
-  categoryBreakdown: Array<{
-    category: ExpenseCategory
-    totalMinor: number
-  }>
-  upcomingScheduledCount: number
-  upcomingScheduledTotalMinor: number
-  upcomingSpending: Array<{
-    id: string
-    sourceId: string
-    origin: "expense" | "subscription"
-    name: string
-    category: ExpenseCategory
-    amountMinor: number
-    scheduleType: ExpenseScheduleType
-    cadence: ExpenseCadence | null
-    expectedDate: string | null
-  }>
+  spentMinor: number
+  dailyPaceMinor: number
+  remainingMinor: number | null
+  forecastMinor: number
+  rolloverMinor: number
+  effectiveBudgetMinor: number | null
+  targetToDateMinor: number | null
+  recommendedDailyMinor: number | null
+  pace: "above" | "below" | "on" | null
+  pendingCount: number
+  missingReceiptCount: number
+  categoryBreakdown: Array<{ category: ExpenseCategory; totalMinor: number }>
 }
 
-export const expenseCadenceOptions = expenseCadences.map((value) => ({
-  value,
-  label: value === "once" ? "Doesn’t repeat" : displayLabel(value),
-}))
 export const expenseCategoryOptions = expenseCategories.map((value) => ({
+  value,
+  label:
+    value === "entertainment" ? "Meals & entertainment" : displayLabel(value),
+}))
+export const expenseStatusOptions = expenseStatuses.map((value) => ({
   value,
   label: displayLabel(value),
 }))
-export const expenseCategoryFilterOptions = [
-  { value: "all" as const, label: "All categories" },
-  ...expenseCategoryOptions,
-]
-export const expenseScheduleOptions = [
-  { value: "all" as const, label: "All expense types" },
-  { value: "scheduled" as const, label: "Scheduled" },
-  { value: "variable" as const, label: "Monthly estimate" },
-]
-export const expenseStatusOptions = (
-  ["active", "paused", "archived", "all"] as const
-).map((value) => ({ value, label: displayLabel(value) }))
+
+export function expenseSummaryQueryOptions() {
+  const asOf = localDate()
+  return {
+    queryKey: ["expense-summary", asOf],
+    queryFn: () =>
+      apiFetch<{ summary: ExpenseSummary }>(
+        `/api/expenses/summary?asOf=${asOf}`
+      ),
+  }
+}
+
+export function expenseSettingsQueryOptions() {
+  return {
+    queryKey: ["expense-settings"],
+    queryFn: () =>
+      apiFetch<{ settings: ExpenseSettings }>("/api/expenses/settings"),
+  }
+}
 
 export function expensesQueryOptions({
-  status = "active",
-  category,
-  scheduleType,
+  from,
+  to,
   query = "",
+  category,
+  status,
+  pending = false,
+  missingReceipt = false,
   page = 1,
-  pageSize = 3,
+  pageSize = 5,
 }: {
-  status?: ExpenseFilter
-  category?: ExpenseCategory
-  scheduleType?: ExpenseScheduleType
+  from?: string
+  to?: string
   query?: string
+  category?: ExpenseCategory
+  status?: ExpenseStatus
+  pending?: boolean
+  missingReceipt?: boolean
   page?: number
   pageSize?: number
-} = {}) {
+}) {
   const params = new URLSearchParams({
-    status,
-    asOf: localDate(),
     page: String(page),
     pageSize: String(pageSize),
   })
-  if (category) params.set("category", category)
-  if (scheduleType) params.set("scheduleType", scheduleType)
+  if (from) params.set("from", from)
+  if (to) params.set("to", to)
   if (query.trim()) params.set("q", query.trim())
+  if (category) params.set("category", category)
+  if (status) params.set("status", status)
+  if (pending) params.set("pending", "true")
+  if (missingReceipt) params.set("missingReceipt", "true")
   const queryString = params.toString()
   return {
     queryKey: ["expenses", queryString],
@@ -153,28 +163,10 @@ export function expensesQueryOptions({
   }
 }
 
-export function expenseSummaryQueryOptions(months: ExpenseForecastMonths = 6) {
-  const asOf = localDate()
-  return {
-    queryKey: ["expense-summary", asOf, months],
-    queryFn: () =>
-      apiFetch<{ summary: ExpenseSummary }>(
-        `/api/expenses/summary?asOf=${asOf}&months=${months}`
-      ),
-  }
-}
-
-export function expenseAmountSuffix(expense: Expense) {
-  if (expense.scheduleType === "variable") return "estimated / month"
-  if (expense.cadence === "once") return "one time"
-  const units: Record<ExpenseCadence, string> = {
-    once: "one time",
-    weekly: "week",
-    biweekly: "2 weeks",
-    monthly: "month",
-    quarterly: "quarter",
-    semiannual: "6 months",
-    yearly: "year",
-  }
-  return `/ ${units[expense.cadence!]}`
+export function expenseRequestBody(input: ExpenseInput, receipt: File | null) {
+  if (!receipt) return JSON.stringify(input)
+  const form = new FormData()
+  form.set("payload", JSON.stringify(input))
+  form.set("receipt", receipt)
+  return form
 }

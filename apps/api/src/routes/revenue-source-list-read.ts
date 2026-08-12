@@ -12,6 +12,7 @@ import {
   revenueFilters,
   revenueScheduleTypes,
 } from "../revenue-validation"
+import { optionalEnum } from "../request-query"
 import type { AppEnv } from "../types"
 
 export function registerRevenueSourceListRoute(app: Hono<AppEnv>) {
@@ -91,11 +92,4 @@ export function registerRevenueSourceListRoute(app: Hono<AppEnv>) {
       total,
     })
   })
-}
-
-function optionalEnum<const Values extends readonly [string, ...string[]]>(
-  value: string | undefined,
-  values: Values
-) {
-  return value ? z.enum(values).safeParse(value) : null
 }

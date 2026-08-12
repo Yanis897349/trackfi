@@ -22,6 +22,7 @@ import subscriptionSnapshotsMigration from "../migrations/20260811140900_create_
 import revenueSourcesMigration from "../migrations/20260812120000_create_revenue_sources.sql?raw"
 import oneTimeRevenueMigration from "../migrations/20260812130000_add_one_time_revenue_cadence.sql?raw"
 import expensesMigration from "../migrations/20260812140000_create_expenses.sql?raw"
+import expenseTransactionsMigration from "../migrations/20260812150000_create_expense_transactions.sql?raw"
 import { createAuth } from "../src/auth"
 import { sendInvitation } from "../src/email"
 import { sha256 } from "../src/security"
@@ -41,6 +42,7 @@ const migrationQueries = [
   revenueSourcesMigration,
   oneTimeRevenueMigration,
   expensesMigration,
+  expenseTransactionsMigration,
 ].flatMap((sql) =>
   sql
     .split(";")
@@ -874,7 +876,7 @@ describe("Trackfi API", () => {
     })
   })
 
-  it("manages expense forecasts with subscription costs and user isolation", async () => {
+  it("manages expense transactions, budgets, receipts, and user isolation", async () => {
     const cookie = await createUserSession()
     expect(
       (
@@ -888,104 +890,98 @@ describe("Trackfi API", () => {
       method: "PATCH",
       body: { currency: "EUR" },
     })
-    await userApi("/api/subscriptions", cookie, {
-      method: "POST",
-      body: subscriptionBody({ billingAnchor: "2024-01-31" }),
-    })
+    const savedExpenseSettings = await userApi(
+      "/api/expenses/settings",
+      cookie,
+      {
+        method: "PATCH",
+        body: {
+          monthlyBudgetMinor: 300_000,
+          dailyTargetMinor: 10_000,
+          budgetPeriod: "monthly",
+          resetDay: 15,
+          rolloverEnabled: true,
+          approachingThreshold: 80,
+          limitThreshold: 100,
+        },
+      }
+    )
+    expect(savedExpenseSettings.status).toBe(200)
     const rent = await userApi("/api/expenses", cookie, {
       method: "POST",
       body: expenseBody(),
     })
     expect(rent.status).toBe(201)
     const rentBody = await rent.json<{
-      expense: { id: string; nextExpenseDate: string; status: string }
+      expense: { id: string; status: string }
     }>()
     expect(rentBody.expense).toMatchObject({
-      status: "active",
-      nextExpenseDate: expect.any(String),
+      status: "approved",
     })
-    await userApi("/api/expenses", cookie, {
-      method: "POST",
-      body: expenseBody({
-        name: "Groceries",
-        amountMinor: 50_000,
-        scheduleType: "variable",
-        cadence: null,
-        expenseAnchor: null,
+    const coffee = await userMultipartApi("/api/expenses", cookie, {
+      payload: expenseBody({
+        merchant: "Coffee",
+        amountMinor: 5_000,
+        transactionDate: "2024-01-20",
         category: "food",
+        status: "pending",
+      }),
+      receipt: new File(["%PDF-1.7\nreceipt"], "receipt.pdf", {
+        type: "application/pdf",
       }),
     })
+    expect(coffee.status).toBe(201)
+    const coffeeBody = await coffee.json<{
+      expense: { id: string; receipt: { name: string } }
+    }>()
+    expect(coffeeBody.expense.receipt.name).toBe("receipt.pdf")
     await userApi("/api/expenses", cookie, {
       method: "POST",
       body: expenseBody({
-        name: "Cinema",
-        amountMinor: 2_000,
-        cadence: "once",
-        expenseAnchor: "2024-02-10",
-        category: "entertainment",
+        merchant: "Declined purchase",
+        amountMinor: 50_000,
+        status: "declined",
       }),
     })
     expect(
       (
         await userApi("/api/expenses", cookie, {
           method: "POST",
-          body: expenseBody({ scheduleType: "variable" }),
+          body: expenseBody({ status: "unknown" }),
         })
       ).status
     ).toBe(400)
 
     await expect(
-      (
-        await userApi("/api/expenses/summary?asOf=2024-01-20&months=3", cookie)
-      ).json()
+      (await userApi("/api/expenses/summary?asOf=2024-01-20", cookie)).json()
     ).resolves.toMatchObject({
       summary: {
         currency: "EUR",
-        activeExpenseCount: 3,
-        activeSubscriptionCount: 1,
-        variableExpenseCount: 1,
-        forecast: {
-          months: 3,
-          totalMinor: 455_000,
-          previousMonthMinor: 50_000,
-          averageMonthlyMinor: 151_667,
-          series: [
-            { month: "2024-01", amountMinor: 151_000 },
-            { month: "2024-02", amountMinor: 153_000 },
-            { month: "2024-03", amountMinor: 151_000 },
-          ],
+        period: {
+          start: "2024-01-15",
+          end: "2024-02-14",
+          elapsedDays: 6,
+          totalDays: 31,
         },
-        categoryBreakdown: [
-          { category: "housing", totalMinor: 300_000 },
-          { category: "food", totalMinor: 150_000 },
-          { category: "software", totalMinor: 3_000 },
-          { category: "entertainment", totalMinor: 2_000 },
-        ],
-        upcomingScheduledCount: 3,
-        upcomingScheduledTotalMinor: 103_000,
-        upcomingSpending: expect.arrayContaining([
-          expect.objectContaining({
-            name: "Design software",
-            origin: "subscription",
-          }),
-          expect.objectContaining({ name: "Groceries", expectedDate: null }),
+        spentMinor: 105_000,
+        pendingCount: 1,
+        missingReceiptCount: 1,
+        categoryBreakdown: expect.arrayContaining([
+          { category: "housing", totalMinor: 100_000 },
+          { category: "food", totalMinor: 5_000 },
         ]),
       },
     })
-    expect(
-      (await userApi("/api/expenses/summary?asOf=2024-01-20&months=5", cookie))
-        .status
-    ).toBe(400)
     await expect(
       (
         await userApi(
-          "/api/expenses?scheduleType=variable&category=food&asOf=2024-01-20",
+          "/api/expenses?status=pending&category=food&missingReceipt=false",
           cookie
         )
       ).json()
     ).resolves.toMatchObject({
       total: 1,
-      expenses: [{ name: "Groceries", expenseAnchor: null }],
+      expenses: [{ merchant: "Coffee", status: "pending" }],
     })
 
     const otherCookie = await createUserSession()
@@ -996,18 +992,42 @@ describe("Trackfi API", () => {
       (
         await userApi(`/api/expenses/${rentBody.expense.id}`, otherCookie, {
           method: "PATCH",
-          body: { status: "archived" },
+          body: { status: "declined" },
         })
       ).status
     ).toBe(404)
+    expect(
+      (
+        await userApi(
+          `/api/expenses/${coffeeBody.expense.id}/receipt`,
+          otherCookie
+        )
+      ).status
+    ).toBe(404)
+    const receipt = await userApi(
+      `/api/expenses/${coffeeBody.expense.id}/receipt`,
+      cookie
+    )
+    expect(receipt.status).toBe(200)
+    expect(receipt.headers.get("content-type")).toContain("application/pdf")
     await expect(
       (
         await userApi(`/api/expenses/${rentBody.expense.id}`, cookie, {
           method: "PATCH",
-          body: { status: "paused" },
+          body: { status: "pending", reimbursable: true },
         })
       ).json()
-    ).resolves.toMatchObject({ expense: { status: "paused" } })
+    ).resolves.toMatchObject({
+      expense: { status: "pending", reimbursable: true },
+    })
+    await expect(
+      (
+        await userApi(`/api/expenses/${coffeeBody.expense.id}`, cookie, {
+          method: "PATCH",
+          body: { removeReceipt: true },
+        })
+      ).json()
+    ).resolves.toMatchObject({ expense: { receipt: null } })
     const conflict = await userApi("/api/settings", cookie, {
       method: "PATCH",
       body: { currency: "JPY" },
@@ -1018,12 +1038,17 @@ describe("Trackfi API", () => {
       body: { currency: "JPY", confirmRelabel: true },
     })
     await expect(
-      (await userApi("/api/expenses?status=all&asOf=2024-01-20", cookie)).json()
+      (await userApi("/api/expenses", cookie)).json()
     ).resolves.toMatchObject({
       expenses: expect.arrayContaining([
-        expect.objectContaining({ name: "Rent", amountMinor: 1000 }),
-        expect.objectContaining({ name: "Groceries", amountMinor: 500 }),
+        expect.objectContaining({ merchant: "Rent", amountMinor: 1000 }),
+        expect.objectContaining({ merchant: "Coffee", amountMinor: 50 }),
       ]),
+    })
+    await expect(
+      (await userApi("/api/expenses/settings", cookie)).json()
+    ).resolves.toMatchObject({
+      settings: { monthlyBudgetMinor: 3000, dailyTargetMinor: 100 },
     })
     expect(
       (
@@ -1453,15 +1478,32 @@ function revenueBody(overrides: Record<string, unknown> = {}) {
 
 function expenseBody(overrides: Record<string, unknown> = {}) {
   return {
-    name: "Rent",
+    merchant: "Rent",
     amountMinor: 100_000,
-    scheduleType: "scheduled",
-    cadence: "monthly",
-    expenseAnchor: "2024-01-01",
+    transactionDate: "2024-01-20",
     category: "housing",
+    status: "approved",
+    reimbursable: false,
     notes: "Apartment",
     ...overrides,
   }
+}
+
+function userMultipartApi(
+  path: string,
+  cookie: string,
+  data: { payload: unknown; receipt?: File }
+) {
+  const form = new FormData()
+  form.set("payload", JSON.stringify(data.payload))
+  if (data.receipt) form.set("receipt", data.receipt)
+  return exports.default.fetch(
+    new Request(`https://trackfi.test${path}`, {
+      method: "POST",
+      headers: { Cookie: cookie, Origin: "http://localhost:5173" },
+      body: form,
+    })
+  )
 }
 
 function adminMutation(path: string, cookie: string) {

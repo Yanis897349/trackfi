@@ -118,9 +118,7 @@ export function spendingForMonth(
     .toString()
     .padStart(2, "0")}`
   return expenses.reduce((total, expense) => {
-    if (expense.scheduleType === "variable") {
-      return total + expense.amountMinor
-    }
+    if (expense.scheduleType === "variable") return total + expense.amountMinor
     return (
       total +
       expenseDatesInRange(

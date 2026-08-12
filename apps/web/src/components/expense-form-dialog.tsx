@@ -1,3 +1,5 @@
+import { PlusIcon } from "lucide-react"
+
 import { Button } from "@trackfi/ui/components/button"
 import {
   Dialog,
@@ -28,7 +30,7 @@ export function ExpenseFormDialog({
   error: string
   onOpenChange(open: boolean): void
   onOpenChangeComplete(open: boolean): void
-  onSubmit(input: ExpenseInput): void
+  onSubmit(input: ExpenseInput, receipt: File | null): void
 }) {
   return (
     <Dialog
@@ -36,14 +38,13 @@ export function ExpenseFormDialog({
       onOpenChange={onOpenChange}
       onOpenChangeComplete={onOpenChangeComplete}
     >
-      <DialogContent className="rounded-xl sm:max-w-[700px] [&>[data-slot=dialog-close]]:top-6 [&>[data-slot=dialog-close]]:right-6">
-        <DialogHeader className="gap-1.5 border-b-0 px-7 pt-[26px] pb-5">
-          <DialogTitle className="text-2xl leading-8 font-bold tracking-tight">
+      <DialogContent className="rounded-[14px] bg-[#fcfcfb] sm:max-w-[744px] [&>[data-slot=dialog-close]]:top-5 [&>[data-slot=dialog-close]]:right-5">
+        <DialogHeader className="gap-1 border-b px-7 py-5">
+          <DialogTitle className="text-lg font-semibold">
             {expense ? "Edit expense" : "Add expense"}
           </DialogTitle>
           <DialogDescription>
-            Add planned spending to your forecast. Subscriptions are included
-            automatically.
+            Record a purchase and keep your spend controls up to date.
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-y-auto">
@@ -57,27 +58,18 @@ export function ExpenseFormDialog({
             />
           )}
         </div>
-        <DialogFooter className="gap-3 px-7 sm:h-[72px]">
-          <div className="flex w-full gap-2.5 sm:w-auto">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              className="flex-1 px-4 sm:flex-none"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              size="lg"
-              className="flex-1 px-4 sm:flex-none"
-              form={expenseFormId}
-              disabled={pending}
-            >
-              {pending ? "Saving…" : expense ? "Save changes" : "Add expense"}
-            </Button>
-          </div>
+        <DialogFooter className="gap-2 px-7 py-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form={expenseFormId} disabled={pending}>
+            {!expense && <PlusIcon />}
+            {pending ? "Saving…" : expense ? "Save changes" : "Add expense"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

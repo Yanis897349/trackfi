@@ -1,0 +1,185 @@
+import { useState, type FormEvent } from "react"
+import { BellIcon } from "lucide-react"
+
+import { DateOnlyPicker } from "@trackfi/ui/components/date-only-picker"
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@trackfi/ui/components/field"
+import { Switch } from "@trackfi/ui/components/switch"
+
+import { currencySymbol } from "../lib/currency"
+import { currentMonthDateOnly } from "../lib/date"
+import type { ExpenseSettings } from "../lib/expenses"
+import {
+  ExpenseMoneyField,
+  ExpensePercentField,
+} from "./expense-settings-fields"
+
+export const expenseSettingsFormId = "expense-settings-form"
+
+export function ExpenseSettingsForm({
+  currency,
+  settings,
+  error,
+  onSave,
+}: {
+  currency: string
+  settings: ExpenseSettings
+  error: string
+  onSave(settings: ExpenseSettings): void
+}) {
+  const fractionDigits =
+    new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+    }).resolvedOptions().maximumFractionDigits ?? 2
+  const divisor = 10 ** fractionDigits
+  const [budget, setBudget] = useState(
+    settings.monthlyBudgetMinor === null
+      ? ""
+      : (settings.monthlyBudgetMinor / divisor).toFixed(fractionDigits)
+  )
+  const [dailyTarget, setDailyTarget] = useState(
+    settings.dailyTargetMinor === null
+      ? ""
+      : (settings.dailyTargetMinor / divisor).toFixed(fractionDigits)
+  )
+  const [resetDay, setResetDay] = useState(settings.resetDay)
+  const [rolloverEnabled, setRolloverEnabled] = useState(
+    settings.rolloverEnabled
+  )
+  const [approachingThreshold, setApproachingThreshold] = useState(
+    String(settings.approachingThreshold)
+  )
+  const [limitThreshold, setLimitThreshold] = useState(
+    String(settings.limitThreshold)
+  )
+  const [validation, setValidation] = useState("")
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const budgetValue = Number(budget)
+    const dailyValue = Number(dailyTarget)
+    const approaching = Number(approachingThreshold)
+    const limit = Number(limitThreshold)
+    if (
+      !Number.isFinite(budgetValue) ||
+      budgetValue <= 0 ||
+      !Number.isFinite(dailyValue) ||
+      dailyValue <= 0 ||
+      !Number.isInteger(approaching) ||
+      !Number.isInteger(limit) ||
+      approaching < 1 ||
+      approaching >= limit ||
+      limit > 200
+    ) {
+      setValidation(
+        "Enter positive budget targets and thresholds where approaching is lower than the limit."
+      )
+      return
+    }
+    setValidation("")
+    onSave({
+      ...settings,
+      monthlyBudgetMinor: Math.round(budgetValue * divisor),
+      dailyTargetMinor: Math.round(dailyValue * divisor),
+      resetDay,
+      rolloverEnabled,
+      approachingThreshold: approaching,
+      limitThreshold: limit,
+    })
+  }
+
+  return (
+    <form id={expenseSettingsFormId} className="space-y-5" onSubmit={submit}>
+      <section className="space-y-3">
+        <div>
+          <h3 className="text-sm font-semibold">Budget & pace</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Define the monthly limit and the daily pace you want to maintain.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ExpenseMoneyField
+            id="monthly-budget"
+            label="Monthly budget"
+            value={budget}
+            symbol={currencySymbol(currency)}
+            step={1 / divisor}
+            onChange={setBudget}
+          />
+          <ExpenseMoneyField
+            id="daily-target"
+            label="Daily spending target"
+            value={dailyTarget}
+            symbol={currencySymbol(currency)}
+            step={1 / divisor}
+            onChange={setDailyTarget}
+          />
+        </div>
+      </section>
+      <section className="space-y-3 border-t pt-4">
+        <div>
+          <h3 className="text-sm font-semibold">Budget period</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Choose when your monthly plan resets.
+          </p>
+        </div>
+        <Field className="gap-1.5">
+          <FieldLabel htmlFor="expense-reset-day">Reset day</FieldLabel>
+          <DateOnlyPicker
+            id="expense-reset-day"
+            value={currentMonthDateOnly(resetDay)}
+            disabled={(date) => date.getDate() > 28}
+            onChange={(value) => setResetDay(Number(value.slice(-2)))}
+          />
+        </Field>
+        <div className="flex items-center justify-between gap-4 border-t pt-4">
+          <div>
+            <p className="text-xs font-medium">Roll over unused budget</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              Carry any remaining amount into the next budget period.
+            </p>
+          </div>
+          <Switch
+            aria-label="Roll over unused budget"
+            checked={rolloverEnabled}
+            className="focus-visible:border-orange-500 focus-visible:ring-orange-500/30 data-checked:bg-[#F4510B]"
+            onCheckedChange={setRolloverEnabled}
+          />
+        </div>
+      </section>
+      <section className="space-y-3 border-t pt-4">
+        <div>
+          <h3 className="text-sm font-semibold">Alert thresholds</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Set the levels that will power future spending notifications.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ExpensePercentField
+            id="approaching-budget"
+            label="Approaching budget"
+            value={approachingThreshold}
+            warning
+            onChange={setApproachingThreshold}
+          />
+          <ExpensePercentField
+            id="budget-limit"
+            label="Budget limit reached"
+            value={limitThreshold}
+            onChange={setLimitThreshold}
+          />
+        </div>
+        <FieldDescription className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-[11px]">
+          <BellIcon className="size-3.5" /> In-app and email delivery will be
+          added with the notification center.
+        </FieldDescription>
+      </section>
+      {(validation || error) && <FieldError>{validation || error}</FieldError>}
+    </form>
+  )
+}

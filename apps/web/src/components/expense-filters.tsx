@@ -1,115 +1,118 @@
-import { SearchIcon } from "lucide-react"
+import {
+  CalendarDaysIcon,
+  CheckCircle2Icon,
+  FileQuestionIcon,
+  SearchIcon,
+} from "lucide-react"
 
 import { Input } from "@trackfi/ui/components/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@trackfi/ui/components/select"
 
+import { expensePeriodOptions } from "../lib/expense-periods"
 import {
-  expenseCategoryFilterOptions,
-  expenseScheduleOptions,
+  expenseCategoryOptions,
   expenseStatusOptions,
   type ExpenseCategory,
-  type ExpenseFilter,
-  type ExpenseScheduleType,
+  type ExpenseStatus,
+  type ExpenseSummary,
 } from "../lib/expenses"
+import {
+  ExpenseFilterSelect,
+  ExpenseQuickFilter,
+} from "./expense-filter-controls"
 
 export function ExpenseFilters({
+  summary,
   search,
+  period,
   category,
-  scheduleType,
   status,
+  pendingOnly,
+  missingReceipt,
   onSearchChange,
+  onPeriodChange,
   onCategoryChange,
-  onScheduleTypeChange,
   onStatusChange,
+  onPendingChange,
+  onMissingReceiptChange,
 }: {
+  summary: ExpenseSummary
   search: string
+  period: string
   category: ExpenseCategory | "all"
-  scheduleType: ExpenseScheduleType | "all"
-  status: ExpenseFilter
+  status: ExpenseStatus | "all"
+  pendingOnly: boolean
+  missingReceipt: boolean
   onSearchChange(value: string): void
+  onPeriodChange(value: string): void
   onCategoryChange(value: ExpenseCategory | "all"): void
-  onScheduleTypeChange(value: ExpenseScheduleType | "all"): void
-  onStatusChange(value: ExpenseFilter): void
+  onStatusChange(value: ExpenseStatus | "all"): void
+  onPendingChange(value: boolean): void
+  onMissingReceiptChange(value: boolean): void
 }) {
+  const periods = expensePeriodOptions(summary)
   return (
-    <div className="flex flex-col gap-3 lg:flex-row">
-      <div className="relative flex-1">
-        <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          className="h-10 pr-3 pl-[38px]"
-          placeholder="Search expenses..."
-          aria-label="Search expenses"
-          value={search}
-          onChange={(event) => onSearchChange(event.target.value)}
-        />
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2 lg:flex-row">
+        <div className="relative min-w-0 flex-1">
+          <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            className="h-10 pl-9"
+            placeholder="Search merchant or description…"
+            aria-label="Search expenses"
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+          />
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <ExpenseFilterSelect
+            icon={CalendarDaysIcon}
+            label="Date filter"
+            value={period}
+            items={periods}
+            onChange={onPeriodChange}
+            className="lg:w-[170px]"
+          />
+          <ExpenseFilterSelect
+            label="Category filter"
+            value={category}
+            items={[
+              { value: "all", label: "All categories" },
+              ...expenseCategoryOptions,
+            ]}
+            onChange={(value) =>
+              onCategoryChange(value as ExpenseCategory | "all")
+            }
+            className="lg:w-[160px]"
+          />
+          <ExpenseFilterSelect
+            label="Status filter"
+            value={status}
+            items={[
+              { value: "all", label: "All statuses" },
+              ...expenseStatusOptions,
+            ]}
+            onChange={(value) => onStatusChange(value as ExpenseStatus | "all")}
+            className="lg:w-[145px]"
+          />
+        </div>
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <FilterSelect
-          label="Category filter"
-          items={expenseCategoryFilterOptions}
-          value={category}
-          onChange={(value) =>
-            onCategoryChange(value as ExpenseCategory | "all")
-          }
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[11px] font-medium text-muted-foreground">
+          Quick filters
+        </span>
+        <ExpenseQuickFilter
+          pressed={pendingOnly}
+          onClick={() => onPendingChange(!pendingOnly)}
+          icon={CheckCircle2Icon}
+          label={`Needs review ${summary.pendingCount}`}
         />
-        <FilterSelect
-          label="Expense type filter"
-          items={expenseScheduleOptions}
-          value={scheduleType}
-          onChange={(value) =>
-            onScheduleTypeChange(value as ExpenseScheduleType | "all")
-          }
-        />
-        <FilterSelect
-          label="Status filter"
-          items={expenseStatusOptions}
-          value={status}
-          className="col-span-2 sm:col-span-1"
-          onChange={(value) => onStatusChange(value as ExpenseFilter)}
+        <ExpenseQuickFilter
+          pressed={missingReceipt}
+          onClick={() => onMissingReceiptChange(!missingReceipt)}
+          icon={FileQuestionIcon}
+          label={`Missing receipt ${summary.missingReceiptCount}`}
         />
       </div>
     </div>
-  )
-}
-
-function FilterSelect({
-  label,
-  items,
-  value,
-  className,
-  onChange,
-}: {
-  label: string
-  items: ReadonlyArray<{ value: string; label: string }>
-  value: string
-  className?: string
-  onChange(value: string): void
-}) {
-  return (
-    <Select
-      items={items}
-      value={value}
-      onValueChange={(next) => next && onChange(next)}
-    >
-      <SelectTrigger
-        className={`h-10 w-full px-3 data-[size=default]:h-10 lg:w-[150px] ${className ?? ""}`}
-        aria-label={label}
-      >
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {items.map((item) => (
-          <SelectItem key={item.value} value={item.value}>
-            {item.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
   )
 }
