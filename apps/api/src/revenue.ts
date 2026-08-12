@@ -1,5 +1,5 @@
 import { nextOccurrenceDate, occurrenceDatesInRange } from "./subscriptions"
-import { dateOnlyParts, daysInUtcMonth } from "./date"
+import { addDateOnlyMonths, daysInUtcMonth } from "./date"
 
 export const revenueCadences = [
   "once",
@@ -122,7 +122,5 @@ function revenueForecastForMonth(
 }
 
 function addCalendarMonths(month: string, offset: number) {
-  const { year, month: monthIndex } = dateOnlyParts(`${month}-01`)
-  const date = new Date(Date.UTC(year, monthIndex + offset, 1))
-  return date.toISOString().slice(0, 7)
+  return addDateOnlyMonths(`${month}-01`, offset).slice(0, 7)
 }

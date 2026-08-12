@@ -35,6 +35,22 @@ export function addDateOnlyDays(value: string, days: number) {
   return formatDateOnly(new Date(parseDateOnly(value) + days * dayMilliseconds))
 }
 
+export function addDateOnlyMonths(value: string, months: number) {
+  const anchor = dateOnlyParts(value)
+  const absoluteMonth = anchor.year * 12 + anchor.month + months
+  const year = Math.floor(absoluteMonth / 12)
+  const month = absoluteMonth % 12
+  const anchorLastDay = daysInUtcMonth(anchor.year, anchor.month)
+  const targetLastDay = daysInUtcMonth(year, month)
+  const day =
+    anchor.day === anchorLastDay
+      ? targetLastDay
+      : Math.min(anchor.day, targetLastDay)
+  return `${year.toString().padStart(4, "0")}-${(month + 1)
+    .toString()
+    .padStart(2, "0")}-${day.toString().padStart(2, "0")}`
+}
+
 export function dateOnlyDayDifference(from: string, to: string) {
   return Math.floor((parseDateOnly(to) - parseDateOnly(from)) / dayMilliseconds)
 }

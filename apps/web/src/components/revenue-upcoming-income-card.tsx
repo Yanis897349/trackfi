@@ -16,7 +16,7 @@ import {
 } from "@trackfi/ui/components/table"
 import { cn } from "@trackfi/ui/lib/utils"
 
-import { formatDateOnly } from "../lib/date"
+import { formatDateOnly, formatShortDateOnly } from "../lib/date"
 import type { RevenueSummary } from "../lib/revenue"
 import { displayLabel, formatMoney } from "../lib/subscriptions"
 
@@ -71,7 +71,7 @@ export function RevenueUpcomingIncomeCard({
                     </TableCell>
                     <TableCell>
                       {item.expectedDate
-                        ? formatUpcomingDate(item.expectedDate)
+                        ? formatShortDateOnly(item.expectedDate)
                         : "This month"}
                     </TableCell>
                     <TableCell className="font-semibold">
@@ -155,12 +155,4 @@ function IncomeTypeBadge({
       {oneTime ? "One-time" : scheduled ? "Scheduled" : "Estimated"}
     </span>
   )
-}
-
-function formatUpcomingDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(`${value}T00:00:00Z`))
 }

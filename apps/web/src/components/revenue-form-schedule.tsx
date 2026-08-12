@@ -14,6 +14,7 @@ import {
 } from "@trackfi/ui/components/select"
 
 import type { RevenueFormState } from "../hooks/use-revenue-form"
+import { currencySymbol } from "../lib/currency"
 import { revenueCadenceOptions, type RevenueCadence } from "../lib/revenue"
 
 export function RevenueFormSchedule({
@@ -96,17 +97,5 @@ function CadenceField({ form }: { form: RevenueFormState }) {
         </SelectContent>
       </Select>
     </Field>
-  )
-}
-
-function currencySymbol(currency: string) {
-  return (
-    new Intl.NumberFormat(undefined, {
-      style: "currency",
-      currency,
-      currencyDisplay: "narrowSymbol",
-    })
-      .formatToParts(0)
-      .find((part) => part.type === "currency")?.value ?? currency
   )
 }
