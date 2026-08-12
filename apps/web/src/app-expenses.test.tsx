@@ -1,21 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
 
 import { App } from "./app"
 import { createTestRouter } from "./router"
-import {
-  expenseFixture,
-  mockApi,
-  sessionFor,
-  subscriptionFixture,
-} from "./test/mock-api"
+import { expenseFixture, mockApi, sessionFor } from "./test/mock-api"
 import "./routes/dashboard.expenses"
-
-vi.mock("./components/expense-forecast-chart", () => ({
-  ExpenseForecastChart: () => (
-    <div role="img" aria-label="Expense forecast chart" />
-  ),
-}))
 
 describe("Trackfi expenses application", () => {
   it("requires currency setup before loading expenses", async () => {
@@ -27,7 +16,6 @@ describe("Trackfi expenses application", () => {
     })
     const { queryClient, router } = createTestRouter("/dashboard/expenses")
     render(<App queryClient={queryClient} router={router} />)
-
     expect(
       await screen.findByText("Choose an account currency first")
     ).toBeInTheDocument()
@@ -36,50 +24,116 @@ describe("Trackfi expenses application", () => {
     )
   })
 
-  it("renders combined forecasts while keeping the list expense-only", async () => {
-    const groceries = {
-      ...expenseFixture(),
-      id: "groceries-id",
-      name: "Groceries",
-      amountMinor: 50000,
-      scheduleType: "variable",
-      cadence: null,
-      expenseAnchor: null,
-      nextExpenseDate: null,
-      category: "food",
-      monthlyEquivalentMinor: 50000,
-      annualEquivalentMinor: 600000,
-    }
+  it("renders spend-control metrics and the transaction ledger", async () => {
     mockApi({
       waitlistMode: true,
       session: sessionFor("user"),
-      expenses: [expenseFixture(), groceries],
-      subscriptions: [subscriptionFixture()],
+      expenses: [
+        expenseFixture(),
+        {
+          ...expenseFixture(),
+          id: "coffee-id",
+          merchant: "Acme Coffee",
+          amountMinor: 1280,
+          category: "food",
+          status: "pending",
+          receipt: {
+            name: "coffee-receipt.pdf",
+            contentType: "application/pdf",
+            size: 1024,
+            url: "/api/expenses/coffee-id/receipt",
+          },
+        },
+      ],
     })
     const { queryClient, router } = createTestRouter("/dashboard/expenses")
     render(<App queryClient={queryClient} router={router} />)
-
     expect(
       await screen.findByRole("heading", { name: "Expenses", level: 2 })
     ).toBeInTheDocument()
-    expect(await screen.findByText("Spending forecast")).toBeInTheDocument()
+    expect(await screen.findByText("Spent this month")).toBeInTheDocument()
+    expect(screen.getByText("Budget pace")).toBeInTheDocument()
+    expect(screen.getByText("Category allocation")).toBeInTheDocument()
+    expect(screen.getByText("Transactions")).toBeInTheDocument()
+    const dateFilter = screen.getByRole("combobox", { name: "Date filter" })
+    expect(dateFilter).toHaveTextContent("August")
+    fireEvent.click(dateFilter)
     expect(
-      await screen.findByRole("img", { name: "Expense forecast chart" })
-    ).toBeInTheDocument()
-    expect(screen.getByText("Category mix")).toBeInTheDocument()
-    expect(screen.getByText("Upcoming spending")).toBeInTheDocument()
-    expect(screen.getAllByText("Design software").length).toBeGreaterThan(0)
+      (await screen.findAllByRole("option")).map((option) => option.textContent)
+    ).toEqual([
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+      "All time",
+    ])
+    fireEvent.keyDown(document, { key: "Escape" })
+    expect((await screen.findAllByText("Rent")).length).toBeGreaterThan(0)
+    expect((await screen.findAllByText("Acme Coffee")).length).toBeGreaterThan(
+      0
+    )
     expect(
-      screen.queryByRole("button", { name: "Actions for Design software" })
-    ).not.toBeInTheDocument()
-    expect(screen.getAllByText("Subscription").length).toBeGreaterThan(0)
-    expect(screen.getAllByText("Rent").length).toBeGreaterThan(0)
+      screen
+        .getAllByRole("link", { name: "Attached" })
+        .some((link) => link.classList.contains("-ml-1.5"))
+    ).toBe(true)
     expect(
-      screen.getByPlaceholderText("Search expenses...")
+      screen.getByPlaceholderText("Search merchant or description…")
     ).toBeInTheDocument()
   })
 
-  it("requests a new forecast when the range changes", async () => {
+  it("opens the canonical manual expense form", async () => {
+    mockApi({ waitlistMode: true, session: sessionFor("user") })
+    const { queryClient, router } = createTestRouter("/dashboard/expenses")
+    render(<App queryClient={queryClient} router={router} />)
+    fireEvent.click(
+      (await screen.findAllByRole("button", { name: "Add expense" }))[0]!
+    )
+    const dialog = await screen.findByRole("dialog", { name: "Add expense" })
+    expect(dialog).toHaveTextContent("Merchant or expense name")
+    expect(dialog).toHaveTextContent("Receipt")
+    expect(screen.getByRole("radio", { name: "Pending" })).toBeChecked()
+    expect(screen.getByRole("radio", { name: "Approved" })).toBeInTheDocument()
+    expect(screen.getByRole("radio", { name: "Declined" })).toBeInTheDocument()
+    expect(
+      screen.getByRole("switch", { name: "Reimbursable expense" })
+    ).toBeInTheDocument()
+  })
+
+  it("opens persisted expense budget settings", async () => {
+    mockApi({ waitlistMode: true, session: sessionFor("user") })
+    const { queryClient, router } = createTestRouter("/dashboard/expenses")
+    render(<App queryClient={queryClient} router={router} />)
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Budget settings" })
+    )
+    const dialog = await screen.findByRole("dialog", {
+      name: "Expense settings",
+    })
+    expect(dialog).toHaveTextContent("Monthly budget")
+    expect(dialog).toHaveTextContent("Daily spending target")
+    expect(dialog).toHaveTextContent("Alert thresholds")
+    expect(dialog).not.toHaveTextContent(
+      "Trackfi uses the selected day of the month for every budget reset."
+    )
+    expect(screen.getByLabelText("Approaching budget")).toHaveClass(
+      "border-orange-300",
+      "bg-orange-50"
+    )
+    expect(
+      screen.getByRole("switch", { name: "Roll over unused budget" })
+    ).toHaveClass("data-checked:bg-[#F4510B]")
+  })
+
+  it("deletes a transaction through row actions", async () => {
     const requests = mockApi({
       waitlistMode: true,
       session: sessionFor("user"),
@@ -87,69 +141,59 @@ describe("Trackfi expenses application", () => {
     })
     const { queryClient, router } = createTestRouter("/dashboard/expenses")
     render(<App queryClient={queryClient} router={router} />)
-
-    const range = await screen.findByRole("combobox", {
-      name: "Forecast range",
-    })
-    fireEvent.click(range)
-    const option = await screen.findByRole("option", { name: "Next 3 months" })
-    fireEvent.pointerDown(option, { pointerType: "mouse" })
-    fireEvent.click(option)
+    fireEvent.click(
+      (await screen.findAllByRole("button", { name: "Actions for Rent" }))[0]!
+    )
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Delete" }))
+    expect(
+      await screen.findByRole("heading", { name: "Delete Rent?" })
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: "Delete permanently" }))
     await waitFor(() =>
-      expect(requests.some(({ url }) => url.includes("months=3"))).toBe(true)
+      expect(
+        requests.some(
+          ({ method, url }) =>
+            method === "DELETE" && url.includes("/api/expenses/expense-id")
+        )
+      ).toBe(true)
     )
   })
 
-  it("returns to the previous page when a status change empties the page", async () => {
-    const expenses = Array.from({ length: 4 }, (_, index) => ({
-      ...expenseFixture(),
-      id: `expense-${index + 1}`,
-      name: `Expense ${index + 1}`,
-    }))
+  it("returns to the first page after editing a later page", async () => {
     mockApi({
       waitlistMode: true,
       session: sessionFor("user"),
-      expenses,
+      expenses: Array.from({ length: 6 }, (_, index) => ({
+        ...expenseFixture(),
+        id: `expense-${index + 1}`,
+        merchant: `Merchant ${index + 1}`,
+      })),
     })
     const { queryClient, router } = createTestRouter("/dashboard/expenses")
     render(<App queryClient={queryClient} router={router} />)
 
-    await screen.findAllByText("Expense 1")
-    fireEvent.click(screen.getAllByRole("button", { name: "Next page" })[0]!)
-    await screen.findAllByText("Expense 4")
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Actions for Expense 4" })[0]!
+      (await screen.findAllByRole("button", { name: "Next page" }))[0]!
     )
-    fireEvent.click(await screen.findByRole("menuitem", { name: "Archive" }))
-
-    await waitFor(() =>
-      expect(screen.queryByText("Expense 4")).not.toBeInTheDocument()
-    )
-    expect((await screen.findAllByText("Expense 1")).length).toBeGreaterThan(0)
-    expect(
-      screen.getAllByRole("button", { name: "Previous page" })[0]
-    ).toBeDisabled()
-  })
-
-  it("switches between scheduled and monthly-estimate fields", async () => {
-    mockApi({ waitlistMode: true, session: sessionFor("user") })
-    const { queryClient, router } = createTestRouter("/dashboard/expenses")
-    render(<App queryClient={queryClient} router={router} />)
+    expect(await screen.findAllByText("Merchant 6")).not.toHaveLength(0)
 
     fireEvent.click(
-      (await screen.findAllByRole("button", { name: "Add expense" }))[0]!
+      (
+        await screen.findAllByRole("button", {
+          name: "Actions for Merchant 6",
+        })
+      )[0]!
     )
-    const dialog = await screen.findByRole("dialog", { name: "Add expense" })
-    expect(screen.getByRole("radio", { name: /Scheduled/ })).toBeChecked()
-    expect(dialog).toHaveTextContent("Expected amount")
+    fireEvent.click(await screen.findByRole("menuitem", { name: "Edit" }))
+    fireEvent.click(await screen.findByRole("radio", { name: "Pending" }))
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }))
+
+    expect(await screen.findAllByText("Merchant 1")).not.toHaveLength(0)
     expect(
-      screen.getByRole("button", { name: "Next expected date" })
-    ).toBeInTheDocument()
-    fireEvent.click(screen.getByRole("radio", { name: /Monthly estimate/ }))
-    expect(dialog).toHaveTextContent("Estimated monthly spend")
-    expect(
-      screen.queryByRole("button", { name: "Next expected date" })
-    ).not.toBeInTheDocument()
+      screen
+        .getAllByRole("button", { name: "Previous page" })
+        .every((button) => button.hasAttribute("disabled"))
+    ).toBe(true)
   })
 
   it("uses a contextual skeleton while expenses load", async () => {

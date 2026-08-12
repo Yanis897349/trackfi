@@ -24,9 +24,10 @@ export function ExpenseDeleteDialog({
     <AlertDialog open={Boolean(expense)} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete {expense?.name}?</AlertDialogTitle>
+          <AlertDialogTitle>Delete {expense?.merchant}?</AlertDialogTitle>
           <AlertDialogDescription>
-            This permanently removes the expense. This action cannot be undone.
+            This permanently removes the transaction and its receipt. This
+            action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

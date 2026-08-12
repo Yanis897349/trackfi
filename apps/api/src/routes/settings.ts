@@ -60,7 +60,7 @@ export function registerSettingsRoutes(app: Hono<AppEnv>) {
           .bind(user.id)
           .first<{ count: number }>(),
         context.env.DB.prepare(
-          "SELECT COUNT(*) AS count FROM expenses WHERE user_id = ?"
+          "SELECT COUNT(*) AS count FROM expense_transactions WHERE user_id = ?"
         )
           .bind(user.id)
           .first<{ count: number }>(),
@@ -117,17 +117,30 @@ export function registerSettingsRoutes(app: Hono<AppEnv>) {
         WHERE user_id = ?`
       ).bind(nextScale / previousScale, user.id)
       const relabelExpenses = context.env.DB.prepare(
-        `UPDATE expenses
+        `UPDATE expense_transactions
         SET amount_minor = MAX(
           1,
           CAST(ROUND(amount_minor * ?) AS INTEGER)
         )
         WHERE user_id = ?`
       ).bind(nextScale / previousScale, user.id)
+      const relabelExpenseSettings = context.env.DB.prepare(
+        `UPDATE expense_settings SET
+          monthly_budget_minor = CASE
+            WHEN monthly_budget_minor IS NULL THEN NULL
+            ELSE MAX(1, CAST(ROUND(monthly_budget_minor * ?) AS INTEGER))
+          END,
+          daily_target_minor = CASE
+            WHEN daily_target_minor IS NULL THEN NULL
+            ELSE MAX(1, CAST(ROUND(daily_target_minor * ?) AS INTEGER))
+          END
+        WHERE user_id = ?`
+      ).bind(nextScale / previousScale, nextScale / previousScale, user.id)
 
       await context.env.DB.batch([
         relabelSubscriptions,
         relabelExpenses,
+        relabelExpenseSettings,
         relabelRevenueSources,
         saveSettings,
         subscriptionSpendSnapshotStatement(

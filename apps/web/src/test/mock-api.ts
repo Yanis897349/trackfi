@@ -41,35 +41,31 @@ export function mockApi({
       else if (url.includes("/api/auth/get-session")) body = session
       else if (url.includes("/api/settings")) {
         body = { settings: { currency, updatedAt: null } }
+      } else if (url.includes("/api/expenses/settings")) {
+        body = {
+          settings: {
+            monthlyBudgetMinor: 500000,
+            dailyTargetMinor: 8000,
+            budgetPeriod: "monthly",
+            resetDay: 1,
+            rolloverEnabled: false,
+            approachingThreshold: 80,
+            limitThreshold: 100,
+            updatedAt: null,
+          },
+        }
       } else if (url.includes("/api/expenses/summary")) {
-        const active = expenseRecords.filter(
-          (expense) => expense.status === "active"
+        const included = expenseRecords.filter(
+          (expense) => expense.status !== "declined"
         )
-        const requestUrl = new URL(url, "https://trackfi.test")
-        const months = Number(requestUrl.searchParams.get("months") ?? "6")
-        const asOf = requestUrl.searchParams.get("asOf") ?? "2026-08-12"
-        const subscriptionMonthly = subscriptions.reduce(
-          (total, subscription) =>
-            total +
-            Number(
-              subscription.monthlyEquivalentMinor ??
-                subscription.amountMinor ??
-                0
-            ),
+        const spentMinor = included.reduce(
+          (total, expense) => total + Number(expense.amountMinor ?? 0),
           0
         )
-        const expenseMonthly = active.reduce(
-          (total, expense) =>
-            total + Number(expense.monthlyEquivalentMinor ?? 0),
-          0
-        )
-        const monthly = subscriptionMonthly + expenseMonthly
         const categoryTotals = new Map<string, number>()
-        for (const item of [...active, ...subscriptions]) {
+        for (const item of included) {
           const category = String(item.category ?? "other")
-          const value =
-            Number(item.monthlyEquivalentMinor ?? item.amountMinor ?? 0) *
-            months
+          const value = Number(item.amountMinor ?? 0)
           categoryTotals.set(
             category,
             (categoryTotals.get(category) ?? 0) + value
@@ -78,24 +74,40 @@ export function mockApi({
         body = {
           summary: {
             currency,
-            activeExpenseCount: active.length,
-            activeSubscriptionCount: subscriptions.length,
-            pausedExpenseCount: expenseRecords.filter(
-              (expense) => expense.status === "paused"
-            ).length,
-            variableExpenseCount: active.filter(
-              (expense) => expense.scheduleType === "variable"
-            ).length,
-            forecast: {
-              months,
-              totalMinor: monthly * months,
-              previousMonthMinor: monthly,
-              averageMonthlyMinor: monthly,
-              series: Array.from({ length: months }, (_, index) => ({
-                month: addMockMonths(asOf.slice(0, 7), index),
-                amountMinor: monthly,
-              })),
+            settings: {
+              monthlyBudgetMinor: 500000,
+              dailyTargetMinor: 8000,
+              budgetPeriod: "monthly",
+              resetDay: 1,
+              rolloverEnabled: false,
+              approachingThreshold: 80,
+              limitThreshold: 100,
+              updatedAt: null,
             },
+            period: {
+              start: "2026-08-01",
+              end: "2026-08-31",
+              elapsedDays: 12,
+              totalDays: 31,
+              remainingDays: 19,
+            },
+            spentMinor,
+            dailyPaceMinor: Math.round(spentMinor / 12),
+            remainingMinor: 500000 - spentMinor,
+            forecastMinor: Math.round((spentMinor / 12) * 31),
+            rolloverMinor: 0,
+            effectiveBudgetMinor: 500000,
+            targetToDateMinor: 193548,
+            recommendedDailyMinor: Math.max(
+              0,
+              Math.round((500000 - spentMinor) / 19)
+            ),
+            pace: spentMinor > 193548 ? "above" : "below",
+            pendingCount: included.filter(
+              (expense) => expense.status === "pending"
+            ).length,
+            missingReceiptCount: included.filter((expense) => !expense.receipt)
+              .length,
             categoryBreakdown: Array.from(
               categoryTotals,
               ([category, totalMinor]) => ({
@@ -103,70 +115,55 @@ export function mockApi({
                 totalMinor,
               })
             ),
-            upcomingScheduledCount: active.length + subscriptions.length,
-            upcomingScheduledTotalMinor: [...active, ...subscriptions].reduce(
-              (total, item) =>
-                total +
-                (item.nextExpenseDate || item.nextRenewalDate
-                  ? Number(item.amountMinor)
-                  : 0),
-              0
-            ),
-            upcomingSpending: [
-              ...active.map((expense) => ({
-                id: `expense:${expense.id}`,
-                sourceId: expense.id,
-                origin: "expense",
-                name: expense.name,
-                category: expense.category,
-                amountMinor: expense.amountMinor,
-                scheduleType: expense.scheduleType,
-                cadence: expense.cadence,
-                expectedDate: expense.nextExpenseDate ?? null,
-              })),
-              ...subscriptions.map((subscription) => ({
-                id: `subscription:${subscription.id}`,
-                sourceId: subscription.id,
-                origin: "subscription",
-                name: subscription.name,
-                category: subscription.category,
-                amountMinor: subscription.amountMinor,
-                scheduleType: "scheduled",
-                cadence: subscription.cadence,
-                expectedDate: subscription.nextRenewalDate,
-              })),
-            ],
           },
         }
       } else if (url.includes("/api/expenses")) {
         const requestUrl = new URL(url, "https://trackfi.test")
-        if (method === "PATCH") {
+        if (method === "DELETE") {
+          const id = requestUrl.pathname.split("/").at(-1)
+          const index = expenseRecords.findIndex((record) => record.id === id)
+          if (index >= 0) expenseRecords.splice(index, 1)
+          body = {}
+          status = 204
+        } else if (method === "PATCH") {
           const id = requestUrl.pathname.split("/").at(-1)
           const expense = expenseRecords.find((record) => record.id === id)
           const update =
             typeof init?.body === "string" ? JSON.parse(init.body) : {}
           if (expense) Object.assign(expense, update)
           body = { expense }
+        } else if (method === "POST") {
+          const input =
+            typeof init?.body === "string" ? JSON.parse(init.body) : {}
+          const expense = {
+            id: `expense-${expenseRecords.length + 1}`,
+            ...input,
+            receipt: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
+          expenseRecords.push(expense)
+          body = { expense }
+          status = 201
         } else {
-          const statusFilter = requestUrl.searchParams.get("status") ?? "active"
+          const statusFilter = requestUrl.searchParams.get("status")
           const category = requestUrl.searchParams.get("category")
-          const scheduleType = requestUrl.searchParams.get("scheduleType")
+          const pending = requestUrl.searchParams.get("pending") === "true"
+          const missingReceipt =
+            requestUrl.searchParams.get("missingReceipt") === "true"
           const query = (requestUrl.searchParams.get("q") ?? "").toLowerCase()
           const page = Number(requestUrl.searchParams.get("page") ?? "1")
           const pageSize = Number(
             requestUrl.searchParams.get("pageSize") ?? "25"
           )
           const filtered = expenseRecords.filter((expense) => {
-            const statusMatches =
-              statusFilter === "all" ||
-              (statusFilter === "current"
-                ? expense.status !== "archived"
-                : expense.status === statusFilter)
             return (
-              statusMatches &&
+              (!statusFilter || expense.status === statusFilter) &&
               (!category || expense.category === category) &&
-              (!scheduleType || expense.scheduleType === scheduleType) &&
-              (!query || String(expense.name).toLowerCase().includes(query))
+              (!pending || expense.status === "pending") &&
+              (!missingReceipt ||
+                (!expense.receipt && expense.status !== "declined")) &&
+              (!query || String(expense.merchant).toLowerCase().includes(query))
             )
           })
           const offset = (page - 1) * pageSize
@@ -400,17 +397,14 @@ export function revenueSourceFixture() {
 export function expenseFixture() {
   return {
     id: "expense-id",
-    name: "Rent",
+    merchant: "Rent",
     amountMinor: 120000,
-    scheduleType: "scheduled",
-    cadence: "monthly",
-    expenseAnchor: "2026-08-15",
-    nextExpenseDate: "2026-08-15",
+    transactionDate: "2026-08-10",
     category: "housing",
     notes: "Apartment",
-    status: "active",
-    monthlyEquivalentMinor: 120000,
-    annualEquivalentMinor: 1440000,
+    status: "approved",
+    reimbursable: false,
+    receipt: null,
     createdAt: "2026-08-11T00:00:00.000Z",
     updatedAt: "2026-08-11T00:00:00.000Z",
   }

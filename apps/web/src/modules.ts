@@ -28,7 +28,7 @@ export const modules: TrackfiModule[] = [
   {
     id: "expenses",
     label: "Expenses",
-    description: "Forecast planned spending, including subscriptions.",
+    description: "Track purchases, receipts, and monthly budget pace.",
     href: "/dashboard/expenses",
     icon: ReceiptTextIcon,
     DashboardCard: ExpenseOverviewCard,

@@ -1,12 +1,4 @@
-import {
-  ArchiveIcon,
-  MoreHorizontalIcon,
-  PauseIcon,
-  PencilIcon,
-  PlayIcon,
-  RotateCcwIcon,
-  Trash2Icon,
-} from "lucide-react"
+import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from "lucide-react"
 
 import { Button } from "@trackfi/ui/components/button"
 import {
@@ -17,49 +9,28 @@ import {
   DropdownMenuTrigger,
 } from "@trackfi/ui/components/dropdown-menu"
 
-import type { Expense, ExpenseStatus } from "../lib/expenses"
+import type { Expense } from "../lib/expenses"
 
 export interface ExpenseListActions {
   onEdit(expense: Expense): void
-  onStatus(expense: Expense, status: ExpenseStatus): void
   onDelete(expense: Expense): void
 }
 
 export function ExpenseActions({
   expense,
   onEdit,
-  onStatus,
   onDelete,
 }: { expense: Expense } & ExpenseListActions) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" size="icon" />}>
         <MoreHorizontalIcon />
-        <span className="sr-only">Actions for {expense.name}</span>
+        <span className="sr-only">Actions for {expense.merchant}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuItem onClick={() => onEdit(expense)}>
           <PencilIcon /> Edit
         </DropdownMenuItem>
-        {expense.status === "active" && (
-          <DropdownMenuItem onClick={() => onStatus(expense, "paused")}>
-            <PauseIcon /> Pause
-          </DropdownMenuItem>
-        )}
-        {expense.status === "paused" && (
-          <DropdownMenuItem onClick={() => onStatus(expense, "active")}>
-            <PlayIcon /> Resume
-          </DropdownMenuItem>
-        )}
-        {expense.status === "archived" ? (
-          <DropdownMenuItem onClick={() => onStatus(expense, "active")}>
-            <RotateCcwIcon /> Restore
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem onClick={() => onStatus(expense, "archived")}>
-            <ArchiveIcon /> Archive
-          </DropdownMenuItem>
-        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           variant="destructive"

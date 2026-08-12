@@ -26,9 +26,7 @@ export function ExpenseOverviewCard() {
         <CardTitle className="flex items-center gap-2">
           <ReceiptTextIcon className="size-4" /> Expenses
         </CardTitle>
-        <CardDescription>
-          Planned spending, including subscriptions.
-        </CardDescription>
+        <CardDescription>Current spending and budget pace.</CardDescription>
         <CardAction>
           <Link
             to="/dashboard/expenses"
@@ -53,36 +51,22 @@ export function ExpenseOverviewCard() {
             Expense insights are temporarily unavailable.
           </p>
         ) : !summary?.currency ? (
-          <div className="rounded-lg bg-muted/60 p-3">
-            <p className="text-sm font-medium">Choose your currency</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Set an account currency before adding planned expenses.
-            </p>
-            <Link
-              to="/dashboard/settings"
-              className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "mt-3"
-              )}
-            >
-              Open settings
-            </Link>
-          </div>
+          <p className="text-sm text-muted-foreground">
+            Choose an account currency to start tracking expenses.
+          </p>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <Metric
-              label="Projected monthly"
-              value={formatMoney(
-                summary.forecast.averageMonthlyMinor,
-                summary.currency
-              )}
+              label="Spent this period"
+              value={formatMoney(summary.spentMinor, summary.currency)}
             />
             <Metric
-              label="Scheduled in 30 days"
-              value={formatMoney(
-                summary.upcomingScheduledTotalMinor,
-                summary.currency
-              )}
+              label="Budget remaining"
+              value={
+                summary.remainingMinor === null
+                  ? "Not set"
+                  : formatMoney(summary.remainingMinor, summary.currency)
+              }
             />
           </div>
         )}

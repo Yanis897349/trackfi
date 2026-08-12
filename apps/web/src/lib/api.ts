@@ -30,13 +30,18 @@ export async function getSession(): Promise<SessionData | null> {
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit) {
+  const headers = new Headers(init?.headers)
+  if (
+    init?.body &&
+    !(init.body instanceof FormData) &&
+    !headers.has("Content-Type")
+  ) {
+    headers.set("Content-Type", "application/json")
+  }
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
+    headers,
   })
 
   const body = (await response.json().catch(() => ({}))) as T & {

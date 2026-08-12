@@ -20,7 +20,7 @@ export function ExpenseCurrencyRequiredState() {
     <section className="mx-auto w-full max-w-[1120px] space-y-6">
       <ModuleHeader
         title="Expenses"
-        description="Plan outgoing costs and understand what’s coming next."
+        description="Understand where money goes and keep spending on track."
       />
       <Empty className="min-h-80 border">
         <EmptyHeader>
@@ -29,8 +29,7 @@ export function ExpenseCurrencyRequiredState() {
           </EmptyMedia>
           <EmptyTitle>Choose an account currency first</EmptyTitle>
           <EmptyDescription>
-            Expenses and subscriptions share one currency so forecasts stay
-            consistent.
+            Expense transactions and budgets use your account currency.
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
@@ -62,7 +61,7 @@ export function ExpenseEmptyState({
         <EmptyDescription>
           {filtered
             ? "Try changing your search or filters."
-            : "Add planned spending to forecast recurring, one-time, and flexible costs."}
+            : "Record a purchase to start tracking your spending and budget pace."}
         </EmptyDescription>
       </EmptyHeader>
       {!filtered && (
@@ -86,7 +85,7 @@ export function ExpenseLoadingState() {
     >
       <ModuleHeader
         title="Expenses"
-        description="Plan outgoing costs and understand what’s coming next."
+        description="Understand where money goes and keep spending on track."
         action={<Skeleton className="h-9 w-36" />}
       />
       <section className="space-y-4">

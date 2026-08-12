@@ -7,23 +7,20 @@ import { useExpenseForm } from "./use-expense-form"
 
 const expense: Expense = {
   id: "expense-id",
-  name: "Rent",
+  merchant: "Rent",
   amountMinor: 120_000,
-  scheduleType: "scheduled",
-  cadence: "monthly",
-  expenseAnchor: "2024-01-31",
-  nextExpenseDate: "2026-08-31",
+  transactionDate: "2026-08-01",
   category: "housing",
+  status: "approved",
+  reimbursable: false,
   notes: null,
-  status: "active",
-  monthlyEquivalentMinor: 120_000,
-  annualEquivalentMinor: 1_440_000,
-  createdAt: "2024-01-01T00:00:00.000Z",
-  updatedAt: "2024-01-01T00:00:00.000Z",
+  receipt: null,
+  createdAt: "2026-08-01T00:00:00.000Z",
+  updatedAt: "2026-08-01T00:00:00.000Z",
 }
 
 describe("useExpenseForm", () => {
-  it("preserves the historical anchor when the schedule is unchanged", () => {
+  it("submits canonical transaction fields", () => {
     const submissions: ExpenseInput[] = []
     const { result } = renderHook(() =>
       useExpenseForm({
@@ -32,55 +29,39 @@ describe("useExpenseForm", () => {
         onSubmit: (input) => submissions.push(input),
       })
     )
-
+    act(() => result.current.setValue("status", "declined"))
     act(() => result.current.submit(submitEvent()))
-
-    expect(submissions[0]?.expenseAnchor).toBe("2024-01-31")
-  })
-
-  it("uses the displayed occurrence when the cadence changes", () => {
-    const submissions: ExpenseInput[] = []
-    const { result } = renderHook(() =>
-      useExpenseForm({
-        currency: "EUR",
-        expense,
-        onSubmit: (input) => submissions.push(input),
-      })
-    )
-
-    act(() => result.current.setValue("cadence", "yearly"))
-    act(() => result.current.submit(submitEvent()))
-
     expect(submissions[0]).toMatchObject({
-      cadence: "yearly",
-      expenseAnchor: "2026-08-31",
+      merchant: "Rent",
+      amountMinor: 120_000,
+      transactionDate: "2026-08-01",
+      status: "declined",
     })
   })
 
-  it("preserves an elapsed one-time expense date", () => {
+  it("marks an existing receipt for removal", () => {
     const submissions: ExpenseInput[] = []
     const { result } = renderHook(() =>
       useExpenseForm({
         currency: "EUR",
         expense: {
           ...expense,
-          cadence: "once",
-          nextExpenseDate: null,
-          monthlyEquivalentMinor: 0,
-          annualEquivalentMinor: 0,
+          receipt: {
+            name: "rent.pdf",
+            contentType: "application/pdf",
+            size: 128,
+            url: "/api/expenses/expense-id/receipt",
+          },
         },
         onSubmit: (input) => submissions.push(input),
       })
     )
-
-    expect(result.current.values.expenseAnchor).toBe("2024-01-31")
+    act(() => result.current.setRemoveReceipt(true))
     act(() => result.current.submit(submitEvent()))
-    expect(submissions[0]?.expenseAnchor).toBe("2024-01-31")
+    expect(submissions[0]?.removeReceipt).toBe(true)
   })
 })
 
 function submitEvent() {
-  return {
-    preventDefault: vi.fn(),
-  } as unknown as FormEvent<HTMLFormElement>
+  return { preventDefault: vi.fn() } as unknown as FormEvent<HTMLFormElement>
 }

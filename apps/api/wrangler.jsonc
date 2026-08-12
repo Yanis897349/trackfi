@@ -27,6 +27,12 @@
       "migrations_dir": "migrations",
     },
   ],
+  "r2_buckets": [
+    {
+      "binding": "EXPENSE_RECEIPTS",
+      "bucket_name": "trackfi-expense-receipts",
+    },
+  ],
   "ratelimits": [
     {
       "name": "WAITLIST_RATE_LIMITER",

@@ -2,6 +2,7 @@ import type { Context } from "hono"
 
 export interface Bindings {
   DB: D1Database
+  EXPENSE_RECEIPTS: R2Bucket
   WAITLIST_RATE_LIMITER: RateLimit
   ADMIN_EMAILS?: string
   APP_ORIGIN?: string

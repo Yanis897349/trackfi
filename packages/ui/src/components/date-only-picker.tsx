@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { format, parseISO } from "date-fns"
 import { CalendarIcon } from "lucide-react"
+import type { Matcher } from "react-day-picker"
 
 import { Button } from "@trackfi/ui/components/button"
 import { Calendar } from "@trackfi/ui/components/calendar"
@@ -16,12 +17,14 @@ export function DateOnlyPicker({
   className,
   value,
   placeholder = "Pick a date",
+  disabled,
   onChange,
 }: {
   id: string
   className?: string
   value: string
   placeholder?: string
+  disabled?: Matcher | Matcher[]
   onChange(value: string): void
 }) {
   const [open, setOpen] = useState(false)
@@ -51,6 +54,7 @@ export function DateOnlyPicker({
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
+          disabled={disabled}
           {...(selected ? { selected, defaultMonth: selected } : {})}
           onSelect={(date) => {
             if (!date) return

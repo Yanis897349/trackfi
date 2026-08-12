@@ -1,7 +1,6 @@
 import { z } from "zod"
 
 import { isDateOnly } from "./date"
-import { expenseCadences } from "./expenses"
 
 export const expenseCategories = [
   "housing",
@@ -12,51 +11,55 @@ export const expenseCategories = [
   "entertainment",
   "shopping",
   "software",
+  "infrastructure",
   "finance",
   "education",
   "travel",
   "other",
 ] as const
-export const expenseScheduleTypes = ["scheduled", "variable"] as const
-export const expenseStatuses = ["active", "paused", "archived"] as const
-export const expenseFilters = ["current", ...expenseStatuses, "all"] as const
+export const expenseStatuses = ["pending", "approved", "declined"] as const
 
 const commonFields = {
-  name: z.string().trim().min(1).max(100),
+  merchant: z.string().trim().min(1).max(100),
   amountMinor: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+  transactionDate: z.string().refine(isDateOnly),
   category: z.enum(expenseCategories),
+  status: z.enum(expenseStatuses),
+  reimbursable: z.boolean(),
   notes: z.string().trim().max(2000).optional().default(""),
 }
 
-export const expenseCreateSchema = z.discriminatedUnion("scheduleType", [
-  z.object({
-    ...commonFields,
-    scheduleType: z.literal("scheduled"),
-    cadence: z.enum(expenseCadences),
-    expenseAnchor: z.string().refine(isDateOnly),
-  }),
-  z.object({
-    ...commonFields,
-    scheduleType: z.literal("variable"),
-    cadence: z.null().optional().default(null),
-    expenseAnchor: z.null().optional().default(null),
-  }),
-])
-
+export const expenseCreateSchema = z.object(commonFields)
 export const expenseUpdateSchema = z
   .object({
-    name: commonFields.name.optional(),
+    merchant: commonFields.merchant.optional(),
     amountMinor: commonFields.amountMinor.optional(),
+    transactionDate: commonFields.transactionDate.optional(),
     category: commonFields.category.optional(),
+    status: commonFields.status.optional(),
+    reimbursable: commonFields.reimbursable.optional(),
     notes: z.string().trim().max(2000).optional(),
-    scheduleType: z.enum(expenseScheduleTypes).optional(),
-    cadence: z.enum(expenseCadences).nullable().optional(),
-    expenseAnchor: z.string().refine(isDateOnly).nullable().optional(),
-    status: z.enum(expenseStatuses).optional(),
+    removeReceipt: z.boolean().optional(),
   })
   .refine((value) => Object.keys(value).length > 0)
+
+export const expenseSettingsSchema = z
+  .object({
+    monthlyBudgetMinor: z.number().int().positive().nullable(),
+    dailyTargetMinor: z.number().int().positive().nullable(),
+    budgetPeriod: z.literal("monthly").default("monthly"),
+    resetDay: z.number().int().min(1).max(28),
+    rolloverEnabled: z.boolean(),
+    approachingThreshold: z.number().int().min(1).max(199),
+    limitThreshold: z.number().int().min(2).max(200),
+  })
+  .refine(
+    (value) => value.approachingThreshold < value.limitThreshold,
+    "Approaching threshold must be lower than the limit threshold."
+  )
 
 export type ExpenseCategory = (typeof expenseCategories)[number]
 export type ExpenseStatus = (typeof expenseStatuses)[number]
 export type ExpenseCreateInput = z.infer<typeof expenseCreateSchema>
 export type ExpenseUpdateInput = z.infer<typeof expenseUpdateSchema>
+export type ExpenseSettingsInput = z.infer<typeof expenseSettingsSchema>
