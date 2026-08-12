@@ -19,9 +19,8 @@ import {
   type RevenueSourceInput,
   type RevenueStatus,
 } from "../lib/revenue"
-import { settingsQueryOptions } from "../lib/settings"
 
-export function useRevenue() {
+export function useRevenue(currency: string) {
   const queryClient = useQueryClient()
   const [status, setStatusState] = useState<RevenueFilter>("active")
   const [category, setCategoryState] = useState<RevenueCategory | "all">("all")
@@ -35,12 +34,9 @@ export function useRevenue() {
   const [editing, setEditing] = useState<RevenueSource | null>(null)
   const [deleting, setDeleting] = useState<RevenueSource | null>(null)
   const [message, setMessage] = useState("")
-  const settings = useQuery(settingsQueryOptions())
-  const currency = settings.data?.settings.currency
   const summary = useQuery({
     ...revenueSummaryQueryOptions(forecastMonths),
     placeholderData: keepPreviousData,
-    enabled: Boolean(currency),
   })
   const list = useQuery({
     ...revenueSourcesQueryOptions({
@@ -51,7 +47,6 @@ export function useRevenue() {
       ...(category === "all" ? {} : { category }),
       ...(scheduleType === "all" ? {} : { scheduleType }),
     }),
-    enabled: Boolean(currency),
   })
 
   async function refresh() {
@@ -132,7 +127,6 @@ export function useRevenue() {
     savePending: saveMutation.isPending,
     scheduleType,
     search,
-    settings,
     status,
     summary,
     currency,
