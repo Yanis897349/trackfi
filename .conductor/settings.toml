@@ -17,3 +17,8 @@ icon = "test-tube"
 [scripts.run.check]
 command = "mise exec -- pnpm check"
 icon = "circle-check"
+
+[scripts.run.disable-waitlist]
+available_in = [ "local" ]
+command = "mise exec -- pnpm db:migrate:local && mise exec -- pnpm --filter @trackfi/api exec wrangler d1 execute DB --local --command \"UPDATE feature_flags SET enabled = 0, updated_at = CURRENT_TIMESTAMP WHERE key = 'waitlist_mode';\""
+icon = "lock-open"
