@@ -6,6 +6,7 @@ export function mockApi({
   invitation,
   session,
   currency = "EUR",
+  expenses = [],
   revenueSources = [],
   subscriptions = [],
   waitlistEntries = false,
@@ -16,12 +17,14 @@ export function mockApi({
   invitation?: { email: string; valid: true } | null
   session: null | { session: { id: string }; user: Record<string, string> }
   currency?: string | null
+  expenses?: Array<Record<string, unknown>>
   revenueSources?: Array<Record<string, unknown>>
   subscriptions?: Array<Record<string, unknown>>
   waitlistEntries?: boolean
   waitlistMode: boolean
 }) {
   const requests: Array<{ method: string; url: string }> = []
+  const expenseRecords = expenses.map((expense) => ({ ...expense }))
   vi.stubGlobal(
     "fetch",
     vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
@@ -38,6 +41,142 @@ export function mockApi({
       else if (url.includes("/api/auth/get-session")) body = session
       else if (url.includes("/api/settings")) {
         body = { settings: { currency, updatedAt: null } }
+      } else if (url.includes("/api/expenses/summary")) {
+        const active = expenseRecords.filter(
+          (expense) => expense.status === "active"
+        )
+        const requestUrl = new URL(url, "https://trackfi.test")
+        const months = Number(requestUrl.searchParams.get("months") ?? "6")
+        const asOf = requestUrl.searchParams.get("asOf") ?? "2026-08-12"
+        const subscriptionMonthly = subscriptions.reduce(
+          (total, subscription) =>
+            total +
+            Number(
+              subscription.monthlyEquivalentMinor ??
+                subscription.amountMinor ??
+                0
+            ),
+          0
+        )
+        const expenseMonthly = active.reduce(
+          (total, expense) =>
+            total + Number(expense.monthlyEquivalentMinor ?? 0),
+          0
+        )
+        const monthly = subscriptionMonthly + expenseMonthly
+        const categoryTotals = new Map<string, number>()
+        for (const item of [...active, ...subscriptions]) {
+          const category = String(item.category ?? "other")
+          const value =
+            Number(item.monthlyEquivalentMinor ?? item.amountMinor ?? 0) *
+            months
+          categoryTotals.set(
+            category,
+            (categoryTotals.get(category) ?? 0) + value
+          )
+        }
+        body = {
+          summary: {
+            currency,
+            activeExpenseCount: active.length,
+            activeSubscriptionCount: subscriptions.length,
+            pausedExpenseCount: expenseRecords.filter(
+              (expense) => expense.status === "paused"
+            ).length,
+            variableExpenseCount: active.filter(
+              (expense) => expense.scheduleType === "variable"
+            ).length,
+            forecast: {
+              months,
+              totalMinor: monthly * months,
+              previousMonthMinor: monthly,
+              averageMonthlyMinor: monthly,
+              series: Array.from({ length: months }, (_, index) => ({
+                month: addMockMonths(asOf.slice(0, 7), index),
+                amountMinor: monthly,
+              })),
+            },
+            categoryBreakdown: Array.from(
+              categoryTotals,
+              ([category, totalMinor]) => ({
+                category,
+                totalMinor,
+              })
+            ),
+            upcomingScheduledCount: active.length + subscriptions.length,
+            upcomingScheduledTotalMinor: [...active, ...subscriptions].reduce(
+              (total, item) =>
+                total +
+                (item.nextExpenseDate || item.nextRenewalDate
+                  ? Number(item.amountMinor)
+                  : 0),
+              0
+            ),
+            upcomingSpending: [
+              ...active.map((expense) => ({
+                id: `expense:${expense.id}`,
+                sourceId: expense.id,
+                origin: "expense",
+                name: expense.name,
+                category: expense.category,
+                amountMinor: expense.amountMinor,
+                scheduleType: expense.scheduleType,
+                cadence: expense.cadence,
+                expectedDate: expense.nextExpenseDate ?? null,
+              })),
+              ...subscriptions.map((subscription) => ({
+                id: `subscription:${subscription.id}`,
+                sourceId: subscription.id,
+                origin: "subscription",
+                name: subscription.name,
+                category: subscription.category,
+                amountMinor: subscription.amountMinor,
+                scheduleType: "scheduled",
+                cadence: subscription.cadence,
+                expectedDate: subscription.nextRenewalDate,
+              })),
+            ],
+          },
+        }
+      } else if (url.includes("/api/expenses")) {
+        const requestUrl = new URL(url, "https://trackfi.test")
+        if (method === "PATCH") {
+          const id = requestUrl.pathname.split("/").at(-1)
+          const expense = expenseRecords.find((record) => record.id === id)
+          const update =
+            typeof init?.body === "string" ? JSON.parse(init.body) : {}
+          if (expense) Object.assign(expense, update)
+          body = { expense }
+        } else {
+          const statusFilter = requestUrl.searchParams.get("status") ?? "active"
+          const category = requestUrl.searchParams.get("category")
+          const scheduleType = requestUrl.searchParams.get("scheduleType")
+          const query = (requestUrl.searchParams.get("q") ?? "").toLowerCase()
+          const page = Number(requestUrl.searchParams.get("page") ?? "1")
+          const pageSize = Number(
+            requestUrl.searchParams.get("pageSize") ?? "25"
+          )
+          const filtered = expenseRecords.filter((expense) => {
+            const statusMatches =
+              statusFilter === "all" ||
+              (statusFilter === "current"
+                ? expense.status !== "archived"
+                : expense.status === statusFilter)
+            return (
+              statusMatches &&
+              (!category || expense.category === category) &&
+              (!scheduleType || expense.scheduleType === scheduleType) &&
+              (!query || String(expense.name).toLowerCase().includes(query))
+            )
+          })
+          const offset = (page - 1) * pageSize
+          body = {
+            expenses: filtered.slice(offset, offset + pageSize),
+            page,
+            pageSize,
+            total: filtered.length,
+          }
+        }
       } else if (url.includes("/api/revenue-sources/summary")) {
         const active = revenueSources.filter(
           (source) => source.status === "active"
@@ -253,6 +392,25 @@ export function revenueSourceFixture() {
     status: "active",
     monthlyEquivalentMinor: 300000,
     annualEquivalentMinor: 3600000,
+    createdAt: "2026-08-11T00:00:00.000Z",
+    updatedAt: "2026-08-11T00:00:00.000Z",
+  }
+}
+
+export function expenseFixture() {
+  return {
+    id: "expense-id",
+    name: "Rent",
+    amountMinor: 120000,
+    scheduleType: "scheduled",
+    cadence: "monthly",
+    expenseAnchor: "2026-08-15",
+    nextExpenseDate: "2026-08-15",
+    category: "housing",
+    notes: "Apartment",
+    status: "active",
+    monthlyEquivalentMinor: 120000,
+    annualEquivalentMinor: 1440000,
     createdAt: "2026-08-11T00:00:00.000Z",
     updatedAt: "2026-08-11T00:00:00.000Z",
   }

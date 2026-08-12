@@ -25,3 +25,9 @@ export function formatShortMonth(value: string) {
     timeZone: "UTC",
   }).format(new Date(`${value}-01T00:00:00Z`))
 }
+
+export function localDate() {
+  const date = new Date()
+  const offset = date.getTimezoneOffset() * 60_000
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10)
+}

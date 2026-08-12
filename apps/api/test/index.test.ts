@@ -21,6 +21,7 @@ import subscriptionsMigration from "../migrations/20260811140800_create_subscrip
 import subscriptionSnapshotsMigration from "../migrations/20260811140900_create_subscription_spend_snapshots.sql?raw"
 import revenueSourcesMigration from "../migrations/20260812120000_create_revenue_sources.sql?raw"
 import oneTimeRevenueMigration from "../migrations/20260812130000_add_one_time_revenue_cadence.sql?raw"
+import expensesMigration from "../migrations/20260812140000_create_expenses.sql?raw"
 import { createAuth } from "../src/auth"
 import { sendInvitation } from "../src/email"
 import { sha256 } from "../src/security"
@@ -39,6 +40,7 @@ const migrationQueries = [
   subscriptionSnapshotsMigration,
   revenueSourcesMigration,
   oneTimeRevenueMigration,
+  expensesMigration,
 ].flatMap((sql) =>
   sql
     .split(";")
@@ -872,6 +874,175 @@ describe("Trackfi API", () => {
     })
   })
 
+  it("manages expense forecasts with subscription costs and user isolation", async () => {
+    const cookie = await createUserSession()
+    expect(
+      (
+        await userApi("/api/expenses", cookie, {
+          method: "POST",
+          body: expenseBody(),
+        })
+      ).status
+    ).toBe(409)
+    await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "EUR" },
+    })
+    await userApi("/api/subscriptions", cookie, {
+      method: "POST",
+      body: subscriptionBody({ billingAnchor: "2024-01-31" }),
+    })
+    const rent = await userApi("/api/expenses", cookie, {
+      method: "POST",
+      body: expenseBody(),
+    })
+    expect(rent.status).toBe(201)
+    const rentBody = await rent.json<{
+      expense: { id: string; nextExpenseDate: string; status: string }
+    }>()
+    expect(rentBody.expense).toMatchObject({
+      status: "active",
+      nextExpenseDate: expect.any(String),
+    })
+    await userApi("/api/expenses", cookie, {
+      method: "POST",
+      body: expenseBody({
+        name: "Groceries",
+        amountMinor: 50_000,
+        scheduleType: "variable",
+        cadence: null,
+        expenseAnchor: null,
+        category: "food",
+      }),
+    })
+    await userApi("/api/expenses", cookie, {
+      method: "POST",
+      body: expenseBody({
+        name: "Cinema",
+        amountMinor: 2_000,
+        cadence: "once",
+        expenseAnchor: "2024-02-10",
+        category: "entertainment",
+      }),
+    })
+    expect(
+      (
+        await userApi("/api/expenses", cookie, {
+          method: "POST",
+          body: expenseBody({ scheduleType: "variable" }),
+        })
+      ).status
+    ).toBe(400)
+
+    await expect(
+      (
+        await userApi("/api/expenses/summary?asOf=2024-01-20&months=3", cookie)
+      ).json()
+    ).resolves.toMatchObject({
+      summary: {
+        currency: "EUR",
+        activeExpenseCount: 3,
+        activeSubscriptionCount: 1,
+        variableExpenseCount: 1,
+        forecast: {
+          months: 3,
+          totalMinor: 455_000,
+          previousMonthMinor: 50_000,
+          averageMonthlyMinor: 151_667,
+          series: [
+            { month: "2024-01", amountMinor: 151_000 },
+            { month: "2024-02", amountMinor: 153_000 },
+            { month: "2024-03", amountMinor: 151_000 },
+          ],
+        },
+        categoryBreakdown: [
+          { category: "housing", totalMinor: 300_000 },
+          { category: "food", totalMinor: 150_000 },
+          { category: "software", totalMinor: 3_000 },
+          { category: "entertainment", totalMinor: 2_000 },
+        ],
+        upcomingScheduledCount: 3,
+        upcomingScheduledTotalMinor: 103_000,
+        upcomingSpending: expect.arrayContaining([
+          expect.objectContaining({
+            name: "Design software",
+            origin: "subscription",
+          }),
+          expect.objectContaining({ name: "Groceries", expectedDate: null }),
+        ]),
+      },
+    })
+    expect(
+      (await userApi("/api/expenses/summary?asOf=2024-01-20&months=5", cookie))
+        .status
+    ).toBe(400)
+    await expect(
+      (
+        await userApi(
+          "/api/expenses?scheduleType=variable&category=food&asOf=2024-01-20",
+          cookie
+        )
+      ).json()
+    ).resolves.toMatchObject({
+      total: 1,
+      expenses: [{ name: "Groceries", expenseAnchor: null }],
+    })
+
+    const otherCookie = await createUserSession()
+    await expect(
+      (await userApi("/api/expenses", otherCookie)).json()
+    ).resolves.toMatchObject({ total: 0, expenses: [] })
+    expect(
+      (
+        await userApi(`/api/expenses/${rentBody.expense.id}`, otherCookie, {
+          method: "PATCH",
+          body: { status: "archived" },
+        })
+      ).status
+    ).toBe(404)
+    await expect(
+      (
+        await userApi(`/api/expenses/${rentBody.expense.id}`, cookie, {
+          method: "PATCH",
+          body: { status: "paused" },
+        })
+      ).json()
+    ).resolves.toMatchObject({ expense: { status: "paused" } })
+    const conflict = await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "JPY" },
+    })
+    await expect(conflict.json()).resolves.toMatchObject({ expenseCount: 3 })
+    await userApi("/api/settings", cookie, {
+      method: "PATCH",
+      body: { currency: "JPY", confirmRelabel: true },
+    })
+    await expect(
+      (await userApi("/api/expenses?status=all&asOf=2024-01-20", cookie)).json()
+    ).resolves.toMatchObject({
+      expenses: expect.arrayContaining([
+        expect.objectContaining({ name: "Rent", amountMinor: 1000 }),
+        expect.objectContaining({ name: "Groceries", amountMinor: 500 }),
+      ]),
+    })
+    expect(
+      (
+        await userApi(`/api/expenses/${rentBody.expense.id}`, cookie, {
+          method: "DELETE",
+        })
+      ).status
+    ).toBe(400)
+    expect(
+      (
+        await userApi(
+          `/api/expenses/${rentBody.expense.id}?confirm=true`,
+          cookie,
+          { method: "DELETE" }
+        )
+      ).status
+    ).toBe(204)
+  })
+
   it("preserves subscription metadata when archiving and restoring", async () => {
     const cookie = await createUserSession()
     await userApi("/api/settings", cookie, {
@@ -1276,6 +1447,19 @@ function revenueBody(overrides: Record<string, unknown> = {}) {
     paymentAnchor: "2024-01-01",
     category: "salary",
     notes: "Net pay",
+    ...overrides,
+  }
+}
+
+function expenseBody(overrides: Record<string, unknown> = {}) {
+  return {
+    name: "Rent",
+    amountMinor: 100_000,
+    scheduleType: "scheduled",
+    cadence: "monthly",
+    expenseAnchor: "2024-01-01",
+    category: "housing",
+    notes: "Apartment",
     ...overrides,
   }
 }

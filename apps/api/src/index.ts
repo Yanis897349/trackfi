@@ -5,6 +5,7 @@ import { getAppOrigin } from "./config"
 import { registerAdminFeatureFlagRoutes } from "./routes/admin-feature-flags"
 import { registerAdminWaitlistRoutes } from "./routes/admin-waitlist"
 import { registerAuthRoutes } from "./routes/auth"
+import { registerExpenseRoutes } from "./routes/expenses"
 import { registerPublicRoutes } from "./routes/public"
 import { registerRevenueSourceRoutes } from "./routes/revenue-sources"
 import { registerSettingsRoutes } from "./routes/settings"
@@ -31,6 +32,7 @@ registerAdminWaitlistRoutes(app)
 registerAdminFeatureFlagRoutes(app)
 registerSettingsRoutes(app)
 registerSubscriptionRoutes(app)
+registerExpenseRoutes(app)
 registerRevenueSourceRoutes(app)
 
 app.notFound((context) => context.json({ error: "not_found" }, 404))

@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardExpensesRouteImport } from './routes/dashboard.expenses'
 import { Route as DashboardFeatureFlagsRouteImport } from './routes/dashboard.feature-flags'
 import { Route as DashboardRevenueRouteImport } from './routes/dashboard.revenue'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
@@ -64,6 +65,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
+const DashboardExpensesRoute = DashboardExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => DashboardRoute,
+} as any)
 const DashboardFeatureFlagsRoute = DashboardFeatureFlagsRouteImport.update({
   id: '/feature-flags',
   path: '/feature-flags',
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/dashboard/expenses': typeof DashboardExpensesRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
   '/dashboard/revenue': typeof DashboardRevenueRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/dashboard/expenses': typeof DashboardExpensesRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
   '/dashboard/revenue': typeof DashboardRevenueRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/dashboard/expenses': typeof DashboardExpensesRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
   '/dashboard/revenue': typeof DashboardRevenueRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/dashboard/expenses'
     | '/dashboard/feature-flags'
     | '/dashboard/revenue'
     | '/dashboard/settings'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/dashboard/expenses'
     | '/dashboard/feature-flags'
     | '/dashboard/revenue'
     | '/dashboard/settings'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/dashboard/expenses'
     | '/dashboard/feature-flags'
     | '/dashboard/revenue'
     | '/dashboard/settings'
@@ -262,6 +274,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/expenses': {
+      id: '/dashboard/expenses'
+      path: '/expenses'
+      fullPath: '/dashboard/expenses'
+      preLoaderRoute: typeof DashboardExpensesRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/feature-flags': {
       id: '/dashboard/feature-flags'
       path: '/feature-flags'
@@ -308,6 +327,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardExpensesRoute: typeof DashboardExpensesRoute
   DashboardFeatureFlagsRoute: typeof DashboardFeatureFlagsRoute
   DashboardRevenueRoute: typeof DashboardRevenueRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
@@ -318,6 +338,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardExpensesRoute: DashboardExpensesRoute,
   DashboardFeatureFlagsRoute: DashboardFeatureFlagsRoute,
   DashboardRevenueRoute: DashboardRevenueRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,

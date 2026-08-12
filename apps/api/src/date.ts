@@ -51,6 +51,10 @@ export function addDateOnlyMonths(value: string, months: number) {
     .padStart(2, "0")}-${day.toString().padStart(2, "0")}`
 }
 
+export function addCalendarMonths(value: string, months: number) {
+  return addDateOnlyMonths(`${value}-01`, months).slice(0, 7)
+}
+
 export function dateOnlyDayDifference(from: string, to: string) {
   return Math.floor((parseDateOnly(to) - parseDateOnly(from)) / dayMilliseconds)
 }

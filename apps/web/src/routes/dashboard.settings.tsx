@@ -73,6 +73,8 @@ function SettingsRoute() {
         queryClient.invalidateQueries({ queryKey: ["settings"] }),
         queryClient.invalidateQueries({ queryKey: ["subscription-summary"] }),
         queryClient.invalidateQueries({ queryKey: ["subscriptions"] }),
+        queryClient.invalidateQueries({ queryKey: ["expense-summary"] }),
+        queryClient.invalidateQueries({ queryKey: ["expenses"] }),
         queryClient.invalidateQueries({ queryKey: ["revenue-summary"] }),
         queryClient.invalidateQueries({ queryKey: ["revenue-sources"] }),
       ])
@@ -125,8 +127,8 @@ function SettingsRoute() {
               </SelectContent>
             </Select>
             <FieldDescription>
-              Subscription and revenue totals use this currency. Changing it
-              relabels existing amounts without converting them.
+              Subscription, expense, and revenue totals use this currency.
+              Changing it relabels existing amounts without converting them.
             </FieldDescription>
             {message && (
               <FieldError

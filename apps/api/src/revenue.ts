@@ -1,5 +1,5 @@
 import { nextOccurrenceDate, occurrenceDatesInRange } from "./subscriptions"
-import { addDateOnlyMonths, daysInUtcMonth } from "./date"
+import { addCalendarMonths, daysInUtcMonth } from "./date"
 
 export const revenueCadences = [
   "once",
@@ -119,8 +119,4 @@ function revenueForecastForMonth(
     )
     return total + occurrences.length * source.amountMinor
   }, 0)
-}
-
-function addCalendarMonths(month: string, offset: number) {
-  return addDateOnlyMonths(`${month}-01`, offset).slice(0, 7)
 }
