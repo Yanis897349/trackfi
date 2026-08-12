@@ -1,10 +1,16 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { App } from "./app"
 import { createTestRouter } from "./router"
 import { mockApi, revenueSourceFixture, sessionFor } from "./test/mock-api"
 import "./routes/dashboard.revenue"
+
+vi.mock("./components/revenue-forecast-chart", () => ({
+  RevenueForecastChart: () => (
+    <div role="img" aria-label="Revenue forecast chart" />
+  ),
+}))
 
 describe("Trackfi revenue application", () => {
   it("requires currency setup before adding revenue", async () => {
@@ -67,6 +73,9 @@ describe("Trackfi revenue application", () => {
     ).toBeInTheDocument()
     expect(await screen.findByText("Expected monthly")).toBeInTheDocument()
     expect(screen.getByText("Cash-flow forecast")).toBeInTheDocument()
+    expect(
+      await screen.findByRole("img", { name: "Revenue forecast chart" })
+    ).toBeInTheDocument()
     expect(screen.getByText("Source contribution")).toBeInTheDocument()
     expect(screen.getByText("Upcoming income")).toBeInTheDocument()
     expect(screen.queryByText("Confidence")).not.toBeInTheDocument()
