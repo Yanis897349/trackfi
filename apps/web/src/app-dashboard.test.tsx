@@ -231,9 +231,11 @@ describe("Trackfi dashboard application", () => {
     fireEvent.click(
       await screen.findByRole("button", { name: "Toggle sidebar" })
     )
+    const expensesLink = await screen.findByRole("link", { name: "Expenses" })
     expect(
-      await screen.findByRole("link", { name: "Expenses" })
-    ).toHaveAttribute("data-active")
+      document.querySelector<HTMLElement>('[data-mobile="true"]')?.style.width
+    ).toBe("18.25rem")
+    expect(expensesLink).toHaveAttribute("data-active")
     expect(
       document.querySelector('[data-slot="sidebar-active-indicator"]')
     ).toBeInTheDocument()
@@ -245,7 +247,7 @@ describe("Trackfi dashboard application", () => {
     )
     await waitFor(() =>
       expect(
-        document.querySelector('[data-slot="sheet-content"]')
+        document.querySelector('[data-mobile="true"]')
       ).not.toBeInTheDocument()
     )
   })

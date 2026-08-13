@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react"
+import type { ReactNode } from "react"
 import { useLocation, useNavigate } from "@tanstack/react-router"
 import {
   SidebarInset,
@@ -45,12 +45,10 @@ export function DashboardShell({
 
   return (
     <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "18.25rem",
-          "--sidebar-width-mobile": "18.25rem",
-        } as CSSProperties
-      }
+      style={{
+        "--sidebar-width": "18.25rem",
+        "--sidebar-width-mobile": "18.25rem",
+      }}
     >
       <TrackfiSidebar user={user} onSignOut={signOut} />
       <SidebarInset>
