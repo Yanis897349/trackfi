@@ -16,11 +16,9 @@ import { getLocale, m, setLocale } from "../lib/i18n"
 
 export function LanguageSelector({
   className,
-  triggerClassName,
   user,
 }: {
   className?: string
-  triggerClassName?: string
   user?: CurrentUser | null
 }) {
   const [syncError, setSyncError] = useState("")
@@ -63,7 +61,7 @@ export function LanguageSelector({
         <SelectTrigger
           size="sm"
           aria-label={m.language_label()}
-          className={cn("w-full min-w-28", triggerClassName)}
+          className="w-full min-w-28"
         >
           <LanguagesIcon className="size-3.5 text-muted-foreground" />
           <SelectValue />

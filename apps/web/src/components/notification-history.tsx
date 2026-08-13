@@ -85,41 +85,45 @@ export function NotificationHistory() {
         </div>
       </div>
 
-      <div className="grid gap-2 lg:grid-cols-[minmax(260px,1fr)_158px_158px_170px]">
-        <div className="relative">
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-[13px] size-[17px] -translate-y-1/2 text-muted-foreground" />
+      <div className="flex flex-col gap-2 lg:flex-row">
+        <div className="relative min-w-0 flex-1">
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={state.search}
             onChange={(event) => state.setSearch(event.target.value)}
             placeholder={m.notifications_search()}
             aria-label={m.notifications_search_label()}
-            className="h-[42px] px-[13px] pl-10 text-sm"
+            className="h-10 pl-9"
           />
         </div>
-        <ExpenseFilterSelect
-          label={m.notifications_all()}
-          value={state.status}
-          items={statusItems}
-          onChange={(value) =>
-            state.setStatus(value as NotificationStatusFilter)
-          }
-          className="h-[42px] w-full px-[13px] text-[13px] data-[size=default]:h-[42px]"
-        />
-        <ExpenseFilterSelect
-          label={m.notifications_all_types()}
-          value={state.type}
-          items={typeItems}
-          onChange={(value) => state.setType(value as NotificationType | "all")}
-          className="h-[42px] w-full px-[13px] text-[13px] data-[size=default]:h-[42px]"
-        />
-        <ExpenseFilterSelect
-          icon={CalendarDaysIcon}
-          label={m.notifications_last_30_days()}
-          value={state.range}
-          items={rangeItems}
-          onChange={(value) => state.setRange(value as NotificationRange)}
-          className="h-[42px] w-full px-[13px] text-[13px] data-[size=default]:h-[42px]"
-        />
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <ExpenseFilterSelect
+            label={m.notifications_all()}
+            value={state.status}
+            items={statusItems}
+            onChange={(value) =>
+              state.setStatus(value as NotificationStatusFilter)
+            }
+            className="lg:w-[145px]"
+          />
+          <ExpenseFilterSelect
+            label={m.notifications_all_types()}
+            value={state.type}
+            items={typeItems}
+            onChange={(value) =>
+              state.setType(value as NotificationType | "all")
+            }
+            className="lg:w-[160px]"
+          />
+          <ExpenseFilterSelect
+            icon={CalendarDaysIcon}
+            label={m.notifications_last_30_days()}
+            value={state.range}
+            items={rangeItems}
+            onChange={(value) => state.setRange(value as NotificationRange)}
+            className="lg:w-[170px]"
+          />
+        </div>
       </div>
 
       <section className="overflow-hidden rounded-lg border bg-card">

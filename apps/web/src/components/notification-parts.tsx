@@ -1,10 +1,5 @@
 import { formatDistanceToNow } from "date-fns"
-import {
-  CheckIcon,
-  ChevronRightIcon,
-  GaugeIcon,
-  TriangleAlertIcon,
-} from "lucide-react"
+import { CheckIcon, GaugeIcon, TriangleAlertIcon } from "lucide-react"
 
 import { Badge } from "@trackfi/ui/components/badge"
 import { Button } from "@trackfi/ui/components/button"
@@ -129,12 +124,7 @@ export function NotificationItem({
           <CheckIcon />
         </Button>
       ) : variant === "history" ? (
-        <span
-          className="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
-          aria-hidden="true"
-        >
-          <ChevronRightIcon className="size-4" />
-        </span>
+        <span className="size-7 shrink-0" aria-hidden="true" />
       ) : null}
     </div>
   )

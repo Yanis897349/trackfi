@@ -60,16 +60,16 @@ export function NotificationInbox() {
             type="button"
             variant="ghost"
             size="icon"
-            className="relative size-10"
+            className="relative"
             aria-label={m.notifications_unread_badge_label({
               count: unreadCount,
             })}
           />
         }
       >
-        <BellIcon className="size-5" />
+        <BellIcon />
         {unreadCount > 0 && (
-          <span className="absolute top-0.5 right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-foreground px-0.5 text-[8px] leading-3.5 font-bold text-background">
+          <span className="absolute top-0.5 right-0.5 flex min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[9px] leading-4 font-bold text-background">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
