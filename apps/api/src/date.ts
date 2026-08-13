@@ -63,6 +63,25 @@ export function daysInUtcMonth(year: number, month: number) {
   return new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
 }
 
+export function monthEndDateOnly(value: string) {
+  const { year, month } = dateOnlyParts(value)
+  return `${value.slice(0, 7)}-${daysInUtcMonth(year, month)
+    .toString()
+    .padStart(2, "0")}`
+}
+
+export function monthEndDatesInRange(from: string, to: string) {
+  const dates: string[] = []
+  let month = from.slice(0, 7)
+  const finalMonth = to.slice(0, 7)
+  while (month <= finalMonth) {
+    const monthEnd = monthEndDateOnly(`${month}-01`)
+    if (monthEnd >= from && monthEnd <= to) dates.push(monthEnd)
+    month = addCalendarMonths(month, 1)
+  }
+  return dates
+}
+
 export function todayDateOnly() {
   return formatDateOnly(new Date())
 }

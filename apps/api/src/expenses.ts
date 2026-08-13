@@ -1,4 +1,5 @@
-import { addCalendarMonths, daysInUtcMonth } from "./date"
+import { addCalendarMonths, monthEndDateOnly } from "./date"
+import { sumBy } from "./numbers"
 import { nextOccurrenceDate, occurrenceDatesInRange } from "./subscriptions"
 
 export const expenseCadences = [
@@ -92,10 +93,7 @@ export function expenseForecast(
     const month = addCalendarMonths(currentMonth, index)
     return { month, amountMinor: spendingForMonth(expenses, month) }
   })
-  const totalMinor = series.reduce(
-    (total, entry) => total + entry.amountMinor,
-    0
-  )
+  const totalMinor = sumBy(series, (entry) => entry.amountMinor)
   return {
     months,
     totalMinor,
@@ -112,11 +110,8 @@ export function spendingForMonth(
   expenses: SpendingForecastInput[],
   month: string
 ) {
-  const [year, monthNumber] = month.split("-").map(Number)
   const from = `${month}-01`
-  const through = `${month}-${daysInUtcMonth(year!, monthNumber! - 1)
-    .toString()
-    .padStart(2, "0")}`
+  const through = monthEndDateOnly(from)
   return expenses.reduce((total, expense) => {
     if (expense.scheduleType === "variable") return total + expense.amountMinor
     return (

@@ -1,8 +1,9 @@
 import { keepPreviousData } from "@tanstack/react-query"
 
 import { apiFetch } from "./api"
+import { formatMoney } from "./currency"
 import { localDate } from "./date"
-import { intlLocale, m } from "./i18n"
+import { m } from "./i18n"
 import {
   cadenceLabel,
   categoryLabel,
@@ -175,17 +176,7 @@ export function subscriptionSummaryQueryOptions() {
   }
 }
 
-export function formatMoney(amountMinor: number, currency: string) {
-  const fractionDigits =
-    new Intl.NumberFormat(intlLocale(), {
-      style: "currency",
-      currency,
-    }).resolvedOptions().maximumFractionDigits ?? 2
-  return new Intl.NumberFormat(intlLocale(), {
-    style: "currency",
-    currency,
-  }).format(amountMinor / 10 ** fractionDigits)
-}
+export { formatMoney }
 
 export function monthlyComparisonLabel(summary: SubscriptionSummary) {
   const previous = summary.monthlyComparison?.previousMonthlyEquivalentMinor

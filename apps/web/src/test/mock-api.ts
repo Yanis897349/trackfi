@@ -1,5 +1,6 @@
 import { vi } from "vitest"
 
+import { createDashboardMock } from "./mock-api-dashboard"
 import { createExpenseMock } from "./mock-api-expenses"
 import { createRevenueMock } from "./mock-api-revenue"
 import { createSubscriptionMock } from "./mock-api-subscriptions"
@@ -42,6 +43,12 @@ export function mockApi({
         : "en",
   }
   const handlers: MockApiHandler[] = [
+    createDashboardMock({
+      currency,
+      expenses,
+      revenueSources,
+      subscriptions,
+    }),
     createExpenseMock(expenses, currency),
     createRevenueMock(revenueSources, currency),
     createSubscriptionMock(subscriptions, currency),

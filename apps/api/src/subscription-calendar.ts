@@ -1,11 +1,8 @@
-import { addDateOnlyDays, dateOnlyParts, daysInUtcMonth } from "./date"
+import { addDateOnlyDays, monthEndDateOnly } from "./date"
 
 export function subscriptionCalendarRange(month: string) {
   const monthStart = `${month}-01`
-  const { year, month: monthIndex } = dateOnlyParts(monthStart)
-  const monthEnd = `${month}-${daysInUtcMonth(year, monthIndex)
-    .toString()
-    .padStart(2, "0")}`
+  const monthEnd = monthEndDateOnly(monthStart)
   const firstWeekday = new Date(`${monthStart}T00:00:00Z`).getUTCDay()
   const lastWeekday = new Date(`${monthEnd}T00:00:00Z`).getUTCDay()
   const daysBefore = (firstWeekday + 6) % 7

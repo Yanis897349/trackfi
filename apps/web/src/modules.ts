@@ -1,10 +1,6 @@
-import type { ComponentType } from "react"
 import type { LucideIcon } from "lucide-react"
 import { BanknoteIcon, CreditCardIcon, ReceiptTextIcon } from "lucide-react"
 
-import { ExpenseOverviewCard } from "./components/expense-overview-card"
-import { RevenueOverviewCard } from "./components/revenue-overview-card"
-import { SubscriptionOverviewCard } from "./components/subscription-overview-card"
 import { m } from "./lib/i18n"
 
 export interface TrackfiModule {
@@ -14,7 +10,6 @@ export interface TrackfiModule {
   href:
     "/dashboard/subscriptions" | "/dashboard/expenses" | "/dashboard/revenue"
   icon: LucideIcon
-  DashboardCard: ComponentType
 }
 
 export const modules: TrackfiModule[] = [
@@ -24,7 +19,6 @@ export const modules: TrackfiModule[] = [
     description: m.module_subscriptions_description(),
     href: "/dashboard/subscriptions",
     icon: CreditCardIcon,
-    DashboardCard: SubscriptionOverviewCard,
   },
   {
     id: "expenses",
@@ -32,7 +26,6 @@ export const modules: TrackfiModule[] = [
     description: m.module_expenses_description(),
     href: "/dashboard/expenses",
     icon: ReceiptTextIcon,
-    DashboardCard: ExpenseOverviewCard,
   },
   {
     id: "revenue",
@@ -40,6 +33,5 @@ export const modules: TrackfiModule[] = [
     description: m.module_revenue_description(),
     href: "/dashboard/revenue",
     icon: BanknoteIcon,
-    DashboardCard: RevenueOverviewCard,
   },
 ]

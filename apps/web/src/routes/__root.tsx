@@ -51,6 +51,12 @@ function metadataForPath(pathname: string) {
   if (pathname === "/dashboard/subscriptions/calendar") {
     return { description: m.calendar_description(), title: m.calendar_title() }
   }
+  if (pathname === "/dashboard/calendar") {
+    return {
+      description: m.dashboard_calendar_description(),
+      title: m.dashboard_calendar_title(),
+    }
+  }
   if (pathname === "/dashboard/subscriptions") {
     return {
       description: m.module_subscriptions_description(),

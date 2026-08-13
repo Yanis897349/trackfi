@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import { apiFetch } from "../lib/api"
+import { invalidateDashboardQueries } from "../lib/dashboard"
 import { humanizeError } from "../lib/errors"
 import { settingsQueryOptions } from "../lib/settings"
 import {
@@ -94,6 +95,7 @@ export function useSubscriptionManager(options?: {
       queryClient.invalidateQueries({ queryKey: ["subscriptions"] }),
       queryClient.invalidateQueries({ queryKey: ["subscription-summary"] }),
       queryClient.invalidateQueries({ queryKey: ["subscription-calendar"] }),
+      invalidateDashboardQueries(queryClient),
     ])
   }
 

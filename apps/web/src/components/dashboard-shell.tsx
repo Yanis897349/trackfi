@@ -21,6 +21,7 @@ function titleForPath(pathname: string) {
     "/dashboard/expenses": m.nav_expenses(),
     "/dashboard/revenue": m.nav_revenue(),
     "/dashboard/notifications": m.notifications(),
+    "/dashboard/calendar": m.dashboard_calendar_nav(),
     "/dashboard/subscriptions/calendar": m.nav_renewal_calendar(),
   }
   return titles[pathname] ?? m.nav_dashboard()

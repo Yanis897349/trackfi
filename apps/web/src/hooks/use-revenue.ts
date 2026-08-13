@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-query"
 
 import { apiFetch } from "../lib/api"
+import { invalidateDashboardQueries } from "../lib/dashboard"
 import { humanizeError } from "../lib/errors"
 import {
   revenueSourcesQueryOptions,
@@ -54,6 +55,7 @@ export function useRevenue(currency: string) {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["revenue-sources"] }),
       queryClient.invalidateQueries({ queryKey: ["revenue-summary"] }),
+      invalidateDashboardQueries(queryClient),
     ])
   }
 

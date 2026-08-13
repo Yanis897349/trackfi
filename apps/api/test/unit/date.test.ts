@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest"
 import {
   addDateOnlyDays,
   isDateOnly,
+  monthEndDateOnly,
+  monthEndDatesInRange,
   subtractUtcCalendarMonth,
   utcIsoTimestampDaysAgo,
   utcIsoWeekStart,
@@ -22,6 +24,14 @@ describe("date calculations", () => {
         new Date("2024-03-31T12:30:00.000Z")
       ).toISOString()
     ).toBe("2024-02-29T12:30:00.000Z")
+  })
+
+  it("calculates month ends within an inclusive range", () => {
+    expect(monthEndDateOnly("2024-02-10")).toBe("2024-02-29")
+    expect(monthEndDatesInRange("2024-01-31", "2024-03-15")).toEqual([
+      "2024-01-31",
+      "2024-02-29",
+    ])
   })
 
   it("calculates UTC range cutoffs and ISO-week starts", () => {
