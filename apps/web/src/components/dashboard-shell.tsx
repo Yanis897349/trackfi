@@ -197,7 +197,7 @@ export function DashboardShell({
           <SidebarTrigger className="-ml-1" />
           <div className="h-4 w-px bg-border" />
           <h1 className="text-sm font-medium">{title}</h1>
-          <div className="ml-auto flex items-start gap-2">
+          <div className="ml-auto flex items-center gap-2">
             <NotificationInbox />
             <LanguageSelector user={user} />
           </div>
