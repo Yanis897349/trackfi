@@ -268,6 +268,51 @@ describe("Trackfi dashboard application", () => {
     ).toBe(true)
   })
 
+  it("previews a draft dashboard range inside the picker before applying it", async () => {
+    const requests = mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+    })
+    const { queryClient, router } = createTestRouter(
+      "/dashboard?from=2026-08-01&to=2026-08-15&page=1"
+    )
+    render(<App queryClient={queryClient} router={router} />)
+
+    const trigger = await screen.findByRole("button", {
+      name: "Choose dashboard date range",
+    })
+    fireEvent.click(trigger)
+    const initialRequests = requests.filter(({ url }) =>
+      url.includes("/api/dashboard/overview")
+    ).length
+
+    const august5 = screen.getByRole("button", { name: /August 5th, 2026/ })
+    const august10 = screen.getByRole("button", { name: /August 10th, 2026/ })
+    fireEvent.click(august5)
+    expect(august5.closest("td")).toHaveClass("bg-accent")
+    expect(august10.closest("td")).not.toHaveClass("bg-accent")
+    expect(trigger).toHaveTextContent("Aug 1 – Aug 15, 2026")
+
+    fireEvent.click(screen.getByRole("button", { name: /August 20th, 2026/ }))
+    expect(august10.closest("td")).toHaveClass("bg-accent")
+    expect(trigger).toHaveTextContent("Aug 1 – Aug 15, 2026")
+    expect(
+      requests.filter(({ url }) => url.includes("/api/dashboard/overview"))
+    ).toHaveLength(initialRequests)
+
+    fireEvent.click(screen.getByRole("button", { name: "Apply range" }))
+    await waitFor(() =>
+      expect(
+        requests.some(
+          ({ url }) =>
+            url.includes("/api/dashboard/overview") &&
+            url.includes("from=2026-08-01") &&
+            url.includes("to=2026-08-20")
+        )
+      ).toBe(true)
+    )
+  })
+
   it("confirms and updates waitlist mode", async () => {
     const requests = mockApi({
       waitlistMode: true,

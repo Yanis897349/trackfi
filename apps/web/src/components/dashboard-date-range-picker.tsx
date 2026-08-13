@@ -73,6 +73,14 @@ export function DashboardDateRangePicker({
           locale={dateFnsLocale()}
           numberOfMonths={isMobile ? 1 : 2}
           selected={draft}
+          classNames={{
+            range_start:
+              "rounded-l-md bg-accent [&>button]:bg-primary [&>button]:text-primary-foreground",
+            range_middle:
+              "rounded-none bg-accent [&>button]:rounded-none [&>button]:bg-transparent [&>button]:text-foreground",
+            range_end:
+              "rounded-r-md bg-accent [&>button]:bg-primary [&>button]:text-primary-foreground",
+          }}
           {...(draft.from ? { defaultMonth: draft.from } : {})}
           onSelect={(range) => setDraft(range ?? { from: undefined })}
           autoFocus
