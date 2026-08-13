@@ -12,9 +12,9 @@ import {
 import "../support/setup"
 
 describe("public API, waitlist, and invitations", () => {
-  it("reports its health", async () => {
+  it.each(["/", "/health"])("reports its health at %s", async (path) => {
     const response = await exports.default.fetch(
-      new Request("https://trackfi.test/health")
+      new Request(`https://trackfi.test${path}`)
     )
 
     expect(response.status).toBe(200)
