@@ -87,7 +87,7 @@ export function NotificationItem({
         )}
       </button>
       {variant === "history" && (
-        <div className="hidden shrink-0 items-center gap-3 sm:flex">
+        <div className="hidden shrink-0 items-center gap-3 self-center sm:flex">
           <Badge
             variant="secondary"
             className="w-24 justify-center text-[10px]"
