@@ -44,7 +44,7 @@ export function registerDashboardOverviewRoute(app: Hono<AppEnv>) {
       overview: dashboardOverview({
         rows: data.rows,
         currency: data.currency,
-        monthlyBudgetMinor: data.monthlyBudgetMinor,
+        expenseSettings: data.expenseSettings,
         from,
         to,
         page: page.data,

@@ -19,6 +19,7 @@ import {
 } from "@trackfi/ui/components/dropdown-menu"
 
 import { apiFetch } from "../lib/api"
+import { invalidateDashboardQueries } from "../lib/dashboard"
 import { expenseRequestBody, type ExpenseInput } from "../lib/expenses"
 import { humanizeError } from "../lib/errors"
 import { m } from "../lib/i18n"
@@ -67,8 +68,7 @@ export function DashboardQuickAdd({ currency }: { currency: string | null }) {
         revenue: ["revenue-sources", "revenue-summary"],
       }
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] }),
-        queryClient.invalidateQueries({ queryKey: ["dashboard-calendar"] }),
+        invalidateDashboardQueries(queryClient),
         ...moduleKeys[value.module].map((key) =>
           queryClient.invalidateQueries({ queryKey: [key] })
         ),

@@ -71,12 +71,12 @@ export function DashboardMoneyModules({
 
 function expenseNote(overview: DashboardOverview, currency: string) {
   const expenses = overview.modules.expenses
-  return expenses.monthlyBudgetMinor
+  return expenses.budgetMinor
     ? m.dashboard_expense_budget_note({
         percentage: Math.round(
-          (expenses.totalMinor / expenses.monthlyBudgetMinor) * 100
+          (expenses.totalMinor / expenses.budgetMinor) * 100
         ),
-        budget: formatMoney(expenses.monthlyBudgetMinor, currency),
+        budget: formatMoney(expenses.budgetMinor, currency),
       })
     : m.dashboard_expense_note({
         count: expenses.transactionCount,

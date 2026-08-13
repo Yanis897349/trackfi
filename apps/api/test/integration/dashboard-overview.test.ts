@@ -125,7 +125,7 @@ describe("dashboard overview", () => {
           totalMinor: 105_000,
           transactionCount: 2,
           pendingCount: 1,
-          monthlyBudgetMinor: 190_000,
+          budgetMinor: 190_000,
         },
         revenue: {
           totalMinor: 29_000,
@@ -152,6 +152,28 @@ describe("dashboard overview", () => {
         status: "estimated",
       })
     )
+
+    const overflowPage = await userApi(
+      "/api/dashboard/overview?from=2024-08-01&to=2024-08-31&page=99&pageSize=4",
+      cookie
+    )
+    await expect(overflowPage.json()).resolves.toMatchObject({
+      overview: {
+        activity: {
+          page: 3,
+          total: 9,
+          items: [expect.objectContaining({ label: "Client estimate" })],
+        },
+      },
+    })
+
+    const partialRange = await userApi(
+      "/api/dashboard/overview?from=2024-08-01&to=2024-08-15",
+      cookie
+    )
+    await expect(partialRange.json()).resolves.toMatchObject({
+      overview: { modules: { expenses: { budgetMinor: null } } },
+    })
     expect(
       body.overview.activity.items.some(
         (item) => item.label === "Declined purchase"

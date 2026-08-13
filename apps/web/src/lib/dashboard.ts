@@ -1,4 +1,4 @@
-import { keepPreviousData } from "@tanstack/react-query"
+import { keepPreviousData, type QueryClient } from "@tanstack/react-query"
 
 import { apiFetch } from "./api"
 
@@ -54,7 +54,7 @@ export interface DashboardOverview {
       totalMinor: number
       transactionCount: number
       pendingCount: number
-      monthlyBudgetMinor: number | null
+      budgetMinor: number | null
       series: DashboardSeriesEntry[]
     }
     revenue: {
@@ -121,4 +121,11 @@ export function dashboardCalendarQueryOptions(month: string) {
       ),
     placeholderData: keepPreviousData,
   }
+}
+
+export function invalidateDashboardQueries(queryClient: QueryClient) {
+  return Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] }),
+    queryClient.invalidateQueries({ queryKey: ["dashboard-calendar"] }),
+  ])
 }

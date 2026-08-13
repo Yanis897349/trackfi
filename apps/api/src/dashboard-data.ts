@@ -17,7 +17,7 @@ export async function readDashboardData(database: D1Database, userId: string) {
 
   return {
     currency: currency?.currency ?? null,
-    monthlyBudgetMinor: expenseSettings?.monthly_budget_minor ?? null,
+    expenseSettings,
     rows: {
       expenses: expenses.results,
       revenueSources: revenueSources.results,

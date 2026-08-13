@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-query"
 
 import { apiFetch } from "../lib/api"
+import { invalidateDashboardQueries } from "../lib/dashboard"
 import { humanizeError } from "../lib/errors"
 import {
   expenseRequestBody,
@@ -65,7 +66,7 @@ export function useExpenses() {
       queryClient.invalidateQueries({ queryKey: ["expenses"] }),
       queryClient.invalidateQueries({ queryKey: ["expense-summary"] }),
       queryClient.invalidateQueries({ queryKey: ["expense-settings"] }),
-      queryClient.invalidateQueries({ queryKey: ["dashboard-calendar"] }),
+      invalidateDashboardQueries(queryClient),
       queryClient.invalidateQueries({ queryKey: ["notifications"] }),
       queryClient.invalidateQueries({
         queryKey: ["notification-unread-count"],

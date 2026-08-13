@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 
 import { apiFetch } from "../lib/api"
+import { invalidateDashboardQueries } from "../lib/dashboard"
 import { humanizeError } from "../lib/errors"
 import { m, setLocale } from "../lib/i18n"
 import { settingsQueryOptions, type UserSettings } from "../lib/settings"
@@ -112,5 +113,6 @@ function invalidateCurrencyQueries(
     queryClient.invalidateQueries({ queryKey: ["expenses"] }),
     queryClient.invalidateQueries({ queryKey: ["revenue-summary"] }),
     queryClient.invalidateQueries({ queryKey: ["revenue-sources"] }),
+    invalidateDashboardQueries(queryClient),
   ])
 }

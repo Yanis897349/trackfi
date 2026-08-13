@@ -8,12 +8,14 @@ import type {
   DashboardActivity,
   DashboardRows,
 } from "./dashboard-overview-types"
+import type { ExpenseSettingsRow } from "./expense-database-types"
+import { expensePeriod } from "./expense-summary"
 import { percentageChange, sumBy } from "./numbers"
 
 export function dashboardOverview({
   rows,
   currency,
-  monthlyBudgetMinor,
+  expenseSettings,
   from,
   to,
   page,
@@ -21,7 +23,7 @@ export function dashboardOverview({
 }: {
   rows: DashboardRows
   currency: string | null
-  monthlyBudgetMinor: number | null
+  expenseSettings: ExpenseSettingsRow | null
   from: string
   to: string
   page: number
@@ -35,7 +37,9 @@ export function dashboardOverview({
   const previous = dashboardTotals(
     dashboardActivities(rows, previousFrom, previousTo)
   )
-  const offset = (page - 1) * pageSize
+  const totalPages = Math.max(1, Math.ceil(activities.length / pageSize))
+  const currentPage = Math.min(page, totalPages)
+  const offset = (currentPage - 1) * pageSize
   const subscriptions = activitiesForModule(activities, "subscriptions")
   const expenses = activitiesForModule(activities, "expenses")
   const revenue = activitiesForModule(activities, "revenue")
@@ -73,7 +77,7 @@ export function dashboardOverview({
         pendingCount: expenses.filter(
           (activity) => activity.status === "pending"
         ).length,
-        monthlyBudgetMinor,
+        budgetMinor: budgetForRange(expenseSettings, from, to),
         series: bucketModuleActivities(expenses, from, to),
       },
       revenue: {
@@ -91,11 +95,23 @@ export function dashboardOverview({
     },
     activity: {
       items: activities.slice(offset, offset + pageSize),
-      page,
+      page: currentPage,
       pageSize,
       total: activities.length,
     },
   }
+}
+
+function budgetForRange(
+  settings: ExpenseSettingsRow | null,
+  from: string,
+  to: string
+) {
+  if (!settings || settings.monthly_budget_minor === null) return null
+  const period = expensePeriod(to, settings.reset_day)
+  return period.start === from && period.end === to
+    ? settings.monthly_budget_minor
+    : null
 }
 
 function dashboardTotals(activities: DashboardActivity[]) {

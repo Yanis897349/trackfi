@@ -129,6 +129,33 @@ describe("Trackfi dashboard application", () => {
     )
   })
 
+  it("clamps an out-of-range activity page to the final page", async () => {
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      expenses: Array.from({ length: 6 }, (_, index) => ({
+        ...expenseFixture(),
+        id: `expense-${index + 1}`,
+        merchant: `Merchant ${index + 1}`,
+      })),
+    })
+    const { queryClient, router } = createTestRouter(
+      "/dashboard?from=2026-08-01&to=2026-08-31&page=99"
+    )
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    const summary = await screen.findByText("Showing 5–6 of 6 items")
+    const footer = summary.closest("footer")
+    expect(
+      within(footer!).getByRole("button", { name: "Next page" })
+    ).toBeDisabled()
+    expect(within(footer!).getByRole("button", { name: "2" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    )
+  })
+
   it("opens the dashboard activity calendar across every money module", async () => {
     const requests = mockApi({
       waitlistMode: true,
@@ -266,6 +293,8 @@ describe("Trackfi dashboard application", () => {
           url.includes("to=2026-08-15")
       )
     ).toBe(true)
+    expect(screen.getByText("0 transactions · 0 pending")).toBeInTheDocument()
+    expect(screen.queryByText(/monthly budget/)).not.toBeInTheDocument()
   })
 
   it("previews a draft dashboard range inside the picker before applying it", async () => {

@@ -93,7 +93,9 @@ export function createDashboardMock({
       const date = addDays(from, index)
       return { from: date, to: date, amountMinor: 0 }
     })
-    const offset = (page - 1) * pageSize
+    const totalPages = Math.max(1, Math.ceil(activities.length / pageSize))
+    const currentPage = Math.min(page, totalPages)
+    const offset = (currentPage - 1) * pageSize
 
     if (isCalendar) {
       return {
@@ -149,7 +151,8 @@ export function createDashboardMock({
               pendingCount: expenses.filter(
                 (expense) => expense.status === "pending"
               ).length,
-              monthlyBudgetMinor: 500_000,
+              budgetMinor:
+                from === "2026-08-01" && to === "2026-08-31" ? 500_000 : null,
               series,
             },
             revenue: {
@@ -161,7 +164,7 @@ export function createDashboardMock({
           },
           activity: {
             items: activities.slice(offset, offset + pageSize),
-            page,
+            page: currentPage,
             pageSize,
             total: activities.length,
           },
