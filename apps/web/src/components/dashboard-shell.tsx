@@ -199,7 +199,7 @@ export function DashboardShell({
           <h1 className="text-sm font-medium">{title}</h1>
           <div className="ml-auto flex items-center gap-2">
             <NotificationInbox />
-            <LanguageSelector user={user} />
+            <LanguageSelector user={user} className="translate-y-1" />
           </div>
         </header>
         <div className="flex flex-1 flex-col p-4 md:p-6">{children}</div>
