@@ -60,14 +60,16 @@ export function NotificationInbox() {
             type="button"
             variant="ghost"
             size="icon"
-            className="relative"
-            aria-label={m.notifications_unread_count({ count: unreadCount })}
+            className="relative size-10"
+            aria-label={m.notifications_unread_badge_label({
+              count: unreadCount,
+            })}
           />
         }
       >
-        <BellIcon />
+        <BellIcon className="size-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-0.5 right-0.5 flex min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[9px] leading-4 font-bold text-background">
+          <span className="absolute top-0.5 right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-foreground px-0.5 text-[8px] leading-3.5 font-bold text-background">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -77,7 +79,7 @@ export function NotificationInbox() {
         sideOffset={8}
         className="w-[min(420px,calc(100vw-2rem))] gap-0 overflow-hidden p-0"
       >
-        <PopoverHeader className="flex-row items-center justify-between px-5 pt-5 pb-3">
+        <PopoverHeader className="flex-row items-center justify-between px-5 pt-5 pb-4">
           <div>
             <PopoverTitle className="text-lg">{m.notifications()}</PopoverTitle>
             <PopoverDescription className="text-xs">
@@ -97,7 +99,7 @@ export function NotificationInbox() {
             {m.notifications_mark_all_read()}
           </Button>
         </PopoverHeader>
-        <div className="flex gap-1 border-b px-5 pb-3">
+        <div className="flex gap-1 border-b px-5 pb-3.5">
           {(["all", "unread"] as const).map((value) => (
             <Button
               key={value}
@@ -143,7 +145,7 @@ export function NotificationInbox() {
           ) : (
             groupNotifications(list.data.notifications).map((group) => (
               <div key={group.date}>
-                <NotificationDateHeader date={group.date} />
+                <NotificationDateHeader date={group.date} variant="inbox" />
                 {group.items.map((notification) => (
                   <NotificationItem
                     key={notification.id}
@@ -160,7 +162,7 @@ export function NotificationInbox() {
         <Button
           variant="ghost"
           nativeButton={false}
-          className="h-11 w-full rounded-none border-t bg-muted/30 text-xs"
+          className="h-10 w-full rounded-none border-t bg-muted/30 text-xs"
           render={<Link to="/dashboard/notifications" />}
           onClick={() => setOpen(false)}
         >

@@ -3,6 +3,8 @@ import {
   BellIcon,
   CalendarDaysIcon,
   CheckCheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   InboxIcon,
   SearchIcon,
 } from "lucide-react"
@@ -27,14 +29,12 @@ import {
   type NotificationType,
 } from "../lib/notifications"
 import { ExpenseFilterSelect } from "./expense-filter-controls"
-import { ModuleHeader } from "./module-layout"
 import {
   NotificationDateHeader,
   NotificationEmptyState,
   NotificationItem,
   NotificationLoading,
 } from "./notification-parts"
-import { SubscriptionPagination } from "./subscription-list-parts"
 
 export function NotificationHistory() {
   const state = useNotificationHistory()
@@ -59,13 +59,21 @@ export function NotificationHistory() {
   }
 
   return (
-    <div className="space-y-6">
-      <ModuleHeader
-        title={m.notifications_history()}
-        description={m.notifications_history_description()}
-        action={
+    <div className="space-y-6 md:px-1 md:pt-2">
+      <div className="flex flex-col justify-between gap-4 sm:h-16 sm:flex-row sm:items-center">
+        <div>
+          <h2 className="text-[30px] leading-9 font-bold tracking-tight">
+            {m.notifications_history()}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {m.notifications_history_description()}
+          </p>
+        </div>
+        <div>
           <Button
             variant="outline"
+            size="lg"
+            className="h-9 px-3.5 text-[13px]"
             disabled={
               !data?.summary.unread || state.actions.markAllRead.isPending
             }
@@ -74,18 +82,18 @@ export function NotificationHistory() {
             <CheckCheckIcon />
             {m.notifications_mark_all_read()}
           </Button>
-        }
-      />
+        </div>
+      </div>
 
       <div className="grid gap-2 lg:grid-cols-[minmax(260px,1fr)_158px_158px_170px]">
         <div className="relative">
-          <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-[13px] size-[17px] -translate-y-1/2 text-muted-foreground" />
           <Input
             value={state.search}
             onChange={(event) => state.setSearch(event.target.value)}
             placeholder={m.notifications_search()}
             aria-label={m.notifications_search_label()}
-            className="h-10 pl-9"
+            className="h-[42px] px-[13px] pl-10 text-sm"
           />
         </div>
         <ExpenseFilterSelect
@@ -95,14 +103,14 @@ export function NotificationHistory() {
           onChange={(value) =>
             state.setStatus(value as NotificationStatusFilter)
           }
-          className="w-full"
+          className="h-[42px] w-full px-[13px] text-[13px] data-[size=default]:h-[42px]"
         />
         <ExpenseFilterSelect
           label={m.notifications_all_types()}
           value={state.type}
           items={typeItems}
           onChange={(value) => state.setType(value as NotificationType | "all")}
-          className="w-full"
+          className="h-[42px] w-full px-[13px] text-[13px] data-[size=default]:h-[42px]"
         />
         <ExpenseFilterSelect
           icon={CalendarDaysIcon}
@@ -110,7 +118,7 @@ export function NotificationHistory() {
           value={state.range}
           items={rangeItems}
           onChange={(value) => state.setRange(value as NotificationRange)}
-          className="w-full"
+          className="h-[42px] w-full px-[13px] text-[13px] data-[size=default]:h-[42px]"
         />
       </div>
 
@@ -122,90 +130,99 @@ export function NotificationHistory() {
           </span>
         </div>
 
-        {state.query.isPending ? (
-          <NotificationLoading rows={6} />
-        ) : state.query.isError ? (
-          <Empty className="min-h-80 border-0">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <BellIcon />
-              </EmptyMedia>
-              <EmptyTitle>{m.notifications_error_title()}</EmptyTitle>
-              <EmptyDescription>
-                {m.notifications_error_description()}
-              </EmptyDescription>
-            </EmptyHeader>
-            <Button
-              variant="outline"
-              onClick={() => void state.query.refetch()}
-            >
-              {m.common_retry()}
-            </Button>
-          </Empty>
-        ) : !resolved.notifications.length ? (
-          <NotificationEmptyState
-            filtered={hasFilters || resolved.summary.total > 0}
-          />
-        ) : (
-          <>
-            <div className="grid divide-y border-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-              <HistorySummary
-                icon={InboxIcon}
-                value={resolved.summary.total}
-                label={m.notifications_all()}
-              />
-              <HistorySummary
-                icon={BellIcon}
-                value={resolved.summary.unread}
-                label={m.notifications_unread()}
-              />
-              <HistorySummary
-                icon={CalendarDaysIcon}
-                value={resolved.summary.thisWeek}
-                label={m.notifications_this_week()}
+        <div className="p-3">
+          {state.query.isPending ? (
+            <div className="overflow-hidden rounded-[10px] border">
+              <NotificationLoading rows={6} />
+            </div>
+          ) : state.query.isError ? (
+            <Empty className="min-h-80 rounded-[10px] border">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <BellIcon />
+                </EmptyMedia>
+                <EmptyTitle>{m.notifications_error_title()}</EmptyTitle>
+                <EmptyDescription>
+                  {m.notifications_error_description()}
+                </EmptyDescription>
+              </EmptyHeader>
+              <Button
+                variant="outline"
+                onClick={() => void state.query.refetch()}
+              >
+                {m.common_retry()}
+              </Button>
+            </Empty>
+          ) : !resolved.notifications.length ? (
+            <div className="overflow-hidden rounded-[10px] border">
+              <NotificationEmptyState
+                filtered={hasFilters || resolved.summary.total > 0}
               />
             </div>
-            <div>
-              {groupNotifications(resolved.notifications).map((group) => (
-                <div key={group.date}>
-                  <NotificationDateHeader
-                    date={group.date}
-                    count={group.items.length}
-                  />
-                  {group.items.map((notification) => (
-                    <NotificationItem
-                      key={notification.id}
-                      notification={notification}
+          ) : (
+            <div className="space-y-4">
+              <div className="grid divide-y overflow-hidden rounded-[10px] border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                <HistorySummary
+                  icon={InboxIcon}
+                  value={resolved.summary.total}
+                  label={m.notifications_all()}
+                />
+                <HistorySummary
+                  icon={BellIcon}
+                  value={resolved.summary.unread}
+                  label={m.notifications_unread()}
+                />
+                <HistorySummary
+                  icon={CalendarDaysIcon}
+                  value={resolved.summary.thisWeek}
+                  label={m.notifications_this_week()}
+                />
+              </div>
+              <div className="overflow-hidden rounded-[10px] border">
+                {groupNotifications(resolved.notifications).map((group) => (
+                  <div key={group.date}>
+                    <NotificationDateHeader
+                      date={group.date}
+                      count={group.items.length}
                       variant="history"
-                      onOpen={openNotification}
-                      onMarkRead={(item) =>
-                        state.actions.markRead.mutate(item.id)
-                      }
                     />
-                  ))}
+                    {group.items.map((notification) => (
+                      <NotificationItem
+                        key={notification.id}
+                        notification={notification}
+                        variant="history"
+                        onOpen={openNotification}
+                        onMarkRead={(item) =>
+                          state.actions.markRead.mutate(item.id)
+                        }
+                      />
+                    ))}
+                  </div>
+                ))}
+                <div className="flex flex-col gap-3 border-t bg-muted/30 px-4 py-[9px] text-[11px] font-medium text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                  <span>
+                    {m.notifications_showing({
+                      start: (resolved.page - 1) * resolved.pageSize + 1,
+                      end: Math.min(
+                        resolved.page * resolved.pageSize,
+                        resolved.total
+                      ),
+                      total: resolved.total,
+                    })}
+                  </span>
+                  <HistoryPagination
+                    page={state.page}
+                    totalPages={Math.max(
+                      1,
+                      Math.ceil(resolved.total / resolved.pageSize)
+                    )}
+                    onPageChange={state.setPage}
+                  />
                 </div>
-              ))}
+              </div>
             </div>
-            <div className="flex flex-col gap-3 bg-muted/30 px-4 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-              <span>
-                {m.notifications_showing({
-                  start: (resolved.page - 1) * resolved.pageSize + 1,
-                  end: Math.min(
-                    resolved.page * resolved.pageSize,
-                    resolved.total
-                  ),
-                  total: resolved.total,
-                })}
-              </span>
-              <SubscriptionPagination
-                hasPrevious={state.page > 1}
-                hasNext={state.page * resolved.pageSize < resolved.total}
-                onPrevious={() => state.setPage(state.page - 1)}
-                onNext={() => state.setPage(state.page + 1)}
-              />
-            </div>
-          </>
-        )}
+          )}
+        </div>
       </section>
     </div>
   )
@@ -221,7 +238,7 @@ function HistorySummary({
   label: string
 }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3.5">
+    <div className="flex items-center gap-2.5 px-4 py-3.5">
       <span className="flex size-8 items-center justify-center rounded-lg bg-muted">
         <Icon className="size-4" />
       </span>
@@ -229,6 +246,62 @@ function HistorySummary({
         <strong className="block text-base leading-none">{value}</strong>
         <span className="text-[11px] text-muted-foreground">{label}</span>
       </span>
+    </div>
+  )
+}
+
+function HistoryPagination({
+  page,
+  totalPages,
+  onPageChange,
+}: {
+  page: number
+  totalPages: number
+  onPageChange(page: number): void
+}) {
+  const firstPage = Math.max(1, Math.min(page - 1, totalPages - 2))
+  const pages = Array.from(
+    { length: Math.min(3, totalPages) },
+    (_, index) => firstPage + index
+  )
+
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className="size-[30px]"
+        disabled={page === 1}
+        onClick={() => onPageChange(page - 1)}
+      >
+        <ChevronLeftIcon />
+        <span className="sr-only">{m.pagination_previous()}</span>
+      </Button>
+      {pages.map((pageNumber) => (
+        <Button
+          key={pageNumber}
+          type="button"
+          variant={pageNumber === page ? "default" : "outline"}
+          size="icon-sm"
+          className="size-[30px] text-[11px]"
+          aria-current={pageNumber === page ? "page" : undefined}
+          onClick={() => onPageChange(pageNumber)}
+        >
+          {pageNumber}
+        </Button>
+      ))}
+      <Button
+        type="button"
+        variant="outline"
+        size="icon-sm"
+        className="size-[30px]"
+        disabled={page === totalPages}
+        onClick={() => onPageChange(page + 1)}
+      >
+        <ChevronRightIcon />
+        <span className="sr-only">{m.pagination_next()}</span>
+      </Button>
     </div>
   )
 }

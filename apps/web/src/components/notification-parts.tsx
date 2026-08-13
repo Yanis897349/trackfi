@@ -1,5 +1,10 @@
 import { formatDistanceToNow } from "date-fns"
-import { CheckIcon, GaugeIcon, TriangleAlertIcon } from "lucide-react"
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  GaugeIcon,
+  TriangleAlertIcon,
+} from "lucide-react"
 
 import { Badge } from "@trackfi/ui/components/badge"
 import { Button } from "@trackfi/ui/components/button"
@@ -33,9 +38,11 @@ export function NotificationItem({
   return (
     <div
       className={cn(
-        "group flex min-w-0 items-start gap-3 border-b px-4 last:border-b-0",
-        variant === "inbox" ? "py-3" : "py-2.5",
-        unread ? "bg-amber-50/70" : "bg-background"
+        "group flex min-w-0 gap-3 border-b last:border-b-0",
+        variant === "inbox"
+          ? "items-start px-5 py-[13px]"
+          : "items-center px-4 py-2.5",
+        unread ? "bg-amber-50/50" : "bg-background"
       )}
     >
       <div
@@ -46,17 +53,17 @@ export function NotificationItem({
             : "bg-red-100 text-red-900"
         )}
       >
-        <Icon className="size-4" aria-hidden="true" />
+        <Icon className="size-[17px]" aria-hidden="true" />
       </div>
       <button
         type="button"
         className="min-w-0 flex-1 text-left outline-none focus-visible:rounded-md focus-visible:ring-2 focus-visible:ring-ring"
         onClick={() => onOpen(notification)}
       >
-        <span className="flex min-w-0 items-center gap-2">
+        <span className="flex min-w-0 items-center gap-[7px]">
           {unread && (
             <span
-              className="size-1.5 shrink-0 rounded-full bg-yellow-400"
+              className="size-[7px] shrink-0 rounded-full bg-yellow-400"
               aria-hidden="true"
             />
           )}
@@ -69,12 +76,17 @@ export function NotificationItem({
             {notification.title}
           </span>
           {variant === "history" && unread && (
-            <Badge className="h-4 bg-yellow-200 px-1.5 text-[9px] text-yellow-950 uppercase">
+            <Badge className="h-auto bg-yellow-200 px-1.5 py-0.5 text-[8px] leading-none font-bold text-yellow-950 uppercase">
               {m.notifications_new()}
             </Badge>
           )}
         </span>
-        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+        <span
+          className={cn(
+            "mt-[3px] block truncate text-muted-foreground",
+            variant === "history" ? "text-[11px]" : "text-xs"
+          )}
+        >
           {notification.description}
         </span>
         {variant === "inbox" && (
@@ -87,15 +99,15 @@ export function NotificationItem({
         )}
       </button>
       {variant === "history" && (
-        <div className="hidden shrink-0 items-center gap-3 self-center sm:flex">
+        <div className="hidden shrink-0 items-center gap-3 sm:flex">
           <Badge
             variant="secondary"
-            className="w-24 justify-center text-[10px]"
+            className="h-auto w-24 justify-center px-2 py-[5px] text-[10px] leading-none font-semibold"
           >
             {m.notifications_budget_type()}
           </Badge>
           <time
-            className="w-12 text-right text-[10px] text-muted-foreground"
+            className="w-[60px] text-right text-[10px] font-medium text-muted-foreground"
             dateTime={notification.createdAt}
           >
             {new Intl.DateTimeFormat(intlLocale(), {
@@ -105,7 +117,7 @@ export function NotificationItem({
           </time>
         </div>
       )}
-      {unread && (
+      {unread ? (
         <Button
           type="button"
           variant="ghost"
@@ -116,7 +128,14 @@ export function NotificationItem({
         >
           <CheckIcon />
         </Button>
-      )}
+      ) : variant === "history" ? (
+        <span
+          className="flex size-7 shrink-0 items-center justify-center text-muted-foreground"
+          aria-hidden="true"
+        >
+          <ChevronRightIcon className="size-4" />
+        </span>
+      ) : null}
     </div>
   )
 }
@@ -124,17 +143,34 @@ export function NotificationItem({
 export function NotificationDateHeader({
   date,
   count,
+  variant,
 }: {
   date: string
   count?: number
+  variant: "history" | "inbox"
 }) {
+  const label = notificationDateLabel(date)
+
   return (
-    <div className="flex h-8 items-center justify-between bg-muted/50 px-4 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
-      <span>{notificationDateLabel(date)}</span>
-      {count !== undefined && (
-        <span className="font-medium normal-case">
-          {m.notifications_result_count({ count })}
-        </span>
+    <div
+      className={cn(
+        "flex items-center justify-between bg-muted/50 text-[10px] font-semibold tracking-wide text-muted-foreground uppercase",
+        variant === "inbox" ? "px-5 pt-3 pb-2" : "px-4 py-2"
+      )}
+    >
+      <span>
+        {variant === "history"
+          ? `${label.relative ?? label.weekday} · ${label.date}`
+          : (label.relative ?? label.weekday)}
+      </span>
+      {variant === "inbox" ? (
+        <span className="font-medium">{label.date}</span>
+      ) : (
+        count !== undefined && (
+          <span className="font-medium normal-case">
+            {m.notifications_result_count({ count })}
+          </span>
+        )
       )}
     </div>
   )
@@ -185,12 +221,25 @@ export function NotificationEmptyState({ filtered }: { filtered: boolean }) {
 function notificationDateLabel(value: string) {
   const today = new Date().toISOString().slice(0, 10)
   const yesterday = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10)
-  if (value === today) return m.notifications_today()
-  if (value === yesterday) return m.notifications_yesterday()
-  return new Intl.DateTimeFormat(intlLocale(), {
-    weekday: "long",
+  const date = new Date(`${value}T00:00:00Z`)
+  const shortDate = new Intl.DateTimeFormat(intlLocale(), {
     month: "short",
     day: "numeric",
     timeZone: "UTC",
-  }).format(new Date(`${value}T00:00:00Z`))
+  }).format(date)
+  const weekday = new Intl.DateTimeFormat(intlLocale(), {
+    weekday: "long",
+    timeZone: "UTC",
+  }).format(date)
+
+  return {
+    relative:
+      value === today
+        ? m.notifications_today()
+        : value === yesterday
+          ? m.notifications_yesterday()
+          : null,
+    weekday,
+    date: shortDate,
+  }
 }

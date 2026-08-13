@@ -516,7 +516,17 @@
   "notifications": "Notifications",
   "notifications_history": "Notification history",
   "notifications_history_description": "Review every expense budget alert from your Trackfi workspace.",
-  "notifications_unread_count": "{count} unread notifications",
+  "notifications_unread_count": "{count} unread",
+  "notifications_unread_badge_label": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} unread notification",
+        "countPlural=other": "{count} unread notifications"
+      }
+    }
+  ],
   "notifications_mark_all_read": "Mark all as read",
   "notifications_mark_read": "Mark as read",
   "notifications_all": "All",
@@ -535,7 +545,16 @@
   "notifications_this_week": "This week",
   "notifications_new": "New",
   "notifications_results": "Notifications",
-  "notifications_result_count": "{count} notifications",
+  "notifications_result_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} notification",
+        "countPlural=other": "{count} notifications"
+      }
+    }
+  ],
   "notifications_showing": "Showing {start}–{end} of {total} notifications",
   "notifications_empty_title": "No notifications yet",
   "notifications_empty_description": "Expense budget alerts will appear here when you cross a configured threshold.",

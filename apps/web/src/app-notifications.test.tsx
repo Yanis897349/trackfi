@@ -60,6 +60,11 @@ describe("Trackfi notifications", () => {
     expect(screen.getByLabelText("Search notifications")).toBeInTheDocument()
     expect(await screen.findByText("Approaching budget")).toBeInTheDocument()
     expect(screen.getAllByText("Unread").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("1 notification").length).toBeGreaterThan(0)
+    expect(screen.getByRole("button", { name: "1" })).toHaveAttribute(
+      "aria-current",
+      "page"
+    )
     expect(
       screen.queryByText("Notification history", { selector: "a" })
     ).not.toBeInTheDocument()
