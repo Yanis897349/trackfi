@@ -1,5 +1,6 @@
 import { nextOccurrenceDate, occurrenceDatesInRange } from "./subscriptions"
-import { addCalendarMonths, daysInUtcMonth } from "./date"
+import { addCalendarMonths, monthEndDateOnly } from "./date"
+import { sumBy } from "./numbers"
 
 export const revenueCadences = [
   "once",
@@ -88,7 +89,7 @@ export function revenueForecast(
 
   return {
     months,
-    totalMinor: series.reduce((total, entry) => total + entry.amountMinor, 0),
+    totalMinor: sumBy(series, (entry) => entry.amountMinor),
     previousMonthMinor: revenueForecastForMonth(
       sources,
       addCalendarMonths(currentMonth, -1)
@@ -101,11 +102,8 @@ function revenueForecastForMonth(
   sources: RevenueForecastInput[],
   month: string
 ) {
-  const [year, monthNumber] = month.split("-").map(Number)
-  const through = `${month}-${daysInUtcMonth(year!, monthNumber! - 1)
-    .toString()
-    .padStart(2, "0")}`
   const from = `${month}-01`
+  const through = monthEndDateOnly(from)
 
   return sources.reduce((total, source) => {
     if (source.scheduleType === "variable") {

@@ -1,32 +1,63 @@
+import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
+import { z } from "zod"
 
-import { modules } from "../modules"
-import { m } from "../lib/i18n"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
+
+import {
+  DashboardOverview,
+  DashboardOverviewLoading,
+} from "../components/dashboard-overview"
+import { ModuleError } from "../components/module-layout"
+import { dashboardOverviewQueryOptions } from "../lib/dashboard"
+import { currentMonthDateOnlyRange, isDateOnlyRange } from "../lib/date"
 
 export const Route = createFileRoute("/dashboard/")({
+  validateSearch: z.object({
+    from: z.string().optional().catch(undefined),
+    to: z.string().optional().catch(undefined),
+    page: z.coerce.number().int().positive().catch(1).default(1),
+  }),
   component: DashboardHome,
 })
 
 function DashboardHome() {
-  const { currentUser } = Route.useRouteContext()
+  const search = Route.useSearch()
+  const navigate = Route.useNavigate()
+  const fallback = currentMonthDateOnlyRange()
+  const range = isDateOnlyRange(search.from, search.to, 365)
+    ? { from: search.from!, to: search.to! }
+    : fallback
+  const query = useQuery(
+    dashboardOverviewQueryOptions({ ...range, page: search.page })
+  )
+  const loading = useStableLoadingState({
+    isLoading: query.isLoading,
+    isError: query.isError,
+  })
+
+  if (query.isError) {
+    return <ModuleError retry={() => void query.refetch()} />
+  }
+  if (loading.shouldRender || !query.data) {
+    return (
+      <StableLoadingPlaceholder isVisible={loading.isVisible}>
+        <DashboardOverviewLoading />
+      </StableLoadingPlaceholder>
+    )
+  }
+
   return (
-    <section className="mx-auto w-full max-w-6xl space-y-6">
-      <div>
-        <p className="text-sm text-muted-foreground">
-          {m.dashboard_welcome({ name: currentUser.name })}
-        </p>
-        <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-          {m.dashboard_overview()}
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {m.dashboard_description()}
-        </p>
-      </div>
-      <div className="grid gap-4 lg:grid-cols-2">
-        {modules.map(({ id, DashboardCard }) => (
-          <DashboardCard key={id} />
-        ))}
-      </div>
-    </section>
+    <DashboardOverview
+      overview={query.data.overview}
+      isFetching={query.isFetching}
+      onRangeChange={({ from, to }) =>
+        void navigate({ search: { from, to, page: 1 } })
+      }
+      onPageChange={(page) =>
+        void navigate({ search: { ...range, page }, replace: true })
+      }
+    />
   )
 }

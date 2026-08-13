@@ -5,6 +5,7 @@ import { getAppOrigin } from "./config"
 import { registerAdminFeatureFlagRoutes } from "./routes/admin-feature-flags"
 import { registerAdminWaitlistRoutes } from "./routes/admin-waitlist"
 import { registerAuthRoutes } from "./routes/auth"
+import { registerDashboardOverviewRoute } from "./routes/dashboard-overview"
 import { registerExpenseRoutes } from "./routes/expenses"
 import { registerNotificationRoutes } from "./routes/notifications"
 import { registerPublicRoutes } from "./routes/public"
@@ -35,6 +36,7 @@ app.use(
 
 registerPublicRoutes(app)
 registerAuthRoutes(app)
+registerDashboardOverviewRoute(app)
 registerAdminWaitlistRoutes(app)
 registerAdminFeatureFlagRoutes(app)
 registerSettingsRoutes(app)
