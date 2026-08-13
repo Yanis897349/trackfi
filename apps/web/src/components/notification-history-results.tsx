@@ -8,6 +8,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@trackfi/ui/components/empty"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 
 import type { NotificationHistoryState } from "../hooks/use-notifications"
 import { m } from "../lib/i18n"
@@ -35,6 +37,11 @@ export function NotificationHistoryResults({
   hasFilters: boolean
   onOpen(notification: Notification): void
 }) {
+  const loading = useStableLoadingState({
+    isLoading: state.query.isLoading,
+    isError: state.query.isError,
+  })
+
   return (
     <section className="overflow-hidden rounded-lg border bg-card">
       <div className="flex h-12 items-center justify-between bg-muted/50 px-4">
@@ -47,14 +54,16 @@ export function NotificationHistoryResults({
       </div>
 
       <div className="p-3">
-        {state.query.isPending ? (
-          <div className="overflow-hidden rounded-[10px] border">
-            <NotificationLoading rows={6} />
-          </div>
-        ) : state.query.isError ? (
+        {state.query.isError ? (
           <NotificationHistoryError
             onRetry={() => void state.query.refetch()}
           />
+        ) : loading.shouldRender ? (
+          <StableLoadingPlaceholder isVisible={loading.isVisible}>
+            <div className="overflow-hidden rounded-[10px] border">
+              <NotificationLoading rows={6} />
+            </div>
+          </StableLoadingPlaceholder>
         ) : !data.notifications.length ? (
           <div className="overflow-hidden rounded-[10px] border">
             <NotificationEmptyState

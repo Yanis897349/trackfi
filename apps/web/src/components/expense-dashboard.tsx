@@ -2,6 +2,8 @@ import { PlusIcon, Settings2Icon } from "lucide-react"
 
 import { Button } from "@trackfi/ui/components/button"
 import { Skeleton } from "@trackfi/ui/components/skeleton"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 
 import { useExpenses } from "../hooks/use-expenses"
 import { ExpenseDeleteDialog } from "./expense-delete-dialog"
@@ -16,15 +18,30 @@ import { m } from "../lib/i18n"
 
 export function ExpenseDashboard({ currency }: { currency: string }) {
   const state = useExpenses()
-  if (state.summary.isLoading || state.settings.isLoading)
-    return <ExpenseLoadingState />
-  if (state.summary.isError || state.settings.isError) {
+  const initialError = state.summary.isError || state.settings.isError
+  const initialLoading = useStableLoadingState({
+    isLoading: state.summary.isLoading || state.settings.isLoading,
+    isError: initialError,
+  })
+  const listLoading = useStableLoadingState({
+    isLoading: state.list.isLoading,
+    isError: state.list.isError,
+  })
+
+  if (initialError) {
     return (
       <ModuleError
         retry={() =>
           void Promise.all([state.summary.refetch(), state.settings.refetch()])
         }
       />
+    )
+  }
+  if (initialLoading.shouldRender) {
+    return (
+      <StableLoadingPlaceholder isVisible={initialLoading.isVisible}>
+        <ExpenseLoadingState />
+      </StableLoadingPlaceholder>
     )
   }
   const summary = state.summary.data!.summary
@@ -87,18 +104,20 @@ export function ExpenseDashboard({ currency }: { currency: string }) {
             {state.message}
           </p>
         )}
-        {state.list.isLoading ? (
-          <div
-            role="status"
-            aria-label={m.expenses_loading_list()}
-            className="space-y-2"
-          >
-            {Array.from({ length: 5 }, (_, index) => (
-              <Skeleton key={index} className="h-[58px]" />
-            ))}
-          </div>
-        ) : state.list.isError ? (
+        {state.list.isError ? (
           <ModuleError retry={() => void state.list.refetch()} />
+        ) : listLoading.shouldRender ? (
+          <StableLoadingPlaceholder isVisible={listLoading.isVisible}>
+            <div
+              role="status"
+              aria-label={m.expenses_loading_list()}
+              className="space-y-2"
+            >
+              {Array.from({ length: 5 }, (_, index) => (
+                <Skeleton key={index} className="h-[58px]" />
+              ))}
+            </div>
+          </StableLoadingPlaceholder>
         ) : expenses.length ? (
           <ExpenseList
             expenses={expenses}

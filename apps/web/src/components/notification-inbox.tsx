@@ -12,6 +12,8 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@trackfi/ui/components/popover"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 import { cn } from "@trackfi/ui/lib/utils"
 
 import { useNotificationActions } from "../hooks/use-notifications"
@@ -46,6 +48,10 @@ export function NotificationInbox() {
   })
   const { markAllRead, markRead } = useNotificationActions()
   const unreadCount = unread.data?.unreadCount ?? 0
+  const loading = useStableLoadingState({
+    isLoading: open && list.isLoading,
+    isError: list.isError,
+  })
 
   function openNotification(notification: Notification) {
     if (!notification.readAt) markRead.mutate(notification.id)
@@ -127,9 +133,7 @@ export function NotificationInbox() {
           ))}
         </div>
         <div className="max-h-[344px] overflow-y-auto">
-          {list.isPending ? (
-            <NotificationLoading />
-          ) : list.isError ? (
+          {list.isError ? (
             <div className="p-6 text-center text-sm text-muted-foreground">
               <p>{m.notifications_error_description()}</p>
               <Button
@@ -141,7 +145,11 @@ export function NotificationInbox() {
                 {m.common_retry()}
               </Button>
             </div>
-          ) : !list.data.notifications.length ? (
+          ) : loading.shouldRender ? (
+            <StableLoadingPlaceholder isVisible={loading.isVisible}>
+              <NotificationLoading />
+            </StableLoadingPlaceholder>
+          ) : !list.data ? null : !list.data.notifications.length ? (
             <NotificationEmptyState filtered={filter !== "all"} />
           ) : (
             groupNotifications(list.data.notifications).map((group) => (

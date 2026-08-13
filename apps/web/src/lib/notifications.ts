@@ -1,3 +1,5 @@
+import { keepPreviousData } from "@tanstack/react-query"
+
 import { apiFetch } from "./api"
 
 export const notificationTypes = [
@@ -62,6 +64,7 @@ export function notificationListQueryOptions({
     queryKey: ["notifications", queryString],
     queryFn: () =>
       apiFetch<NotificationListResponse>(`/api/notifications?${queryString}`),
+    placeholderData: keepPreviousData,
   }
 }
 

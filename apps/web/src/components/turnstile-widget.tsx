@@ -1,6 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react"
 
 import { Skeleton } from "@trackfi/ui/components/skeleton"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 
 import { TURNSTILE_SITE_KEY } from "../lib/api"
 import { getLocale, m } from "../lib/i18n"
@@ -54,7 +56,13 @@ export function TurnstileWidget({
   const [loadedKey, setLoadedKey] = useState<number | null>(
     import.meta.env?.MODE === "test" ? resetKey : null
   )
+  const [failedKey, setFailedKey] = useState<number | null>(null)
   const loaded = loadedKey === resetKey
+  const failed = failedKey === resetKey
+  const loading = useStableLoadingState({
+    isLoading: !loaded,
+    isError: failed,
+  })
 
   useEffect(() => {
     if (import.meta.env?.MODE === "test") {
@@ -77,6 +85,7 @@ export function TurnstileWidget({
         setLoadedKey(resetKey)
       })
       .catch(() => {
+        setFailedKey(resetKey)
         setLoadedKey(resetKey)
         onTokenChange("")
       })
@@ -89,14 +98,15 @@ export function TurnstileWidget({
 
   return (
     <div className="relative min-h-[65px]" aria-busy={!loaded}>
-      {!loaded && (
-        <div
+      {loading.shouldRender && (
+        <StableLoadingPlaceholder
+          isVisible={loading.isVisible}
           className="absolute inset-0"
-          role="status"
-          aria-label={m.auth_loading_security_check()}
         >
-          <Skeleton className="h-[65px] w-[300px] max-w-full" />
-        </div>
+          <div role="status" aria-label={m.auth_loading_security_check()}>
+            <Skeleton className="h-[65px] w-[300px] max-w-full" />
+          </div>
+        </StableLoadingPlaceholder>
       )}
       <div id={id} ref={containerRef} aria-label={m.auth_security_check()} />
     </div>

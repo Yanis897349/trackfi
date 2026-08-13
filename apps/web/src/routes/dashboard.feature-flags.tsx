@@ -13,10 +13,13 @@ import {
   AlertDialogTitle,
 } from "@trackfi/ui/components/alert-dialog"
 import { Card, CardContent } from "@trackfi/ui/components/card"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
 import { Switch } from "@trackfi/ui/components/switch"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 
 import { FormMessage } from "../components/auth-shell"
 import { FeatureFlagsLoadingState } from "../components/feature-flags-loading-state"
+import { ModuleError } from "../components/module-layout"
 import { apiFetch, getSession } from "../lib/api"
 import { humanizeError } from "../lib/errors"
 import { intlLocale, m } from "../lib/i18n"
@@ -66,8 +69,19 @@ function FeatureFlagsRoute() {
   const waitlistFlag = query.data?.flags.find(
     (flag) => flag.key === "waitlist_mode"
   )
+  const loading = useStableLoadingState({
+    isLoading: query.isLoading,
+    isError: query.isError,
+  })
 
-  if (query.isLoading) return <FeatureFlagsLoadingState />
+  if (query.isError) return <ModuleError retry={() => void query.refetch()} />
+  if (loading.shouldRender) {
+    return (
+      <StableLoadingPlaceholder isVisible={loading.isVisible}>
+        <FeatureFlagsLoadingState />
+      </StableLoadingPlaceholder>
+    )
+  }
 
   return (
     <section className="mx-auto w-full max-w-4xl space-y-6">
