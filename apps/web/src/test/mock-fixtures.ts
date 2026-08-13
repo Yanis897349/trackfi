@@ -62,3 +62,23 @@ export function expenseFixture() {
     updatedAt: "2026-08-11T00:00:00.000Z",
   }
 }
+
+export function notificationFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "notification-id",
+    type: "expense_budget_approaching",
+    title: "Approaching budget",
+    description: "You’ve spent €800.00 of €1,000.00 and reached the 80% alert.",
+    expensePeriod: { start: "2026-08-01", end: "2026-08-31" },
+    context: {
+      spentMinor: 80_000,
+      budgetMinor: 100_000,
+      currency: "EUR",
+      thresholdPercent: 80,
+    },
+    readAt: null,
+    createdAt: "2026-08-13T09:42:00.000Z",
+    actionPath: "/dashboard/expenses",
+    ...overrides,
+  }
+}

@@ -333,7 +333,7 @@
   "expenses_budget_pace_description": "Define the monthly limit and the daily pace you want to maintain.",
   "expenses_budget_period_description": "Choose when your monthly plan resets.",
   "expenses_rollover_description": "Carry any remaining amount into the next budget period.",
-  "expenses_thresholds_description": "Set the levels that will power future spending notifications.",
+  "expenses_thresholds_description": "Set the levels that trigger in-app and email spending alerts.",
   "expenses_notifications_later": "In-app and email delivery will be added with the notification center.",
   "expenses_settings_description": "Set the guardrails Trackfi uses to plan and monitor your spending.",
   "expenses_set_monthly_budget": "Set a monthly budget to compare actual spending with your target.",
@@ -501,5 +501,69 @@
   "email_reset_title": "Reset your password.",
   "email_reset_body": "Use this secure link to choose a new password.",
   "email_reset_button": "Reset password",
-  "email_reset_text": "Reset your Trackfi password: {url}"
+  "email_reset_text": "Reset your Trackfi password: {url}",
+  "notification_expense_budget_approaching_title": "Approaching budget",
+  "notification_expense_budget_approaching_description": "You’ve spent {spent} of {budget} and reached the {threshold}% alert.",
+  "notification_expense_budget_limit_title": "Budget limit reached",
+  "notification_expense_budget_limit_description": "You’ve spent {spent} of {budget} and reached the {threshold}% limit.",
+  "email_expense_budget_approaching_subject": "You’re approaching your Trackfi expense budget",
+  "email_expense_budget_approaching_title": "Your budget is nearly reached.",
+  "email_expense_budget_approaching_body": "You’ve spent {spent} of {budget} for {period}, reaching your {threshold}% alert.",
+  "email_expense_budget_limit_subject": "You’ve reached your Trackfi expense budget",
+  "email_expense_budget_limit_title": "Your budget limit has been reached.",
+  "email_expense_budget_limit_body": "You’ve spent {spent} of {budget} for {period}, reaching your {threshold}% limit.",
+  "email_expense_budget_button": "View expenses",
+  "notifications": "Notifications",
+  "notifications_history": "Notification history",
+  "notifications_history_description": "Review every expense budget alert from your Trackfi workspace.",
+  "notifications_unread_count": "{count} unread",
+  "notifications_unread_badge_label": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} unread notification",
+        "countPlural=other": "{count} unread notifications"
+      }
+    }
+  ],
+  "notifications_mark_all_read": "Mark all as read",
+  "notifications_mark_read": "Mark as read",
+  "notifications_all": "All",
+  "notifications_unread": "Unread",
+  "notifications_read": "Read",
+  "notifications_view_history": "View notification history",
+  "notifications_search": "Search notifications…",
+  "notifications_search_label": "Search notifications",
+  "notifications_all_types": "All types",
+  "notifications_type_approaching": "Approaching budget",
+  "notifications_type_limit": "Budget limit",
+  "notifications_last_7_days": "Last 7 days",
+  "notifications_last_30_days": "Last 30 days",
+  "notifications_last_90_days": "Last 90 days",
+  "notifications_all_time": "All time",
+  "notifications_this_week": "This week",
+  "notifications_new": "New",
+  "notifications_results": "Notifications",
+  "notifications_result_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} notification",
+        "countPlural=other": "{count} notifications"
+      }
+    }
+  ],
+  "notifications_showing": "Showing {start}–{end} of {total} notifications",
+  "notifications_empty_title": "No notifications yet",
+  "notifications_empty_description": "Expense budget alerts will appear here when you cross a configured threshold.",
+  "notifications_no_match_title": "No matching notifications",
+  "notifications_no_match_description": "Try changing your search or filters.",
+  "notifications_error_title": "Notifications are unavailable",
+  "notifications_error_description": "We couldn’t load notifications right now.",
+  "notifications_loading": "Loading notifications",
+  "notifications_today": "Today",
+  "notifications_yesterday": "Yesterday",
+  "notifications_budget_type": "Budget"
 }

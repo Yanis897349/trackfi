@@ -33,6 +33,26 @@
       "bucket_name": "trackfi-expense-receipts",
     },
   ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "NOTIFICATION_EMAIL_QUEUE",
+        "queue": "trackfi-notification-email",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "trackfi-notification-email",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5,
+        "max_retries": 5,
+        "dead_letter_queue": "trackfi-notification-email-dlq",
+      },
+    ],
+  },
+  "triggers": {
+    "crons": ["* * * * *"],
+  },
   "ratelimits": [
     {
       "name": "WAITLIST_RATE_LIMITER",

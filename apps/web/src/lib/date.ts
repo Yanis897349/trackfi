@@ -71,3 +71,29 @@ export function currentMonthDateOnly(day: number) {
   const month = String(today.getMonth() + 1).padStart(2, "0")
   return `${year}-${month}-${String(day).padStart(2, "0")}`
 }
+
+export function dateOnlyGroupLabel(
+  value: string,
+  labels: { today: string; yesterday: string },
+  now = new Date()
+) {
+  const today = now.toISOString().slice(0, 10)
+  const yesterday = new Date(now.getTime() - 86_400_000)
+    .toISOString()
+    .slice(0, 10)
+  const date = new Date(`${value}T00:00:00Z`)
+
+  return {
+    relative:
+      value === today
+        ? labels.today
+        : value === yesterday
+          ? labels.yesterday
+          : null,
+    weekday: new Intl.DateTimeFormat(intlLocale(), {
+      weekday: "long",
+      timeZone: "UTC",
+    }).format(date),
+    date: formatShortDateOnly(value),
+  }
+}

@@ -16,6 +16,7 @@ import oneTimeRevenueMigration from "../../migrations/20260812130000_add_one_tim
 import expensesMigration from "../../migrations/20260812140000_create_expenses.sql?raw"
 import expenseTransactionsMigration from "../../migrations/20260812150000_create_expense_transactions.sql?raw"
 import localesMigration from "../../migrations/20260813100000_add_locales.sql?raw"
+import notificationsMigration from "../../migrations/20260813110000_create_notifications.sql?raw"
 
 const migrationQueries = [
   usersMigration,
@@ -33,6 +34,7 @@ const migrationQueries = [
   expensesMigration,
   expenseTransactionsMigration,
   localesMigration,
+  notificationsMigration,
 ].flatMap((sql) =>
   sql
     .split(";")

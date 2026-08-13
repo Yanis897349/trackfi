@@ -1,4 +1,4 @@
-import type { Hono } from "hono"
+import type { Context, Hono } from "hono"
 import { z } from "zod"
 import { preferredLocale } from "@trackfi/localization"
 
@@ -16,11 +16,14 @@ import type { AppEnv } from "../types"
 const emailSchema = z.string().trim().toLowerCase().email().max(320)
 const invitationSchema = z.object({ token: z.string().min(32).max(256) })
 
+function healthResponse(context: Context<AppEnv>) {
+  context.header("Cache-Control", "no-store")
+  return context.json({ status: "ok", service: "trackfi-api" })
+}
+
 export function registerPublicRoutes(app: Hono<AppEnv>) {
-  app.get("/health", (context) => {
-    context.header("Cache-Control", "no-store")
-    return context.json({ status: "ok", service: "trackfi-api" })
-  })
+  app.get("/", healthResponse)
+  app.get("/health", healthResponse)
 
   app.get("/api/config", async (context) => {
     context.header("Cache-Control", "no-store")

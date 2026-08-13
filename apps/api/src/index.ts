@@ -6,11 +6,18 @@ import { registerAdminFeatureFlagRoutes } from "./routes/admin-feature-flags"
 import { registerAdminWaitlistRoutes } from "./routes/admin-waitlist"
 import { registerAuthRoutes } from "./routes/auth"
 import { registerExpenseRoutes } from "./routes/expenses"
+import { registerNotificationRoutes } from "./routes/notifications"
 import { registerPublicRoutes } from "./routes/public"
 import { registerRevenueSourceRoutes } from "./routes/revenue-sources"
 import { registerSettingsRoutes } from "./routes/settings"
 import { registerSubscriptionRoutes } from "./routes/subscriptions"
 import type { AppEnv } from "./types"
+import type { Bindings } from "./types"
+import type { NotificationDeliveryMessage } from "./notification-types"
+import {
+  processNotificationDeliveryBatch,
+  runNotificationMaintenance,
+} from "./notification-delivery"
 
 const app = new Hono<AppEnv>()
 
@@ -33,9 +40,20 @@ registerAdminFeatureFlagRoutes(app)
 registerSettingsRoutes(app)
 registerSubscriptionRoutes(app)
 registerExpenseRoutes(app)
+registerNotificationRoutes(app)
 registerRevenueSourceRoutes(app)
 
 app.notFound((context) => context.json({ error: "not_found" }, 404))
 
 export { app }
-export default app
+
+const worker: ExportedHandler<Bindings, NotificationDeliveryMessage> = {
+  fetch: (request, env, executionContext) =>
+    app.fetch(request, env, executionContext),
+  scheduled: (_controller, env, executionContext) => {
+    executionContext.waitUntil(runNotificationMaintenance(env))
+  },
+  queue: (batch, env) => processNotificationDeliveryBatch(env, batch),
+}
+
+export default worker

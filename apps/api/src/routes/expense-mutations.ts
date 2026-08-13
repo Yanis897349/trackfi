@@ -15,6 +15,8 @@ import {
 } from "../expense-receipts"
 import { expenseCreateSchema, expenseUpdateSchema } from "../expense-validation"
 import { inlineContentDisposition } from "../http"
+import { enqueueNotificationDeliveries } from "../notification-delivery"
+import { evaluateExpenseBudgetNotifications } from "../notification-evaluation"
 import type { AppContext, AppEnv } from "../types"
 
 export function registerExpenseMutationRoutes(app: Hono<AppEnv>) {
@@ -69,6 +71,7 @@ export function registerExpenseMutationRoutes(app: Hono<AppEnv>) {
         parsed.data,
         stored
       )
+      await evaluateAndQueueNotifications(context, user.id)
       return context.json({ expense: serializeExpense(row) }, 201)
     } catch (error) {
       if (stored) await context.env.EXPENSE_RECEIPTS.delete(stored.key)
@@ -118,6 +121,7 @@ export function registerExpenseMutationRoutes(app: Hono<AppEnv>) {
     ) {
       deleteReceiptInBackground(context, existing.receipt_key)
     }
+    await evaluateAndQueueNotifications(context, user.id)
     return context.json({ expense: serializeExpense(row) })
   })
 
@@ -137,8 +141,21 @@ export function registerExpenseMutationRoutes(app: Hono<AppEnv>) {
     if (existing.receipt_key) {
       deleteReceiptInBackground(context, existing.receipt_key)
     }
+    await evaluateAndQueueNotifications(context, user.id)
     return context.body(null, 204)
   })
+}
+
+async function evaluateAndQueueNotifications(
+  context: AppContext,
+  userId: string
+) {
+  const pending = await evaluateExpenseBudgetNotifications(context.env, userId)
+  if (pending.length) {
+    context.executionCtx.waitUntil(
+      enqueueNotificationDeliveries(context.env, pending)
+    )
+  }
 }
 
 export function deleteReceiptInBackground(context: AppContext, key: string) {
