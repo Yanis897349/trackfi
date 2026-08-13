@@ -87,3 +87,18 @@ export function subtractUtcCalendarMonth(value: Date) {
     )
   )
 }
+
+export function utcIsoTimestampDaysAgo(days: number, now = new Date()) {
+  return new Date(now.getTime() - days * dayMilliseconds).toISOString()
+}
+
+export function utcIsoWeekStart(now = new Date()) {
+  const day = now.getUTCDay() || 7
+  return new Date(
+    Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate() - day + 1
+    )
+  ).toISOString()
+}

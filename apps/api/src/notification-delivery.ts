@@ -1,6 +1,8 @@
 import { sendExpenseBudgetNotification } from "./email"
+import { safeErrorMessage } from "./errors"
+import { formatCurrencyMinor, formatDateOnlyRange } from "./intl"
 import { evaluateExpenseBudgetNotifications } from "./notification-evaluation"
-import { findNotificationEmail, formatMoney } from "./notification-database"
+import { findNotificationEmail } from "./notification-database"
 import type { NotificationDeliveryMessage } from "./notification-types"
 import type { Bindings } from "./types"
 
@@ -30,7 +32,11 @@ export async function enqueueNotificationDeliveries(
           WHERE notification_id = ? AND channel = 'email'
             AND status = 'pending'`
         )
-          .bind(safeError(error), now, notificationId)
+          .bind(
+            safeErrorMessage(error, "notification_delivery_failed"),
+            now,
+            notificationId
+          )
           .run()
       }
     })
@@ -86,7 +92,7 @@ export async function processNotificationDeliveryMessage(
 
   try {
     const result = await sendExpenseBudgetNotification(env, {
-      budget: formatMoney(
+      budget: formatCurrencyMinor(
         notification.budget_minor,
         notification.currency,
         notification.locale
@@ -94,12 +100,12 @@ export async function processNotificationDeliveryMessage(
       email: notification.email,
       locale: notification.locale,
       notificationId,
-      period: formatPeriod(
+      period: formatDateOnlyRange(
         notification.expense_period_start,
         notification.expense_period_end,
         notification.locale
       ),
-      spent: formatMoney(
+      spent: formatCurrencyMinor(
         notification.spent_minor,
         notification.currency,
         notification.locale
@@ -122,7 +128,11 @@ export async function processNotificationDeliveryMessage(
       `UPDATE notification_deliveries SET status = 'failed', last_error = ?,
         updated_at = ? WHERE notification_id = ? AND channel = 'email'`
     )
-      .bind(safeError(error), failedAt, notificationId)
+      .bind(
+        safeErrorMessage(error, "notification_delivery_failed"),
+        failedAt,
+        notificationId
+      )
       .run()
     message.retry({
       delaySeconds:
@@ -171,22 +181,4 @@ export async function reconcileExpenseNotifications(env: Bindings) {
   )
     .bind(lastUserId, completed ? 1 : 0, now, now)
     .run()
-}
-
-function formatPeriod(start: string, end: string, locale: "en" | "fr") {
-  const intlLocale = locale === "fr" ? "fr-FR" : "en-US"
-  const formatter = new Intl.DateTimeFormat(intlLocale, {
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  })
-  return `${formatter.format(new Date(`${start}T00:00:00Z`))}–${formatter.format(
-    new Date(`${end}T00:00:00Z`)
-  )}`
-}
-
-function safeError(error: unknown) {
-  return error instanceof Error
-    ? error.message.slice(0, 500)
-    : "notification_delivery_failed"
 }

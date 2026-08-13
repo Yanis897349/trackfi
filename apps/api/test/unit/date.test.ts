@@ -4,6 +4,8 @@ import {
   addDateOnlyDays,
   isDateOnly,
   subtractUtcCalendarMonth,
+  utcIsoTimestampDaysAgo,
+  utcIsoWeekStart,
 } from "../../src/date"
 
 describe("date calculations", () => {
@@ -20,5 +22,11 @@ describe("date calculations", () => {
         new Date("2024-03-31T12:30:00.000Z")
       ).toISOString()
     ).toBe("2024-02-29T12:30:00.000Z")
+  })
+
+  it("calculates UTC range cutoffs and ISO-week starts", () => {
+    const now = new Date("2026-08-13T12:30:00.000Z")
+    expect(utcIsoTimestampDaysAgo(7, now)).toBe("2026-08-06T12:30:00.000Z")
+    expect(utcIsoWeekStart(now)).toBe("2026-08-10T00:00:00.000Z")
   })
 })

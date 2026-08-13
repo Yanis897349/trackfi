@@ -23,12 +23,12 @@ import {
   type Notification,
   type NotificationStatusFilter,
 } from "../lib/notifications"
+import { NotificationDateHeader } from "./notification-date-header"
+import { NotificationItem } from "./notification-item"
 import {
-  NotificationDateHeader,
   NotificationEmptyState,
-  NotificationItem,
   NotificationLoading,
-} from "./notification-parts"
+} from "./notification-states"
 
 export function NotificationInbox() {
   const [open, setOpen] = useState(false)

@@ -1,5 +1,6 @@
 import type { Locale } from "@trackfi/localization"
 
+import { formatCurrencyMinor } from "./intl"
 import * as m from "./paraglide/messages.js"
 import type {
   NotificationDeliveryRow,
@@ -138,8 +139,8 @@ export function unreadNotificationCount(database: D1Database, userId: string) {
 }
 
 export function serializeNotification(row: NotificationRow, locale: Locale) {
-  const spent = formatMoney(row.spent_minor, row.currency, locale)
-  const budget = formatMoney(row.budget_minor, row.currency, locale)
+  const spent = formatCurrencyMinor(row.spent_minor, row.currency, locale)
+  const budget = formatCurrencyMinor(row.budget_minor, row.currency, locale)
   const values = {
     budget,
     spent,
@@ -171,21 +172,4 @@ export function serializeNotification(row: NotificationRow, locale: Locale) {
     createdAt: row.created_at,
     actionPath: "/dashboard/expenses" as const,
   }
-}
-
-export function formatMoney(
-  amountMinor: number,
-  currency: string,
-  locale: Locale
-) {
-  const intlLocale = locale === "fr" ? "fr-FR" : "en-US"
-  const digits =
-    new Intl.NumberFormat(intlLocale, {
-      style: "currency",
-      currency,
-    }).resolvedOptions().maximumFractionDigits ?? 2
-  return new Intl.NumberFormat(intlLocale, {
-    style: "currency",
-    currency,
-  }).format(amountMinor / 10 ** digits)
 }

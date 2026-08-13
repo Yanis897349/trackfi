@@ -2,6 +2,8 @@ import type { Hono } from "hono"
 import { z } from "zod"
 
 import { requireUser, requireUserMutation } from "../authorization"
+import { utcIsoTimestampDaysAgo, utcIsoWeekStart } from "../date"
+import { intlLocale } from "../intl"
 import {
   listNotificationRows,
   markAllNotificationsRead,
@@ -50,9 +52,7 @@ export function registerNotificationRoutes(app: Hono<AppEnv>) {
       row,
       value: serializeNotification(row, user.locale),
     }))
-    const query = parsed.data.q.toLocaleLowerCase(
-      user.locale === "fr" ? "fr-FR" : "en-US"
-    )
+    const query = parsed.data.q.toLocaleLowerCase(intlLocale(user.locale))
     const cutoff = rangeCutoff(parsed.data.range)
     const filtered = serialized.filter(({ row, value }) => {
       const statusMatches =
@@ -70,7 +70,7 @@ export function registerNotificationRoutes(app: Hono<AppEnv>) {
     })
     const total = filtered.length
     const offset = (parsed.data.page - 1) * parsed.data.pageSize
-    const weekStart = isoWeekStart()
+    const weekStart = utcIsoWeekStart()
     return context.json({
       notifications: filtered
         .slice(offset, offset + parsed.data.pageSize)
@@ -112,17 +112,5 @@ export function registerNotificationRoutes(app: Hono<AppEnv>) {
 function rangeCutoff(range: (typeof ranges)[number]) {
   if (range === "all") return null
   const days = range === "7d" ? 7 : range === "30d" ? 30 : 90
-  return new Date(Date.now() - days * 86_400_000).toISOString()
-}
-
-function isoWeekStart() {
-  const now = new Date()
-  const day = now.getUTCDay() || 7
-  return new Date(
-    Date.UTC(
-      now.getUTCFullYear(),
-      now.getUTCMonth(),
-      now.getUTCDate() - day + 1
-    )
-  ).toISOString()
+  return utcIsoTimestampDaysAgo(days)
 }

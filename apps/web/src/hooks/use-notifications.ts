@@ -91,6 +91,8 @@ export function useNotificationHistory() {
   }
 }
 
+export type NotificationHistoryState = ReturnType<typeof useNotificationHistory>
+
 async function optimisticMarkRead(queryClient: QueryClient, id: string) {
   await cancelNotificationQueries(queryClient)
   const snapshot = notificationSnapshot(queryClient)
