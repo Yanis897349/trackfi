@@ -22,11 +22,7 @@ describe("Input", () => {
   it("preserves consumer keydown handlers", () => {
     const onKeyDown = vi.fn()
     render(
-      <Input
-        aria-label="Password"
-        type="password"
-        onKeyDown={onKeyDown}
-      />
+      <Input aria-label="Password" type="password" onKeyDown={onKeyDown} />
     )
 
     fireEvent.keyDown(screen.getByLabelText("Password"), {
@@ -35,6 +31,17 @@ describe("Input", () => {
     })
 
     expect(onKeyDown).toHaveBeenCalledOnce()
+  })
+
+  it("prevents Option dead keys from composing into password fields", () => {
+    render(<Input aria-label="Password" type="password" />)
+
+    const accepted = fireEvent.keyDown(screen.getByLabelText("Password"), {
+      altKey: true,
+      key: "Dead",
+    })
+
+    expect(accepted).toBe(false)
   })
 
   it("does not suppress regular typing or Option shortcuts in other fields", () => {

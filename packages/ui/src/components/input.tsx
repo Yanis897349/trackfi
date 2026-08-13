@@ -17,7 +17,7 @@ function Input({
       event.altKey &&
       !event.ctrlKey &&
       !event.metaKey &&
-      event.key.length === 1
+      (event.key.length === 1 || event.key === "Dead")
     ) {
       event.preventDefault()
     }
