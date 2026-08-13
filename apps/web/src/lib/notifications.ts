@@ -75,6 +75,10 @@ export function unreadNotificationCountQueryOptions() {
   }
 }
 
+export function formatUnreadNotificationCount(count: number) {
+  return count > 99 ? "99+" : String(count)
+}
+
 export function groupNotifications(notifications: Notification[]) {
   const groups = new Map<string, Notification[]>()
   for (const notification of notifications) {

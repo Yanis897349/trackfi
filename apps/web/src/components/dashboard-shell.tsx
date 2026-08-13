@@ -1,36 +1,16 @@
 import type { ReactNode } from "react"
-import { Link, useLocation, useNavigate } from "@tanstack/react-router"
+import { useLocation, useNavigate } from "@tanstack/react-router"
 import {
-  FlagIcon,
-  LayoutDashboardIcon,
-  LogOutIcon,
-  MailCheckIcon,
-  SettingsIcon,
-} from "lucide-react"
-
-import { Button } from "@trackfi/ui/components/button"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
   SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarProvider,
-  SidebarRail,
   SidebarTrigger,
 } from "@trackfi/ui/components/sidebar"
 
 import { authClient, type CurrentUser } from "../lib/api"
 import { m } from "../lib/i18n"
-import { modules } from "../modules"
 import { LanguageSelector } from "./language-selector"
 import { NotificationInbox } from "./notification-inbox"
+import { TrackfiSidebar } from "./trackfi-sidebar"
 
 function titleForPath(pathname: string) {
   const titles: Record<string, string> = {
@@ -64,134 +44,13 @@ export function DashboardShell({
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar collapsible="icon">
-        <SidebarHeader className="h-14 justify-center border-b">
-          <Link
-            to="/dashboard"
-            className="flex items-center gap-2 overflow-hidden px-2 font-semibold group-data-[collapsible=icon]:size-8 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
-          >
-            <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary text-xs text-primary-foreground">
-              T
-            </span>
-            <span className="group-data-[collapsible=icon]:hidden">
-              Trackfi
-            </span>
-          </Link>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>{m.nav_workspace()}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip={m.nav_dashboard()}
-                    isActive={location.pathname === "/dashboard"}
-                    render={<Link to="/dashboard" />}
-                  >
-                    <LayoutDashboardIcon />
-                    <span>{m.nav_dashboard()}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          <SidebarGroup>
-            <SidebarGroupLabel>{m.nav_modules()}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {modules.map((module) => (
-                  <SidebarMenuItem key={module.id}>
-                    <SidebarMenuButton
-                      tooltip={module.label}
-                      isActive={
-                        location.pathname === module.href ||
-                        location.pathname.startsWith(`${module.href}/`)
-                      }
-                      render={<Link to={module.href} />}
-                    >
-                      <module.icon />
-                      <span>{module.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          {user.role === "admin" && (
-            <SidebarGroup>
-              <SidebarGroupLabel>{m.nav_admin()}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      tooltip={m.nav_waitlist()}
-                      isActive={location.pathname === "/dashboard/waitlist"}
-                      render={<Link to="/dashboard/waitlist" />}
-                    >
-                      <MailCheckIcon />
-                      <span>{m.nav_waitlist()}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      tooltip={m.nav_feature_flags()}
-                      isActive={
-                        location.pathname === "/dashboard/feature-flags"
-                      }
-                      render={<Link to="/dashboard/feature-flags" />}
-                    >
-                      <FlagIcon />
-                      <span>{m.nav_feature_flags()}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-          )}
-          <SidebarGroup className="mt-auto">
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip={m.nav_settings()}
-                    isActive={location.pathname === "/dashboard/settings"}
-                    render={<Link to="/dashboard/settings" />}
-                  >
-                    <SettingsIcon />
-                    <span>{m.nav_settings()}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter className="border-t">
-          <div className="flex items-center gap-2 overflow-hidden p-1">
-            <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium uppercase">
-              {user.name.slice(0, 1)}
-            </div>
-            <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-              <p className="truncate text-xs font-medium">{user.name}</p>
-              <p className="truncate text-xs text-muted-foreground">
-                {user.email}
-              </p>
-            </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              onClick={signOut}
-              className="group-data-[collapsible=icon]:hidden"
-            >
-              <LogOutIcon />
-              <span className="sr-only">{m.nav_sign_out()}</span>
-            </Button>
-          </div>
-        </SidebarFooter>
-        <SidebarRail />
-      </Sidebar>
+    <SidebarProvider
+      style={{
+        "--sidebar-width": "18.25rem",
+        "--sidebar-width-mobile": "18.25rem",
+      }}
+    >
+      <TrackfiSidebar user={user} onSignOut={signOut} />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4">
           <SidebarTrigger className="-ml-1" />
