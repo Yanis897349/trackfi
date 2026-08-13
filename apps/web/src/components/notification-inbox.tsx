@@ -89,7 +89,7 @@ export function NotificationInbox() {
           <Button
             type="button"
             variant="secondary"
-            size="xs"
+            size="sm"
             disabled={unreadCount === 0 || markAllRead.isPending}
             onClick={() => markAllRead.mutate()}
           >
@@ -102,7 +102,7 @@ export function NotificationInbox() {
             <Button
               key={value}
               type="button"
-              size="xs"
+              size="sm"
               variant={filter === value ? "default" : "ghost"}
               onClick={() => setFilter(value)}
               className="rounded-md"
