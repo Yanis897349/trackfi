@@ -57,6 +57,7 @@ export function NotificationHistoryFilters({
         <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           value={state.search}
+          maxLength={100}
           onChange={(event) => state.setSearch(event.target.value)}
           placeholder={m.notifications_search()}
           aria-label={m.notifications_search_label()}

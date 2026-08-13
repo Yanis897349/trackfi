@@ -20,6 +20,8 @@ type NotificationSnapshot = Array<
   readonly [readonly unknown[], NotificationListResponse | undefined]
 >
 
+const notificationHistoryPageSize = 6
+
 export function useNotificationActions() {
   const queryClient = useQueryClient()
   const markRead = useMutation({
@@ -59,9 +61,14 @@ export function useNotificationHistory() {
       type,
       range,
       page,
-      pageSize: 6,
+      pageSize: notificationHistoryPageSize,
     })
   )
+  const total = query.data?.total
+  if (total !== undefined) {
+    const lastPage = Math.max(1, Math.ceil(total / notificationHistoryPageSize))
+    if (page > lastPage) setPage(lastPage)
+  }
   const actions = useNotificationActions()
   function resetPage<T>(setter: (value: T) => void, value: T) {
     setter(value)

@@ -57,7 +57,10 @@ describe("Trackfi notifications", () => {
     expect(
       await screen.findByRole("heading", { name: "Notification history" })
     ).toBeInTheDocument()
-    expect(screen.getByLabelText("Search notifications")).toBeInTheDocument()
+    expect(screen.getByLabelText("Search notifications")).toHaveAttribute(
+      "maxlength",
+      "100"
+    )
     expect(await screen.findByText("Approaching budget")).toBeInTheDocument()
     expect(screen.getAllByText("Unread").length).toBeGreaterThan(0)
     expect(screen.getAllByText("1 notification").length).toBeGreaterThan(0)
@@ -89,5 +92,43 @@ describe("Trackfi notifications", () => {
     const empty = createTestRouter("/dashboard/notifications")
     render(<App queryClient={empty.queryClient} router={empty.router} />)
     expect(await screen.findByText("No notifications yet")).toBeInTheDocument()
+  })
+
+  it("returns to the previous unread page when the last page becomes empty", async () => {
+    mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      notifications: Array.from({ length: 7 }, (_, index) =>
+        notificationFixture({ id: `notification-${index}` })
+      ),
+    })
+    const { queryClient, router } = createTestRouter("/dashboard/notifications")
+    render(<App queryClient={queryClient} router={router} />)
+
+    const statusFilter = await screen.findByRole("combobox", { name: "All" })
+    fireEvent.click(statusFilter)
+    const unread = await screen.findByRole("option", { name: "Unread" })
+    fireEvent.pointerDown(unread, { pointerType: "mouse" })
+    fireEvent.click(unread)
+
+    const secondPage = await screen.findByRole("button", { name: "2" })
+    fireEvent.click(secondPage)
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "2" })).toHaveAttribute(
+        "aria-current",
+        "page"
+      )
+    )
+    fireEvent.click(await screen.findByRole("button", { name: "Mark as read" }))
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "1" })).toHaveAttribute(
+        "aria-current",
+        "page"
+      )
+    )
+    expect(
+      screen.getAllByRole("button", { name: "Mark as read" })
+    ).toHaveLength(6)
   })
 })
