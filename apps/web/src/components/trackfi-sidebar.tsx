@@ -16,6 +16,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarSeparator,
   useSidebar,
 } from "@trackfi/ui/components/sidebar"
 import { spring } from "@trackfi/ui/lib/springs"
@@ -71,7 +72,7 @@ function SidebarNavigationLink({
           layoutId="trackfi-sidebar-active-indicator"
           data-slot="sidebar-active-indicator"
           aria-hidden="true"
-          className="pointer-events-none absolute top-2.5 left-0 h-[18px] w-[3px] rounded-r-sm bg-sidebar-foreground"
+          className="pointer-events-none absolute inset-y-0 left-0 my-auto h-[18px] w-[3px] rounded-r-sm bg-sidebar-foreground"
           transition={shouldReduceMotion ? { duration: 0 } : spring.moderate}
         />
       )}
@@ -88,13 +89,19 @@ function NavigationGroup({
 }) {
   return (
     <SidebarGroup className="gap-1 p-0">
-      <SidebarGroupLabel className="h-3 rounded-none px-0 text-[10px] font-semibold tracking-[0.08em] uppercase">
+      <SidebarGroupLabel className="h-3 rounded-none px-0 text-[10px] font-semibold tracking-[0.08em] uppercase group-data-[collapsible=icon]:-mt-3!">
         {label}
       </SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu className="gap-[3px]">{children}</SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
+  )
+}
+
+function CollapsedGroupSeparator() {
+  return (
+    <SidebarSeparator className="mx-1 hidden group-data-[collapsible=icon]:my-2.5 group-data-[collapsible=icon]:block data-horizontal:w-auto!" />
   )
 }
 
@@ -122,7 +129,7 @@ export function TrackfiSidebar({
           </span>
         </div>
       </SidebarHeader>
-      <SidebarContent className="gap-[18px] px-2.5 py-1">
+      <SidebarContent className="gap-[18px] px-2.5 py-1 group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:px-2">
         <NavigationGroup label={m.nav_workspace()}>
           <SidebarNavigationLink
             href="/dashboard"
@@ -131,6 +138,7 @@ export function TrackfiSidebar({
             isActive={location.pathname === "/dashboard"}
           />
         </NavigationGroup>
+        <CollapsedGroupSeparator />
         <NavigationGroup label={m.nav_modules()}>
           {modules.map((module) => (
             <SidebarNavigationLink
@@ -146,23 +154,26 @@ export function TrackfiSidebar({
           ))}
         </NavigationGroup>
         {user.role === "admin" && (
-          <NavigationGroup label={m.nav_admin()}>
-            <SidebarNavigationLink
-              href="/dashboard/waitlist"
-              icon={MailCheckIcon}
-              label={m.nav_waitlist()}
-              isActive={location.pathname === "/dashboard/waitlist"}
-            />
-            <SidebarNavigationLink
-              href="/dashboard/feature-flags"
-              icon={FlagIcon}
-              label={m.nav_feature_flags()}
-              isActive={location.pathname === "/dashboard/feature-flags"}
-            />
-          </NavigationGroup>
+          <>
+            <CollapsedGroupSeparator />
+            <NavigationGroup label={m.nav_admin()}>
+              <SidebarNavigationLink
+                href="/dashboard/waitlist"
+                icon={MailCheckIcon}
+                label={m.nav_waitlist()}
+                isActive={location.pathname === "/dashboard/waitlist"}
+              />
+              <SidebarNavigationLink
+                href="/dashboard/feature-flags"
+                icon={FlagIcon}
+                label={m.nav_feature_flags()}
+                isActive={location.pathname === "/dashboard/feature-flags"}
+              />
+            </NavigationGroup>
+          </>
         )}
       </SidebarContent>
-      <SidebarFooter className="p-2.5 pb-3">
+      <SidebarFooter className="p-2.5 pb-3 group-data-[collapsible=icon]:px-2">
         <SidebarUserMenu user={user} onSignOut={onSignOut} />
       </SidebarFooter>
       <SidebarRail />
