@@ -92,7 +92,11 @@ export function SubscriptionPreview({
         }
       >
         {children ?? (
-          <BrandLogo name={details.name} websiteUrl={details.websiteUrl} />
+          <BrandLogo
+            name={details.name}
+            websiteUrl={details.websiteUrl}
+            className="bg-transparent [&>span]:p-1"
+          />
         )}
       </HoverCardTrigger>
       <HoverCardContent align={align} className="w-72">
@@ -100,7 +104,7 @@ export function SubscriptionPreview({
           <BrandLogo
             name={details.name}
             websiteUrl={details.websiteUrl}
-            className="size-10"
+            className="size-10 bg-transparent [&>span]:p-1"
           />
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium">{details.name}</p>
