@@ -1,7 +1,10 @@
-import { lazy, Suspense } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
+
+import { ExpenseDashboard } from "../components/expense-dashboard"
 import {
   ExpenseCurrencyRequiredState,
   ExpenseLoadingState,
@@ -9,26 +12,28 @@ import {
 import { ModuleError } from "../components/module-layout"
 import { settingsQueryOptions } from "../lib/settings"
 
-const ExpenseDashboard = lazy(async () => {
-  const module = await import("../components/expense-dashboard")
-  return { default: module.ExpenseDashboard }
-})
-
 export const Route = createFileRoute("/dashboard/expenses")({
   component: ExpensesRoute,
 })
 
 function ExpensesRoute() {
   const settings = useQuery(settingsQueryOptions())
-  if (settings.isLoading) return <ExpenseLoadingState />
+  const loading = useStableLoadingState({
+    isLoading: settings.isLoading,
+    isError: settings.isError,
+  })
+
   if (settings.isError) {
     return <ModuleError retry={() => void settings.refetch()} />
   }
+  if (loading.shouldRender) {
+    return (
+      <StableLoadingPlaceholder isVisible={loading.isVisible}>
+        <ExpenseLoadingState />
+      </StableLoadingPlaceholder>
+    )
+  }
   const currency = settings.data?.settings.currency
   if (!currency) return <ExpenseCurrencyRequiredState />
-  return (
-    <Suspense fallback={<ExpenseLoadingState />}>
-      <ExpenseDashboard currency={currency} />
-    </Suspense>
-  )
+  return <ExpenseDashboard currency={currency} />
 }

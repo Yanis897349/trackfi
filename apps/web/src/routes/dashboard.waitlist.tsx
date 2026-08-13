@@ -1,10 +1,17 @@
 import { useState } from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 
 import { Button } from "@trackfi/ui/components/button"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 
 import { FormMessage } from "../components/auth-shell"
+import { ModuleError } from "../components/module-layout"
 import { WaitlistAdminTable } from "../components/waitlist-admin-table"
 import { apiFetch, getSession } from "../lib/api"
 import { humanizeError } from "../lib/errors"
@@ -33,6 +40,7 @@ function WaitlistAdminRoute() {
       apiFetch<WaitlistResponse>(
         `/api/admin/waitlist?page=${page}&status=${status}`
       ),
+    placeholderData: keepPreviousData,
   })
   const { isPending: invitationPending, mutate: mutateInvitation } =
     useMutation({
@@ -57,6 +65,10 @@ function WaitlistAdminRoute() {
     1,
     Math.ceil((query.data?.total ?? 0) / (query.data?.pageSize ?? 25))
   )
+  const loading = useStableLoadingState({
+    isLoading: query.isLoading,
+    isError: query.isError,
+  })
 
   return (
     <section className="mx-auto w-full max-w-6xl space-y-6">
@@ -88,12 +100,17 @@ function WaitlistAdminRoute() {
         )}
       </div>
       {message && <FormMessage>{message}</FormMessage>}
-      <WaitlistAdminTable
-        entries={query.data?.entries ?? []}
-        invitationPending={invitationPending}
-        isLoading={query.isLoading}
-        onInvitation={mutateInvitation}
-      />
+      {query.isError ? (
+        <ModuleError retry={() => void query.refetch()} />
+      ) : (
+        <WaitlistAdminTable
+          entries={query.data?.entries ?? []}
+          invitationPending={invitationPending}
+          isLoading={loading.shouldRender}
+          isLoadingVisible={loading.isVisible}
+          onInvitation={mutateInvitation}
+        />
+      )}
       <div className="flex items-center justify-between text-sm text-muted-foreground">
         <span>{m.admin_page({ page, total: totalPages })}</span>
         <div className="flex gap-2">

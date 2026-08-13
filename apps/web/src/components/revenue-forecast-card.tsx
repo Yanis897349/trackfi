@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@trackfi/ui/components/card"
-import { Skeleton } from "@trackfi/ui/components/skeleton"
 import { cn } from "@trackfi/ui/lib/utils"
 
 import type { RevenueSummary } from "../lib/revenue"
@@ -49,7 +48,9 @@ export function RevenueForecastCard({
             {m.revenue_forecast_income()}
           </p>
         </div>
-        <Suspense fallback={<Skeleton className="mt-1 h-[118px] w-full" />}>
+        <Suspense
+          fallback={<div aria-hidden className="mt-1 h-[118px] w-full" />}
+        >
           <RevenueForecastChart
             forecast={summary.forecast}
             currency={currency}

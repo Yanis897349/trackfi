@@ -33,6 +33,7 @@ interface WaitlistAdminTableProps {
   entries: WaitlistEntry[]
   invitationPending: boolean
   isLoading: boolean
+  isLoadingVisible: boolean
   onInvitation: (input: { action: "approve" | "resend"; id: string }) => void
 }
 
@@ -42,6 +43,7 @@ export function WaitlistAdminTable({
   entries,
   invitationPending,
   isLoading,
+  isLoadingVisible,
   onInvitation,
 }: WaitlistAdminTableProps) {
   const columns = useMemo(
@@ -122,7 +124,11 @@ export function WaitlistAdminTable({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody aria-busy={isLoading}>
+          <TableBody
+            aria-busy={isLoadingVisible || undefined}
+            aria-hidden={isLoading && !isLoadingVisible ? true : undefined}
+            className={isLoading && !isLoadingVisible ? "invisible" : undefined}
+          >
             {isLoading ? (
               <WaitlistAdminTableSkeleton />
             ) : table.getRowModel().rows.length ? (

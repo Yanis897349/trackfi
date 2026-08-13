@@ -31,12 +31,14 @@ import { m } from "../lib/i18n"
 export function SubscriptionCalendarView({
   calendar,
   currency,
+  isUpdating,
   month,
   message,
   onMonthChange,
 }: {
   calendar: RenewalCalendar
   currency: string
+  isUpdating: boolean
   month: Date
   message: string
   onMonthChange(month: Date): void
@@ -82,6 +84,7 @@ export function SubscriptionCalendarView({
               <Button
                 variant="outline"
                 size="icon-sm"
+                disabled={isUpdating}
                 onClick={() => onMonthChange(shiftMonth(month, -1))}
               >
                 <ChevronLeftIcon />
@@ -90,6 +93,7 @@ export function SubscriptionCalendarView({
               <Button
                 variant="outline"
                 size="icon-sm"
+                disabled={isUpdating}
                 onClick={() => onMonthChange(shiftMonth(month, 1))}
               >
                 <ChevronRightIcon />
@@ -101,6 +105,7 @@ export function SubscriptionCalendarView({
             </CardTitle>
             <Button
               variant="outline"
+              disabled={isUpdating}
               onClick={() => onMonthChange(monthDate(new Date()))}
             >
               {m.common_today()}

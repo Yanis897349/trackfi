@@ -1,3 +1,5 @@
+import { keepPreviousData } from "@tanstack/react-query"
+
 import { apiFetch } from "./api"
 import { localDate } from "./date"
 import { intlLocale, m } from "./i18n"
@@ -148,6 +150,7 @@ export function subscriptionsQueryOptions({
     queryKey: ["subscriptions", queryString],
     queryFn: () =>
       apiFetch<SubscriptionListResponse>(`/api/subscriptions?${queryString}`),
+    placeholderData: keepPreviousData,
   }
 }
 
@@ -158,6 +161,7 @@ export function renewalCalendarQueryOptions(month: string) {
       apiFetch<{ calendar: RenewalCalendar }>(
         `/api/subscriptions/calendar?month=${encodeURIComponent(month)}`
       ),
+    placeholderData: keepPreviousData,
   }
 }
 

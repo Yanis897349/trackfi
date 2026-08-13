@@ -12,6 +12,8 @@ import {
   CardTitle,
 } from "@trackfi/ui/components/card"
 import { Skeleton } from "@trackfi/ui/components/skeleton"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 import { cn } from "@trackfi/ui/lib/utils"
 
 import { revenueSummaryQueryOptions } from "../lib/revenue"
@@ -20,6 +22,10 @@ import { m } from "../lib/i18n"
 
 export function RevenueOverviewCard() {
   const query = useQuery(revenueSummaryQueryOptions())
+  const loading = useStableLoadingState({
+    isLoading: query.isLoading,
+    isError: query.isError,
+  })
   const summary = query.data?.summary
   return (
     <Card className="h-full">
@@ -38,19 +44,21 @@ export function RevenueOverviewCard() {
         </CardAction>
       </CardHeader>
       <CardContent>
-        {query.isLoading ? (
-          <div
-            className="grid grid-cols-2 gap-3"
-            role="status"
-            aria-label={m.revenue_loading()}
-          >
-            <Skeleton className="h-14" />
-            <Skeleton className="h-14" />
-          </div>
-        ) : query.isError ? (
+        {query.isError ? (
           <p className="text-sm text-muted-foreground">
             {m.revenue_unavailable()}
           </p>
+        ) : loading.shouldRender ? (
+          <StableLoadingPlaceholder isVisible={loading.isVisible}>
+            <div
+              className="grid grid-cols-2 gap-3"
+              role="status"
+              aria-label={m.revenue_loading()}
+            >
+              <Skeleton className="h-14" />
+              <Skeleton className="h-14" />
+            </div>
+          </StableLoadingPlaceholder>
         ) : !summary?.currency ? (
           <div className="rounded-lg bg-muted/60 p-3">
             <p className="text-sm font-medium">

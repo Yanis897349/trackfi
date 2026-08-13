@@ -2,6 +2,8 @@ import { PlusIcon } from "lucide-react"
 
 import { Button } from "@trackfi/ui/components/button"
 import { Skeleton } from "@trackfi/ui/components/skeleton"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 
 import { useRevenue } from "../hooks/use-revenue"
 import { ModuleError, ModuleHeader } from "./module-layout"
@@ -15,9 +17,24 @@ import { m } from "../lib/i18n"
 
 export function RevenueDashboard({ currency }: { currency: string }) {
   const state = useRevenue(currency)
-  if (state.summary.isLoading) return <RevenueLoadingState />
+  const summaryLoading = useStableLoadingState({
+    isLoading: state.summary.isLoading,
+    isError: state.summary.isError,
+  })
+  const listLoading = useStableLoadingState({
+    isLoading: state.list.isLoading,
+    isError: state.list.isError,
+  })
+
   if (state.summary.isError) {
     return <ModuleError retry={() => void state.summary.refetch()} />
+  }
+  if (summaryLoading.shouldRender) {
+    return (
+      <StableLoadingPlaceholder isVisible={summaryLoading.isVisible}>
+        <RevenueLoadingState />
+      </StableLoadingPlaceholder>
+    )
   }
 
   const sources = state.list.data?.revenueSources ?? []
@@ -70,10 +87,12 @@ export function RevenueDashboard({ currency }: { currency: string }) {
             {state.message}
           </p>
         )}
-        {state.list.isLoading ? (
-          <SkeletonList />
-        ) : state.list.isError ? (
+        {state.list.isError ? (
           <ModuleError retry={() => void state.list.refetch()} />
+        ) : listLoading.shouldRender ? (
+          <StableLoadingPlaceholder isVisible={listLoading.isVisible}>
+            <SkeletonList />
+          </StableLoadingPlaceholder>
         ) : sources.length ? (
           <RevenueList
             sources={sources}

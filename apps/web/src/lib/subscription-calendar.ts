@@ -13,6 +13,11 @@ export function formatMonthKey(date: Date) {
   return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`
 }
 
+export function monthKeyDate(value: string) {
+  const [year, month] = value.split("-").map(Number)
+  return new Date(year!, month! - 1, 1, 12)
+}
+
 export function formatMonthTitle(date: Date) {
   return new Intl.DateTimeFormat(intlLocale(), {
     month: "long",

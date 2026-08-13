@@ -1,3 +1,5 @@
+import { keepPreviousData } from "@tanstack/react-query"
+
 import { apiFetch } from "./api"
 import { localDate } from "./date"
 import { cadenceLabel, categoryLabel, statusLabel } from "./labels"
@@ -160,6 +162,7 @@ export function revenueSourcesQueryOptions({
         pageSize: number
         total: number
       }>(`/api/revenue-sources?${queryString}`),
+    placeholderData: keepPreviousData,
   }
 }
 

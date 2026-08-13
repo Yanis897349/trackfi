@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router"
 import { PlusIcon } from "lucide-react"
 
 import { Button } from "@trackfi/ui/components/button"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 
 import { ModuleError, ModuleHeader } from "../components/module-layout"
 import { SubscriptionDeleteDialog } from "../components/subscription-delete-dialog"
@@ -24,11 +26,17 @@ export const Route = createFileRoute("/dashboard/subscriptions")({
 
 function SubscriptionsRoute() {
   const state = useSubscriptions()
+  const initialError = state.settings.isError || state.summary.isError
+  const initialLoading = useStableLoadingState({
+    isLoading: state.settings.isLoading || state.summary.isLoading,
+    isError: initialError,
+  })
+  const listLoading = useStableLoadingState({
+    isLoading: state.list.isLoading,
+    isError: state.list.isError,
+  })
 
-  if (state.settings.isLoading || state.summary.isLoading) {
-    return <SubscriptionsLoadingState />
-  }
-  if (state.settings.isError || state.summary.isError) {
+  if (initialError) {
     return (
       <ModuleError
         retry={() => {
@@ -36,6 +44,13 @@ function SubscriptionsRoute() {
           void state.summary.refetch()
         }}
       />
+    )
+  }
+  if (initialLoading.shouldRender) {
+    return (
+      <StableLoadingPlaceholder isVisible={initialLoading.isVisible}>
+        <SubscriptionsLoadingState />
+      </StableLoadingPlaceholder>
     )
   }
   if (!state.currency) return <CurrencyRequiredState />
@@ -77,10 +92,12 @@ function SubscriptionsRoute() {
           {state.message}
         </p>
       )}
-      {state.list.isLoading ? (
-        <SubscriptionListSkeleton />
-      ) : state.list.isError ? (
+      {state.list.isError ? (
         <ModuleError retry={() => void state.list.refetch()} />
+      ) : listLoading.shouldRender ? (
+        <StableLoadingPlaceholder isVisible={listLoading.isVisible}>
+          <SubscriptionListSkeleton />
+        </StableLoadingPlaceholder>
       ) : subscriptions.length ? (
         <SubscriptionList
           subscriptions={subscriptions}

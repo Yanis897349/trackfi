@@ -32,6 +32,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@trackfi/ui/components/select"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 
 import { ModuleError, ModuleHeader } from "../components/module-layout"
 import { SettingsLoadingState } from "../components/settings-loading-state"
@@ -62,6 +64,10 @@ function SettingsRoute() {
   const currency = currencyOverride ?? query.data?.settings.currency ?? ""
   const [message, setMessage] = useState("")
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const loading = useStableLoadingState({
+    isLoading: query.isLoading,
+    isError: query.isError,
+  })
 
   const mutation = useMutation({
     mutationFn: (confirmRelabel: boolean) =>
@@ -94,8 +100,14 @@ function SettingsRoute() {
     },
   })
 
-  if (query.isLoading) return <SettingsLoadingState />
   if (query.isError) return <ModuleError retry={() => void query.refetch()} />
+  if (loading.shouldRender) {
+    return (
+      <StableLoadingPlaceholder isVisible={loading.isVisible}>
+        <SettingsLoadingState />
+      </StableLoadingPlaceholder>
+    )
+  }
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6">

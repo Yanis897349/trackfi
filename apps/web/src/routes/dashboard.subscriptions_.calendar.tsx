@@ -5,13 +5,19 @@ import { PlusIcon } from "lucide-react"
 
 import { Button } from "@trackfi/ui/components/button"
 import { Skeleton } from "@trackfi/ui/components/skeleton"
+import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
+import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
 
 import { SubscriptionCalendarView } from "../components/subscription-calendar-view"
 import { ModuleError, ModuleHeader } from "../components/module-layout"
 import { SubscriptionFormDialog } from "../components/subscription-form-dialog"
 import { CurrencyRequiredState } from "../components/subscription-states"
 import { useSubscriptionManager } from "../hooks/use-subscriptions"
-import { formatMonthKey, monthDate } from "../lib/subscription-calendar"
+import {
+  formatMonthKey,
+  monthDate,
+  monthKeyDate,
+} from "../lib/subscription-calendar"
 import { settingsQueryOptions } from "../lib/settings"
 import { renewalCalendarQueryOptions } from "../lib/subscriptions"
 import { m } from "../lib/i18n"
@@ -27,11 +33,13 @@ function SubscriptionCalendarRoute() {
   const manager = useSubscriptionManager()
   const currency =
     settings.data?.settings.currency ?? calendar.data?.calendar.currency
+  const hasError = settings.isError || calendar.isError
+  const loading = useStableLoadingState({
+    isLoading: settings.isLoading || calendar.isLoading,
+    isError: hasError,
+  })
 
-  if (settings.isLoading || calendar.isLoading) {
-    return <CalendarLoadingState />
-  }
-  if (settings.isError || calendar.isError) {
+  if (hasError) {
     return (
       <ModuleError
         retry={() => {
@@ -39,6 +47,13 @@ function SubscriptionCalendarRoute() {
           void calendar.refetch()
         }}
       />
+    )
+  }
+  if (loading.shouldRender) {
+    return (
+      <StableLoadingPlaceholder isVisible={loading.isVisible}>
+        <CalendarLoadingState />
+      </StableLoadingPlaceholder>
     )
   }
   if (!currency) {
@@ -50,8 +65,13 @@ function SubscriptionCalendarRoute() {
     )
   }
 
+  const displayedMonth = monthKeyDate(calendar.data!.calendar.month)
+
   return (
-    <section className="mx-auto w-full max-w-6xl space-y-5">
+    <section
+      className="mx-auto w-full max-w-6xl space-y-5"
+      aria-busy={calendar.isPlaceholderData || undefined}
+    >
       <ModuleHeader
         title={m.calendar_title()}
         description={m.calendar_description()}
@@ -64,7 +84,8 @@ function SubscriptionCalendarRoute() {
       <SubscriptionCalendarView
         calendar={calendar.data!.calendar}
         currency={currency}
-        month={month}
+        isUpdating={calendar.isPlaceholderData}
+        month={displayedMonth}
         message={manager.message}
         onMonthChange={setMonth}
       />
