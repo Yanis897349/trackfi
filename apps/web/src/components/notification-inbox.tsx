@@ -17,6 +17,7 @@ import { cn } from "@trackfi/ui/lib/utils"
 import { useNotificationActions } from "../hooks/use-notifications"
 import { m } from "../lib/i18n"
 import {
+  formatUnreadNotificationCount,
   groupNotifications,
   notificationListQueryOptions,
   unreadNotificationCountQueryOptions,
@@ -70,7 +71,7 @@ export function NotificationInbox() {
         <BellIcon />
         {unreadCount > 0 && (
           <span className="absolute top-0.5 right-0.5 flex min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[9px] leading-4 font-bold text-background">
-            {unreadCount > 99 ? "99+" : unreadCount}
+            {formatUnreadNotificationCount(unreadCount)}
           </span>
         )}
       </PopoverTrigger>
