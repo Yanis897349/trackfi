@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { Link, useLocation } from "@tanstack/react-router"
 import type { LucideIcon } from "lucide-react"
 import { FlagIcon, LayoutDashboardIcon, MailCheckIcon } from "lucide-react"
+import { motion, useReducedMotion } from "motion/react"
 
 import {
   Sidebar,
@@ -17,6 +18,7 @@ import {
   SidebarRail,
   useSidebar,
 } from "@trackfi/ui/components/sidebar"
+import { spring } from "@trackfi/ui/lib/springs"
 
 import type { CurrentUser } from "../lib/api"
 import { m } from "../lib/i18n"
@@ -24,7 +26,7 @@ import { modules } from "../modules"
 import { SidebarUserMenu } from "./sidebar-user-menu"
 
 const navigationButtonClass =
-  "h-[38px] gap-[11px] rounded-[7px] px-2.5 font-medium text-[#3f3f46] data-active:font-semibold data-active:text-sidebar-accent-foreground dark:text-sidebar-foreground/80 [&>svg]:size-[17px] [&>svg]:text-muted-foreground data-active:[&>svg]:text-sidebar-accent-foreground"
+  "h-[38px] gap-[11px] rounded-[7px] px-2.5 font-medium text-[#3f3f46] transition-colors motion-reduce:transition-none data-active:font-semibold data-active:text-sidebar-accent-foreground dark:text-sidebar-foreground/80 [&>svg]:size-[17px] [&>svg]:text-muted-foreground data-active:[&>svg]:text-sidebar-accent-foreground"
 
 type SidebarHref =
   | "/dashboard"
@@ -46,6 +48,7 @@ function SidebarNavigationLink({
   label: string
 }) {
   const { isMobile, setOpenMobile } = useSidebar()
+  const shouldReduceMotion = useReducedMotion()
 
   return (
     <SidebarMenuItem>
@@ -64,9 +67,12 @@ function SidebarNavigationLink({
         <span>{label}</span>
       </SidebarMenuButton>
       {isActive && (
-        <span
+        <motion.span
+          layoutId="trackfi-sidebar-active-indicator"
+          data-slot="sidebar-active-indicator"
           aria-hidden="true"
           className="pointer-events-none absolute top-2.5 left-0 h-[18px] w-[3px] rounded-r-sm bg-sidebar-foreground"
+          transition={shouldReduceMotion ? { duration: 0 } : spring.moderate}
         />
       )}
     </SidebarMenuItem>

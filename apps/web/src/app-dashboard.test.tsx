@@ -159,6 +159,7 @@ describe("Trackfi dashboard application", () => {
     )
 
     fireEvent.click(userMenu)
+    expect(userMenu).toHaveAttribute("aria-expanded", "true")
     const notificationsItem = await screen.findByRole("menuitem", {
       name: /Notifications/,
     })
@@ -233,6 +234,9 @@ describe("Trackfi dashboard application", () => {
     expect(
       await screen.findByRole("link", { name: "Expenses" })
     ).toHaveAttribute("data-active")
+    expect(
+      document.querySelector('[data-slot="sidebar-active-indicator"]')
+    ).toBeInTheDocument()
 
     await openUserMenu()
     fireEvent.click(await screen.findByRole("menuitem", { name: "Settings" }))

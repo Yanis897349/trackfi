@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import {
@@ -6,6 +7,7 @@ import {
   LogOutIcon,
   Settings2Icon,
 } from "lucide-react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 
 import { Avatar, AvatarFallback } from "@trackfi/ui/components/avatar"
 import {
@@ -23,6 +25,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@trackfi/ui/components/sidebar"
+import { spring } from "@trackfi/ui/lib/springs"
 import { cn } from "@trackfi/ui/lib/utils"
 
 import type { CurrentUser } from "../lib/api"
@@ -39,18 +42,36 @@ function UnreadCountBadge({
   className?: string
   count: number
 }) {
-  if (count === 0) return null
+  const shouldReduceMotion = useReducedMotion()
+  const formattedCount = formatUnreadNotificationCount(count)
 
   return (
-    <span
-      data-slot="unread-count-badge"
-      className={cn(
-        "flex min-w-5 items-center justify-center rounded-full bg-foreground px-1.5 text-[10px] leading-5 font-semibold text-background tabular-nums",
-        className
+    <AnimatePresence initial={false} mode="popLayout">
+      {count > 0 && (
+        <motion.span
+          key={formattedCount}
+          layout
+          data-slot="unread-count-badge"
+          initial={
+            shouldReduceMotion ? false : { opacity: 0, scale: 0.72, y: 2 }
+          }
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{
+            opacity: 0,
+            scale: shouldReduceMotion ? 1 : 0.72,
+            y: shouldReduceMotion ? 0 : -2,
+            transition: shouldReduceMotion ? { duration: 0 } : spring.fast.exit,
+          }}
+          transition={shouldReduceMotion ? { duration: 0 } : spring.fast}
+          className={cn(
+            "flex min-w-5 items-center justify-center rounded-full bg-foreground px-1.5 text-[10px] leading-5 font-semibold text-background tabular-nums",
+            className
+          )}
+        >
+          {formattedCount}
+        </motion.span>
       )}
-    >
-      {formatUnreadNotificationCount(count)}
-    </span>
+    </AnimatePresence>
   )
 }
 
@@ -62,6 +83,8 @@ export function SidebarUserMenu({
   user: CurrentUser
 }) {
   const { isMobile, setOpenMobile, state } = useSidebar()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const shouldReduceMotion = useReducedMotion()
   const unread = useQuery(unreadNotificationCountQueryOptions())
   const unreadCount = unread.data?.unreadCount ?? 0
   const userInitial = user.name.slice(0, 1).toUpperCase()
@@ -73,7 +96,7 @@ export function SidebarUserMenu({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger
             render={
               <SidebarMenuButton
@@ -100,7 +123,16 @@ export function SidebarUserMenu({
               count={unreadCount}
               className="group-data-[collapsible=icon]:absolute group-data-[collapsible=icon]:-top-1 group-data-[collapsible=icon]:-right-1 group-data-[collapsible=icon]:min-w-4 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:text-[9px] group-data-[collapsible=icon]:leading-4"
             />
-            <ChevronDownIcon className="ml-0 size-4 text-muted-foreground transition-transform group-aria-expanded/menu-button:rotate-180 group-data-[collapsible=icon]:hidden" />
+            <motion.span
+              aria-hidden="true"
+              className="ml-0 flex size-4 shrink-0 items-center justify-center text-muted-foreground group-data-[collapsible=icon]:hidden"
+              animate={{ rotate: menuOpen && !shouldReduceMotion ? 180 : 0 }}
+              transition={
+                shouldReduceMotion ? { duration: 0 } : spring.moderate
+              }
+            >
+              <ChevronDownIcon className="size-4" />
+            </motion.span>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-68 gap-1 rounded-[10px] p-2"
