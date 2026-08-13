@@ -143,7 +143,7 @@ function SubscriptionLogo({ item }: { item: Summary["upcoming"][number] }) {
     <BrandLogo
       name={item.name}
       websiteUrl={item.websiteUrl}
-      className="size-10 rounded-lg bg-card ring-1 ring-foreground/10 [&>span]:p-3"
+      className="size-12 bg-transparent text-sm [&>span]:p-1.5"
     />
   )
 }

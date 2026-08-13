@@ -85,7 +85,7 @@ export function SubscriptionListDesktop({
                     <BrandLogo
                       name={subscription.name}
                       websiteUrl={subscription.websiteUrl}
-                      className="size-9 rounded-[7px]"
+                      className="size-9 bg-transparent [&>span]:p-1"
                     />
                   </SubscriptionPreview>
                   <div className="min-w-0">
