@@ -53,7 +53,7 @@ export function ExpenseFilters({
   const periods = expensePeriodOptions(summary)
   return (
     <div className="space-y-3">
-      <div className="flex flex-col gap-2 lg:flex-row">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] lg:grid-cols-[minmax(260px,1fr)_170px_160px_145px]">
         <div className="relative min-w-0 flex-1">
           <SearchIcon className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -64,38 +64,33 @@ export function ExpenseFilters({
             onChange={(event) => onSearchChange(event.target.value)}
           />
         </div>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <ExpenseFilterSelect
-            icon={CalendarDaysIcon}
-            label={m.expenses_date_filter()}
-            value={period}
-            items={periods}
-            onChange={onPeriodChange}
-            className="lg:w-[170px]"
-          />
-          <ExpenseFilterSelect
-            label={m.expenses_category_filter()}
-            value={category}
-            items={[
-              { value: "all", label: m.subscriptions_all_categories() },
-              ...expenseCategoryOptions,
-            ]}
-            onChange={(value) =>
-              onCategoryChange(value as ExpenseCategory | "all")
-            }
-            className="lg:w-[160px]"
-          />
-          <ExpenseFilterSelect
-            label={m.expenses_status_filter()}
-            value={status}
-            items={[
-              { value: "all", label: m.expenses_all_statuses() },
-              ...expenseStatusOptions,
-            ]}
-            onChange={(value) => onStatusChange(value as ExpenseStatus | "all")}
-            className="lg:w-[145px]"
-          />
-        </div>
+        <ExpenseFilterSelect
+          icon={CalendarDaysIcon}
+          label={m.expenses_date_filter()}
+          value={period}
+          items={periods}
+          onChange={onPeriodChange}
+        />
+        <ExpenseFilterSelect
+          label={m.expenses_category_filter()}
+          value={category}
+          items={[
+            { value: "all", label: m.subscriptions_all_categories() },
+            ...expenseCategoryOptions,
+          ]}
+          onChange={(value) =>
+            onCategoryChange(value as ExpenseCategory | "all")
+          }
+        />
+        <ExpenseFilterSelect
+          label={m.expenses_status_filter()}
+          value={status}
+          items={[
+            { value: "all", label: m.expenses_all_statuses() },
+            ...expenseStatusOptions,
+          ]}
+          onChange={(value) => onStatusChange(value as ExpenseStatus | "all")}
+        />
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[11px] font-medium text-muted-foreground">
