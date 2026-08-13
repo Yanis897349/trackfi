@@ -1,207 +1,143 @@
-import { useMemo, useState } from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
+import { BellIcon, Settings2Icon, ShieldCheckIcon } from "lucide-react"
+import { z } from "zod"
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@trackfi/ui/components/alert-dialog"
-import { Button } from "@trackfi/ui/components/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@trackfi/ui/components/card"
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@trackfi/ui/components/field"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@trackfi/ui/components/select"
-import { StableLoadingPlaceholder } from "@trackfi/ui/components/stable-loading-placeholder"
-import { useStableLoadingState } from "@trackfi/ui/hooks/use-stable-loading-state"
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@trackfi/ui/components/tabs"
+import { useIsMobile } from "@trackfi/ui/hooks/use-mobile"
 
-import { ModuleError, ModuleHeader } from "../components/module-layout"
+import { GeneralSettingsPanel } from "../components/general-settings-panel"
+import { ModuleError } from "../components/module-layout"
+import { NotificationSettingsPanel } from "../components/notification-settings-panel"
+import { SecuritySettingsPanel } from "../components/security-settings-panel"
 import { SettingsLoadingState } from "../components/settings-loading-state"
-import { LanguageSelector } from "../components/language-selector"
-import { apiFetch } from "../lib/api"
-import { humanizeError } from "../lib/errors"
-import { settingsQueryOptions, supportedCurrencies } from "../lib/settings"
 import { m } from "../lib/i18n"
+import {
+  notificationSettingsQueryOptions,
+  settingsQueryOptions,
+} from "../lib/settings"
+
+const settingsTabSchema = z.enum(["general", "notifications", "security"])
+type SettingsTab = z.infer<typeof settingsTabSchema>
 
 export const Route = createFileRoute("/dashboard/settings")({
+  validateSearch: z.object({
+    tab: settingsTabSchema.catch("general").default("general"),
+  }),
   component: SettingsRoute,
 })
 
 function SettingsRoute() {
   const { currentUser } = Route.useRouteContext()
-  const queryClient = useQueryClient()
-  const query = useQuery(settingsQueryOptions())
-  const currencies = useMemo(() => supportedCurrencies(), [])
-  const currencyOptions = useMemo(
-    () =>
-      currencies.map((option) => ({
-        value: option.code,
-        label: `${option.name} (${option.code})`,
-      })),
-    [currencies]
-  )
-  const [currencyOverride, setCurrencyOverride] = useState<string | null>(null)
-  const currency = currencyOverride ?? query.data?.settings.currency ?? ""
-  const [message, setMessage] = useState("")
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const loading = useStableLoadingState({
-    isLoading: query.isLoading,
-    isError: query.isError,
+  const { tab } = Route.useSearch()
+  const navigate = Route.useNavigate()
+  const isMobile = useIsMobile()
+  const generalQuery = useQuery({
+    ...settingsQueryOptions(),
+    enabled: tab === "general",
+  })
+  const notificationsQuery = useQuery({
+    ...notificationSettingsQueryOptions(),
+    enabled: tab === "notifications",
   })
 
-  const mutation = useMutation({
-    mutationFn: (confirmRelabel: boolean) =>
-      apiFetch("/api/settings", {
-        method: "PATCH",
-        body: JSON.stringify({ currency, confirmRelabel }),
-      }),
-    onSuccess: async () => {
-      setMessage(m.settings_currency_saved())
-      setConfirmOpen(false)
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["settings"] }),
-        queryClient.invalidateQueries({ queryKey: ["subscription-summary"] }),
-        queryClient.invalidateQueries({ queryKey: ["subscriptions"] }),
-        queryClient.invalidateQueries({ queryKey: ["expense-summary"] }),
-        queryClient.invalidateQueries({ queryKey: ["expenses"] }),
-        queryClient.invalidateQueries({ queryKey: ["revenue-summary"] }),
-        queryClient.invalidateQueries({ queryKey: ["revenue-sources"] }),
-      ])
-    },
-    onError: (error) => {
-      if (
-        error instanceof Error &&
-        error.message === "currency_change_requires_confirmation"
-      ) {
-        setConfirmOpen(true)
-        return
-      }
-      setMessage(humanizeError(error))
-    },
-  })
-
-  if (query.isError) return <ModuleError retry={() => void query.refetch()} />
-  if (loading.shouldRender) {
-    return (
-      <StableLoadingPlaceholder isVisible={loading.isVisible}>
-        <SettingsLoadingState />
-      </StableLoadingPlaceholder>
-    )
+  function changeTab(value: unknown) {
+    const parsed = settingsTabSchema.safeParse(value)
+    if (!parsed.success) return
+    void navigate({
+      search: { tab: parsed.data },
+      replace: true,
+    })
   }
 
+  const selectedQuery =
+    tab === "general"
+      ? generalQuery
+      : tab === "notifications"
+        ? notificationsQuery
+        : null
+
   return (
-    <section className="mx-auto w-full max-w-3xl space-y-6">
-      <ModuleHeader
-        title={m.settings_title()}
-        description={m.settings_description()}
-      />
-      <Card>
-        <CardHeader>
-          <CardTitle>{m.language_label()}</CardTitle>
-        </CardHeader>
-        <CardContent className="max-w-lg space-y-2">
-          <LanguageSelector user={currentUser} className="w-full" />
-          <p className="text-sm text-muted-foreground">
-            {m.language_description()}
+    <section className="mx-auto w-full max-w-[1080px]">
+      <Tabs
+        value={tab}
+        orientation={isMobile ? "horizontal" : "vertical"}
+        onValueChange={changeTab}
+        className="gap-6 md:flex-row md:gap-10 lg:gap-12"
+      >
+        <div className="min-w-0 shrink-0 md:w-48 lg:w-52">
+          <p className="mb-3 hidden text-[11px] font-semibold tracking-[0.1em] text-muted-foreground uppercase md:block">
+            {m.settings_title()}
           </p>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>{m.settings_account_currency()}</CardTitle>
-        </CardHeader>
-        <CardContent className="max-w-lg space-y-4">
-          <Field>
-            <FieldLabel>{m.settings_currency()}</FieldLabel>
-            <Select
-              items={currencyOptions}
-              value={currency || null}
-              onValueChange={(value) => {
-                setCurrencyOverride(String(value))
-                setMessage("")
-              }}
-            >
-              <SelectTrigger
-                className="w-full"
-                aria-label={m.settings_account_currency()}
-              >
-                <SelectValue placeholder={m.settings_choose_currency()} />
-              </SelectTrigger>
-              <SelectContent alignItemWithTrigger={false}>
-                {currencyOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FieldDescription>
-              {m.settings_currency_description()}
-            </FieldDescription>
-            {message && (
-              <FieldError
-                className={
-                  message === m.settings_currency_saved()
-                    ? "text-foreground"
-                    : undefined
-                }
-              >
-                {message}
-              </FieldError>
-            )}
-          </Field>
-          <Button
-            disabled={
-              !currency ||
-              mutation.isPending ||
-              currency === query.data?.settings.currency
-            }
-            onClick={() => mutation.mutate(false)}
+          <TabsList
+            variant="line"
+            aria-label={m.settings_navigation_label()}
+            className="h-auto w-full justify-start gap-1 overflow-x-auto border-b p-0 pb-2 md:flex-col md:overflow-visible md:border-0 md:pb-0"
           >
-            {mutation.isPending
-              ? m.common_saving()
-              : m.settings_save_currency()}
-          </Button>
-        </CardContent>
-      </Card>
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {m.settings_change_currency_title()}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {m.settings_change_currency_description({ currency })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => mutation.mutate(true)}>
-              {m.settings_change_currency()}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            <SettingsTabTrigger value="general" icon={<Settings2Icon />}>
+              {m.settings_tab_general()}
+            </SettingsTabTrigger>
+            <SettingsTabTrigger value="notifications" icon={<BellIcon />}>
+              {m.settings_tab_notifications()}
+            </SettingsTabTrigger>
+            <SettingsTabTrigger value="security" icon={<ShieldCheckIcon />}>
+              {m.settings_tab_security()}
+            </SettingsTabTrigger>
+          </TabsList>
+        </div>
+
+        <div className="min-w-0 flex-1">
+          {selectedQuery?.isError ? (
+            <ModuleError retry={() => void selectedQuery.refetch()} />
+          ) : selectedQuery?.isLoading ? (
+            <SettingsLoadingState tab={tab} />
+          ) : (
+            <>
+              <TabsContent value="general">
+                {generalQuery.data && (
+                  <GeneralSettingsPanel settings={generalQuery.data.settings} />
+                )}
+              </TabsContent>
+              <TabsContent value="notifications">
+                {notificationsQuery.data && (
+                  <NotificationSettingsPanel
+                    preferences={notificationsQuery.data.preferences}
+                    user={currentUser}
+                  />
+                )}
+              </TabsContent>
+              <TabsContent value="security">
+                <SecuritySettingsPanel user={currentUser} />
+              </TabsContent>
+            </>
+          )}
+        </div>
+      </Tabs>
     </section>
+  )
+}
+
+function SettingsTabTrigger({
+  children,
+  icon,
+  value,
+}: {
+  children: React.ReactNode
+  icon: React.ReactNode
+  value: SettingsTab
+}) {
+  return (
+    <TabsTrigger
+      value={value}
+      className="h-10 flex-none justify-start gap-2.5 rounded-[7px] px-3 text-sm after:hidden md:w-full data-active:bg-accent data-active:font-semibold"
+    >
+      {icon}
+      {children}
+    </TabsTrigger>
   )
 }

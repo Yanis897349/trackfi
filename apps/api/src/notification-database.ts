@@ -84,7 +84,12 @@ export function findNotificationEmail(
       FROM notifications n
       JOIN notification_deliveries d ON d.notification_id = n.id
       JOIN user u ON u.id = n.user_id
-      WHERE n.id = ? AND d.channel = 'email'`
+      LEFT JOIN notification_preferences p ON p.user_id = n.user_id
+      WHERE n.id = ? AND d.channel = 'email'
+        AND (
+          n.type NOT IN ('expense_budget_approaching', 'expense_budget_limit')
+          OR COALESCE(p.budget_alerts_enabled, 1) = 1
+        )`
     )
     .bind(notificationId)
     .first<NotificationEmailRow>()

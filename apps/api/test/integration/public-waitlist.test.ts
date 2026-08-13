@@ -1,7 +1,10 @@
 import { env, exports } from "cloudflare:workers"
+import { Hono } from "hono"
 import { describe, expect, it, vi } from "vitest"
 
+import { registerPublicRoutes } from "../../src/routes/public"
 import { sha256 } from "../../src/security"
+import type { AppEnv, Bindings } from "../../src/types"
 import {
   joinWaitlist,
   joinWaitlistWithLocale,
@@ -181,17 +184,25 @@ describe("public API, waitlist, and invitations", () => {
 
   it("limits anonymous attempts per client", async () => {
     const clientIp = "192.0.2.55"
-    const responses = []
-    for (let attempt = 0; attempt < 6; attempt += 1) {
-      responses.push(
-        await joinWaitlist(`limited-${attempt}@example.com`, clientIp)
-      )
-    }
+    const limit = vi.fn(async () => ({ success: false }))
+    const app = new Hono<AppEnv>()
+    registerPublicRoutes(app)
+    const response = await app.fetch(
+      new Request("https://trackfi.test/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Turnstile-Token": "test-token",
+          "CF-Connecting-IP": clientIp,
+        },
+        body: JSON.stringify({ email: "limited@example.com" }),
+      }),
+      { WAITLIST_RATE_LIMITER: { limit } } as unknown as Bindings
+    )
 
-    expect(
-      responses.slice(0, 5).every((response) => response.status === 202)
-    ).toBe(true)
-    expect(responses[5]?.status).toBe(429)
+    expect(limit).toHaveBeenCalledWith({ key: `waitlist:${clientIp}` })
+    expect(response.status).toBe(429)
+    await expect(response.json()).resolves.toEqual({ error: "rate_limited" })
   })
 
   it("requires and consumes an invitation while waitlist mode is enabled", async () => {

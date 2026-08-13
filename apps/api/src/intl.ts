@@ -13,8 +13,16 @@ export function formatCurrencyMinor(
     style: "currency",
     currency,
   })
-  const digits = formatter.resolvedOptions().maximumFractionDigits ?? 2
-  return formatter.format(amountMinor / 10 ** digits)
+  return formatter.format(amountMinor / currencyMinorUnitScale(currency))
+}
+
+export function currencyMinorUnitScale(currency: string) {
+  const fractionDigits =
+    new Intl.NumberFormat("en", {
+      style: "currency",
+      currency,
+    }).resolvedOptions().maximumFractionDigits ?? 2
+  return 10 ** fractionDigits
 }
 
 export function formatDateOnlyRange(

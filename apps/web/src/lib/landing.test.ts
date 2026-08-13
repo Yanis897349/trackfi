@@ -15,6 +15,7 @@ describe("localized landing bootstrap", () => {
       loadSession: async () => ({
         user: {
           email: "user@example.com",
+          emailVerified: true,
           id: "user-id",
           locale: "fr",
           name: "Trackfi User",
