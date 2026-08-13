@@ -2,7 +2,8 @@ export interface MockApiOptions {
   deferUrl?: string
   featureFlags?: boolean
   invitation?: { email: string; valid: true } | null
-  session: null | { session: { id: string }; user: Record<string, string> }
+  session: null | { session: { id: string }; user: Record<string, unknown> }
+  budgetAlertsEnabled?: boolean
   currency?: string | null
   expenses?: Array<Record<string, unknown>>
   revenueSources?: Array<Record<string, unknown>>

@@ -16,11 +16,26 @@ const protectedByTurnstile = new Set([
   "/forget-password",
 ])
 
+const passwordPolicy = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{12,}$/
+
 export function registerAuthRoutes(app: Hono<AppEnv>) {
   app.use("/api/auth/*", async (context, next) => {
     context.set("inviteEntryId", null)
     context.set("inviteUserExisted", false)
     const path = context.req.path.replace("/api/auth", "")
+
+    if (context.req.method === "POST" && path === "/change-password") {
+      const body = await context.req.raw
+        .clone()
+        .json<{ newPassword?: unknown }>()
+        .catch(() => null)
+      if (
+        typeof body?.newPassword !== "string" ||
+        !passwordPolicy.test(body.newPassword)
+      ) {
+        return context.json({ code: "PASSWORD_POLICY" }, 400)
+      }
+    }
 
     if (
       context.req.method === "POST" &&

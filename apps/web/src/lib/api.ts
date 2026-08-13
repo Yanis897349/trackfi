@@ -13,6 +13,7 @@ export const authClient = createAuthClient({
 
 export interface CurrentUser {
   email: string
+  emailVerified: boolean
   id: string
   name: string
   locale: Locale

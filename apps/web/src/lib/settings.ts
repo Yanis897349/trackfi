@@ -1,8 +1,15 @@
 import { apiFetch } from "./api"
 import { intlLocale } from "./i18n"
+import type { Locale } from "@trackfi/localization"
 
 export interface UserSettings {
   currency: string | null
+  locale: Locale
+  updatedAt: string | null
+}
+
+export interface NotificationSettings {
+  budgetAlertsEnabled: boolean
   updatedAt: string | null
 }
 
@@ -10,6 +17,16 @@ export function settingsQueryOptions() {
   return {
     queryKey: ["settings"],
     queryFn: () => apiFetch<{ settings: UserSettings }>("/api/settings"),
+  }
+}
+
+export function notificationSettingsQueryOptions() {
+  return {
+    queryKey: ["settings", "notifications"],
+    queryFn: () =>
+      apiFetch<{ preferences: NotificationSettings }>(
+        "/api/settings/notifications"
+      ),
   }
 }
 

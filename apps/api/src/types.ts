@@ -19,6 +19,7 @@ export interface Bindings {
 export interface AuthUser {
   id: string
   email: string
+  emailVerified: boolean
   name: string
   locale: Locale
   role: "admin" | "user"

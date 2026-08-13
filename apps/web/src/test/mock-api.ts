@@ -18,6 +18,7 @@ export {
 } from "./mock-fixtures"
 
 export function mockApi({
+  budgetAlertsEnabled = true,
   deferUrl,
   featureFlags = false,
   invitation,
@@ -32,6 +33,14 @@ export function mockApi({
   localeUpdateFails = false,
 }: MockApiOptions) {
   const requests: Array<{ method: string; url: string }> = []
+  const settingsState = {
+    budgetAlertsEnabled,
+    currency,
+    locale:
+      session && typeof session.user.locale === "string"
+        ? session.user.locale
+        : "en",
+  }
   const handlers: MockApiHandler[] = [
     createExpenseMock(expenses, currency),
     createRevenueMock(revenueSources, currency),
@@ -57,14 +66,15 @@ export function mockApi({
       response ??= coreResponse({
         featureFlags,
         invitation,
+        init,
         localeUpdateFails,
         method,
         session,
         url,
         waitlistEntries,
         waitlistMode,
-        currency,
         notifications,
+        settingsState,
       })
 
       return Promise.resolve(
@@ -81,19 +91,25 @@ export function mockApi({
 function coreResponse({
   featureFlags,
   invitation,
+  init,
   localeUpdateFails,
   method,
   session,
   url,
   waitlistEntries,
   waitlistMode,
-  currency,
   notifications,
+  settingsState,
 }: {
-  currency: string | null
   notifications: Array<Record<string, unknown>>
+  settingsState: {
+    budgetAlertsEnabled: boolean
+    currency: string | null
+    locale: string
+  }
   featureFlags: boolean
   invitation: { email: string; valid: true } | null | undefined
+  init: RequestInit | undefined
   localeUpdateFails: boolean
   method: string
   session: MockApiOptions["session"]
@@ -157,8 +173,50 @@ function coreResponse({
   if (url.includes("/api/auth/update-user") && localeUpdateFails) {
     return { body: { message: "Unable to update user" }, status: 500 }
   }
+  if (url.includes("/api/auth/change-password")) {
+    return { body: { token: null, user: session?.user ?? null } }
+  }
+  if (url.includes("/api/auth/change-email")) {
+    return { body: { status: true, message: "Verification email sent" } }
+  }
+  if (url.includes("/api/settings/notifications")) {
+    if (method === "PATCH") {
+      const body = JSON.parse(String(init?.body ?? "{}")) as {
+        budgetAlertsEnabled?: unknown
+      }
+      if (typeof body.budgetAlertsEnabled === "boolean") {
+        settingsState.budgetAlertsEnabled = body.budgetAlertsEnabled
+      }
+    }
+    return {
+      body: {
+        preferences: {
+          budgetAlertsEnabled: settingsState.budgetAlertsEnabled,
+          updatedAt: null,
+        },
+      },
+    }
+  }
   if (url.includes("/api/settings")) {
-    return { body: { settings: { currency, updatedAt: null } } }
+    if (method === "PATCH") {
+      const body = JSON.parse(String(init?.body ?? "{}")) as {
+        currency?: unknown
+        locale?: unknown
+      }
+      if (typeof body.currency === "string") {
+        settingsState.currency = body.currency
+      }
+      if (typeof body.locale === "string") settingsState.locale = body.locale
+    }
+    return {
+      body: {
+        settings: {
+          currency: settingsState.currency,
+          locale: settingsState.locale,
+          updatedAt: null,
+        },
+      },
+    }
   }
   if (url.includes("/api/invitations/validate")) {
     return invitation

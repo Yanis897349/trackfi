@@ -77,8 +77,12 @@ export async function evaluateExpenseBudgetNotifications(
           last_error, enqueued_at, last_attempt_at, sent_at, created_at,
           updated_at)
         SELECT ?, 'email', 'pending', 0, NULL, NULL, NULL, NULL, NULL, ?, ?
-        WHERE EXISTS (SELECT 1 FROM notifications WHERE id = ?)`
-      ).bind(id, now, now, id)
+        WHERE EXISTS (SELECT 1 FROM notifications WHERE id = ?)
+          AND COALESCE((
+            SELECT budget_alerts_enabled FROM notification_preferences
+            WHERE user_id = ?
+          ), 1) = 1`
+      ).bind(id, now, now, id, userId)
     )
   }
   await env.DB.batch(statements)

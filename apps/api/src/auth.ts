@@ -63,6 +63,9 @@ export function createAuth(
       },
     },
     user: {
+      changeEmail: {
+        enabled: true,
+      },
       additionalFields: {
         role: {
           type: ["user", "admin"],

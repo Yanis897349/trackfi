@@ -4,6 +4,7 @@ export function sessionFor(role: "admin" | "user") {
     user: {
       id: `${role}-id`,
       email: `${role}@example.com`,
+      emailVerified: true,
       name: role === "admin" ? "Admin User" : "Regular User",
       locale: "en",
       role,

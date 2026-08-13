@@ -98,6 +98,42 @@ describe("notifications", () => {
     expect((await notificationList(cookie)).notifications).toHaveLength(2)
   })
 
+  it("keeps in-app budget alerts while suppressing opted-out email delivery", async () => {
+    const cookie = await createUserSession()
+    await configureBudget(cookie)
+
+    await userApi("/api/expenses", cookie, {
+      method: "POST",
+      body: expenseBody({
+        amountMinor: 80_000,
+        transactionDate: todayDateOnly(),
+      }),
+    })
+
+    let notifications = (await notificationList(cookie)).notifications
+    expect(notifications).toHaveLength(1)
+    await expect(deliveryStatus(notifications[0]!.id)).resolves.not.toBeNull()
+
+    await userApi("/api/settings/notifications", cookie, {
+      method: "PATCH",
+      body: { budgetAlertsEnabled: false },
+    })
+    await expect(deliveryStatus(notifications[0]!.id)).resolves.toBeNull()
+
+    await userApi("/api/expenses", cookie, {
+      method: "POST",
+      body: expenseBody({
+        merchant: "Utilities",
+        amountMinor: 20_000,
+        transactionDate: todayDateOnly(),
+        category: "utilities",
+      }),
+    })
+    notifications = (await notificationList(cookie)).notifications
+    expect(notifications).toHaveLength(2)
+    await expect(deliveryStatus(notifications[0]!.id)).resolves.toBeNull()
+  })
+
   it("tracks successful and failed Queue delivery attempts safely", async () => {
     const cookie = await createUserSession()
     await configureBudget(cookie)

@@ -1,39 +1,46 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@trackfi/ui/components/card"
 import { Skeleton } from "@trackfi/ui/components/skeleton"
 
-import { ModuleHeader } from "./module-layout"
 import { m } from "../lib/i18n"
 
-export function SettingsLoadingState() {
+export function SettingsLoadingState({
+  tab,
+}: {
+  tab: "general" | "notifications" | "security"
+}) {
   return (
-    <section
-      className="mx-auto w-full max-w-3xl space-y-6"
+    <div
+      className="space-y-6"
       role="status"
       aria-label={m.settings_loading()}
       aria-busy="true"
     >
-      <ModuleHeader
-        title={m.settings_title()}
-        description={m.settings_description()}
-      />
-      <Card>
-        <CardHeader>
-          <CardTitle>{m.settings_account_currency()}</CardTitle>
-        </CardHeader>
-        <CardContent className="max-w-lg space-y-4">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-4 w-full max-w-md" />
-          </div>
-          <Skeleton className="h-8 w-28" />
-        </CardContent>
-      </Card>
-    </section>
+      <div className="space-y-2">
+        <div className="flex justify-between gap-4">
+          <Skeleton className="h-9 w-56" />
+          <Skeleton className="h-7 w-32 rounded-full" />
+        </div>
+        <Skeleton className="h-4 w-full max-w-md" />
+      </div>
+      <div className="overflow-hidden rounded-[10px] border">
+        <div className="space-y-2 p-6">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-72 max-w-full" />
+        </div>
+        {Array.from({ length: tab === "notifications" ? 2 : 3 }).map(
+          (_, index) => (
+            <div
+              key={index}
+              className="flex items-center justify-between gap-8 border-t p-6"
+            >
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-full max-w-sm" />
+              </div>
+              <Skeleton className="h-9 w-40" />
+            </div>
+          )
+        )}
+      </div>
+    </div>
   )
 }
