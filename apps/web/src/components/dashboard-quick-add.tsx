@@ -68,6 +68,7 @@ export function DashboardQuickAdd({ currency }: { currency: string | null }) {
       }
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["dashboard-overview"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-calendar"] }),
         ...moduleKeys[value.module].map((key) =>
           queryClient.invalidateQueries({ queryKey: [key] })
         ),

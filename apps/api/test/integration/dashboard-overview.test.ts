@@ -157,6 +157,30 @@ describe("dashboard overview", () => {
         (item) => item.label === "Declined purchase"
       )
     ).toBe(false)
+
+    const calendarResponse = await userApi(
+      "/api/dashboard/calendar?month=2024-08",
+      cookie
+    )
+    const calendarBody = await calendarResponse.json<{
+      calendar: {
+        activityCount: number
+        activities: Array<{ label: string; module: string }>
+        netMinor: number
+        range: { from: string; to: string }
+        nextMonth: { firstActivity: { label: string } | null }
+      }
+    }>()
+    expect(calendarResponse.status).toBe(200)
+    expect(calendarBody.calendar).toMatchObject({
+      activityCount: 9,
+      netMinor: -81_000,
+      range: { from: "2024-07-29", to: "2024-09-08" },
+      nextMonth: { firstActivity: { label: "Weekly service" } },
+    })
+    expect(
+      new Set(calendarBody.calendar.activities.map((item) => item.module))
+    ).toEqual(new Set(["expenses", "revenue", "subscriptions"]))
   })
 
   it("validates ranges, requires authentication, and isolates users", async () => {
@@ -166,6 +190,10 @@ describe("dashboard overview", () => {
       )
     )
     expect(unauthorized.status).toBe(401)
+    const unauthorizedCalendar = await exports.default.fetch(
+      new Request("https://trackfi.test/api/dashboard/calendar?month=2024-01")
+    )
+    expect(unauthorizedCalendar.status).toBe(401)
 
     const cookie = await createUserSession()
     expect(
@@ -175,6 +203,9 @@ describe("dashboard overview", () => {
           cookie
         )
       ).status
+    ).toBe(400)
+    expect(
+      (await userApi("/api/dashboard/calendar?month=2024-13", cookie)).status
     ).toBe(400)
     expect(
       (

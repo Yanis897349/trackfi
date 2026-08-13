@@ -9,7 +9,14 @@ import { describe, expect, it, vi } from "vitest"
 
 import { App } from "./app"
 import { createTestRouter } from "./router"
-import { mockApi, notificationFixture, sessionFor } from "./test/mock-api"
+import {
+  expenseFixture,
+  mockApi,
+  notificationFixture,
+  revenueSourceFixture,
+  sessionFor,
+  subscriptionFixture,
+} from "./test/mock-api"
 
 async function openUserMenu() {
   const trigger = await screen.findByRole("button", {
@@ -116,6 +123,49 @@ describe("Trackfi dashboard application", () => {
       "aria-current",
       "page"
     )
+    expect(screen.getByRole("link", { name: "View calendar" })).toHaveAttribute(
+      "href",
+      "/en/dashboard/calendar"
+    )
+  })
+
+  it("opens the dashboard activity calendar across every money module", async () => {
+    const requests = mockApi({
+      waitlistMode: true,
+      session: sessionFor("user"),
+      expenses: [expenseFixture()],
+      revenueSources: [revenueSourceFixture()],
+      subscriptions: [subscriptionFixture()],
+    })
+    const { queryClient, router } = createTestRouter(
+      "/dashboard/calendar?month=2026-08"
+    )
+
+    render(<App queryClient={queryClient} router={router} />)
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Upcoming activity calendar",
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "August 2026" })).toBeVisible()
+    expect(screen.getAllByText("Design software").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Primary job").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Rent").length).toBeGreaterThan(0)
+    expect(screen.getByText("Module key")).toBeVisible()
+    expect(
+      screen.getByRole("link", { name: "Back to dashboard" })
+    ).toHaveAttribute("href", "/en/dashboard")
+
+    fireEvent.click(screen.getByRole("button", { name: "Next month" }))
+    expect(
+      await screen.findByRole("heading", { name: "September 2026" })
+    ).toBeVisible()
+    expect(
+      requests.some((request) =>
+        request.url.includes("/api/dashboard/calendar?month=2026-09")
+      )
+    ).toBe(true)
   })
 
   it("opens the Pencil quick-add menu and each module dialog", async () => {

@@ -48,7 +48,7 @@ export function DashboardActivitySection({
           </p>
         </div>
         <Link
-          to="/dashboard/subscriptions/calendar"
+          to="/dashboard/calendar"
           className={cn(
             buttonVariants({ variant: "outline", size: "sm" }),
             "w-fit"

@@ -94,6 +94,38 @@
   "dashboard_upcoming_activity": "Activité à venir",
   "dashboard_upcoming_activity_description": "Engagements et paiements attendus dans tous les modules pour la période sélectionnée.",
   "dashboard_view_calendar": "Voir le calendrier",
+  "dashboard_calendar_nav": "Activité à venir",
+  "dashboard_calendar_title": "Calendrier de l’activité à venir",
+  "dashboard_calendar_description": "Planifiez revenus, engagements et dépenses dans tous les modules.",
+  "dashboard_calendar_currency_description": "Choisissez une devise avant de planifier l’activité à venir.",
+  "dashboard_calendar_loading": "Chargement du calendrier de l’activité à venir",
+  "dashboard_calendar_back": "Retour au tableau de bord",
+  "dashboard_calendar_activity_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} activité",
+        "countPlural=other": "{count} activités"
+      }
+    }
+  ],
+  "dashboard_calendar_outgoing_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} sortie",
+        "countPlural=other": "{count} sorties"
+      }
+    }
+  ],
+  "dashboard_calendar_net": "Net {amount}",
+  "dashboard_calendar_month_net": "Net de {month}",
+  "dashboard_calendar_no_activity": "Aucune activité financière n’est prévue ce mois-ci.",
+  "dashboard_calendar_module_key": "Légende des modules",
+  "dashboard_calendar_looking_ahead": "À venir",
+  "dashboard_calendar_next_activity": "{module} · prévu le {date}.",
   "dashboard_activity_date": "Date",
   "dashboard_activity_item": "Élément",
   "dashboard_activity_module": "Module",

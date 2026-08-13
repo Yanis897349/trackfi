@@ -2,11 +2,9 @@ import type { Hono } from "hono"
 import { z } from "zod"
 
 import { requireUser } from "../authorization"
+import { readDashboardData } from "../dashboard-data"
 import { dashboardOverview } from "../dashboard-overview"
 import { dateOnlyDayDifference, isDateOnly } from "../date"
-import { listExpenseRows, readExpenseSettings } from "../expense-database"
-import { listRevenueSourceRows } from "../revenue-database"
-import { listSubscriptionRows } from "../subscription-database"
 import type { AppEnv } from "../types"
 
 export function registerDashboardOverviewRoute(app: Hono<AppEnv>) {
@@ -40,28 +38,13 @@ export function registerDashboardOverviewRoute(app: Hono<AppEnv>) {
       return context.json({ error: "invalid_request" }, 400)
     }
 
-    const [currency, expenses, expenseSettings, revenueSources, subscriptions] =
-      await Promise.all([
-        context.env.DB.prepare(
-          "SELECT currency FROM user_settings WHERE user_id = ?"
-        )
-          .bind(user.id)
-          .first<{ currency: string }>(),
-        listExpenseRows(context.env.DB, user.id),
-        readExpenseSettings(context.env.DB, user.id),
-        listRevenueSourceRows(context.env.DB, user.id),
-        listSubscriptionRows(context.env.DB, user.id),
-      ])
+    const data = await readDashboardData(context.env.DB, user.id)
 
     return context.json({
       overview: dashboardOverview({
-        rows: {
-          expenses: expenses.results,
-          revenueSources: revenueSources.results,
-          subscriptions: subscriptions.results,
-        },
-        currency: currency?.currency ?? null,
-        monthlyBudgetMinor: expenseSettings?.monthly_budget_minor ?? null,
+        rows: data.rows,
+        currency: data.currency,
+        monthlyBudgetMinor: data.monthlyBudgetMinor,
         from,
         to,
         page: page.data,

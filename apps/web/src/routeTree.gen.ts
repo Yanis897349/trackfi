@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardCalendarRouteImport } from './routes/dashboard.calendar'
 import { Route as DashboardExpensesRouteImport } from './routes/dashboard.expenses'
 import { Route as DashboardFeatureFlagsRouteImport } from './routes/dashboard.feature-flags'
 import { Route as DashboardNotificationsRouteImport } from './routes/dashboard.notifications'
@@ -64,6 +65,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardCalendarRoute = DashboardCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardExpensesRoute = DashboardExpensesRouteImport.update({
@@ -116,6 +122,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/expenses': typeof DashboardExpensesRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/expenses': typeof DashboardExpensesRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/dashboard/calendar': typeof DashboardCalendarRoute
   '/dashboard/expenses': typeof DashboardExpensesRoute
   '/dashboard/feature-flags': typeof DashboardFeatureFlagsRoute
   '/dashboard/notifications': typeof DashboardNotificationsRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/dashboard/calendar'
     | '/dashboard/expenses'
     | '/dashboard/feature-flags'
     | '/dashboard/notifications'
@@ -189,6 +199,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/dashboard/calendar'
     | '/dashboard/expenses'
     | '/dashboard/feature-flags'
     | '/dashboard/notifications'
@@ -207,6 +218,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/register'
     | '/reset-password'
+    | '/dashboard/calendar'
     | '/dashboard/expenses'
     | '/dashboard/feature-flags'
     | '/dashboard/notifications'
@@ -286,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
+    '/dashboard/calendar': {
+      id: '/dashboard/calendar'
+      path: '/calendar'
+      fullPath: '/dashboard/calendar'
+      preLoaderRoute: typeof DashboardCalendarRouteImport
+      parentRoute: typeof DashboardRoute
+    }
     '/dashboard/expenses': {
       id: '/dashboard/expenses'
       path: '/expenses'
@@ -346,6 +365,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface DashboardRouteChildren {
+  DashboardCalendarRoute: typeof DashboardCalendarRoute
   DashboardExpensesRoute: typeof DashboardExpensesRoute
   DashboardFeatureFlagsRoute: typeof DashboardFeatureFlagsRoute
   DashboardNotificationsRoute: typeof DashboardNotificationsRoute
@@ -358,6 +378,7 @@ interface DashboardRouteChildren {
 }
 
 const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardCalendarRoute: DashboardCalendarRoute,
   DashboardExpensesRoute: DashboardExpensesRoute,
   DashboardFeatureFlagsRoute: DashboardFeatureFlagsRoute,
   DashboardNotificationsRoute: DashboardNotificationsRoute,

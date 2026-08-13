@@ -12,10 +12,18 @@ export function createDashboardMock({
   subscriptions: Array<Record<string, unknown>>
 }): MockApiHandler {
   return ({ url }) => {
-    if (!url.includes("/api/dashboard/overview")) return undefined
+    const isCalendar = url.includes("/api/dashboard/calendar")
+    if (!isCalendar && !url.includes("/api/dashboard/overview")) {
+      return undefined
+    }
     const requestUrl = new URL(url, "https://trackfi.test")
-    const from = requestUrl.searchParams.get("from") ?? "2026-08-01"
-    const to = requestUrl.searchParams.get("to") ?? "2026-08-31"
+    const month = requestUrl.searchParams.get("month") ?? "2026-08"
+    const from = isCalendar
+      ? `${month}-01`
+      : (requestUrl.searchParams.get("from") ?? "2026-08-01")
+    const to = isCalendar
+      ? monthEnd(from)
+      : (requestUrl.searchParams.get("to") ?? "2026-08-31")
     const page = Number(requestUrl.searchParams.get("page") ?? 1)
     const pageSize = Number(requestUrl.searchParams.get("pageSize") ?? 4)
     const activities = [
@@ -87,6 +95,24 @@ export function createDashboardMock({
     })
     const offset = (page - 1) * pageSize
 
+    if (isCalendar) {
+      return {
+        body: {
+          calendar: {
+            month,
+            currency,
+            range: { from, to },
+            activities,
+            activityCount: activities.length,
+            inflowMinor: income,
+            outflowMinor: subscriptionTotal + expenseTotal,
+            netMinor: income - subscriptionTotal - expenseTotal,
+            nextMonth: { month: addMonth(month), firstActivity: null },
+          },
+        },
+      }
+    }
+
     return {
       body: {
         overview: {
@@ -153,4 +179,14 @@ function addDays(value: string, days: number) {
   const date = new Date(`${value}T00:00:00Z`)
   date.setUTCDate(date.getUTCDate() + days)
   return date.toISOString().slice(0, 10)
+}
+
+function monthEnd(value: string) {
+  const [year, month] = value.split("-").map(Number)
+  return new Date(Date.UTC(year!, month!, 0)).toISOString().slice(0, 10)
+}
+
+function addMonth(value: string) {
+  const [year, month] = value.split("-").map(Number)
+  return new Date(Date.UTC(year!, month!, 1)).toISOString().slice(0, 7)
 }

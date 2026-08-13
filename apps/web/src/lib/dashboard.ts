@@ -72,6 +72,21 @@ export interface DashboardOverview {
   }
 }
 
+export interface DashboardCalendar {
+  month: string
+  currency: string | null
+  range: { from: string; to: string }
+  activities: DashboardActivity[]
+  activityCount: number
+  inflowMinor: number
+  outflowMinor: number
+  netMinor: number
+  nextMonth: {
+    month: string
+    firstActivity: DashboardActivity | null
+  }
+}
+
 export function dashboardOverviewQueryOptions({
   from,
   to,
@@ -92,6 +107,17 @@ export function dashboardOverviewQueryOptions({
     queryFn: () =>
       apiFetch<{ overview: DashboardOverview }>(
         `/api/dashboard/overview?${params.toString()}`
+      ),
+    placeholderData: keepPreviousData,
+  }
+}
+
+export function dashboardCalendarQueryOptions(month: string) {
+  return {
+    queryKey: ["dashboard-calendar", month],
+    queryFn: () =>
+      apiFetch<{ calendar: DashboardCalendar }>(
+        `/api/dashboard/calendar?month=${encodeURIComponent(month)}`
       ),
     placeholderData: keepPreviousData,
   }

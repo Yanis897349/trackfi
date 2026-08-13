@@ -44,12 +44,12 @@ export function SubscriptionRenewalMonth({
           months: "w-full",
           month: "w-full gap-0",
           month_caption: "hidden",
-          month_grid: "w-full border-collapse",
+          month_grid: "w-full table-fixed border-collapse",
           weekdays: "flex w-full border-b bg-muted/50",
           weekday:
             "flex-1 py-2.5 text-center text-[11px] font-semibold text-muted-foreground",
           week: "m-0 flex w-full",
-          day: "relative min-h-24 flex-1 border-r border-b p-0 text-left last:border-r-0",
+          day: "relative h-24 min-w-0 flex-1 overflow-hidden border-r border-b p-0 text-left last:border-r-0",
           outside: "bg-muted/20 text-muted-foreground",
           today: "bg-accent/40",
         }}
@@ -59,7 +59,7 @@ export function SubscriptionRenewalMonth({
             const dateRenewals = renewalsByDate.get(date) ?? []
             return (
               <td {...cellProps}>
-                <div className="flex min-h-24 flex-col gap-1 p-1.5">
+                <div className="flex h-24 min-w-0 flex-col gap-1 overflow-hidden p-1.5">
                   <span
                     className={cn(
                       "ml-1 text-xs",
@@ -74,11 +74,11 @@ export function SubscriptionRenewalMonth({
                       details={renewal}
                       currency={currency}
                       align="start"
-                      triggerClassName="block w-full"
+                      triggerClassName="block w-full min-w-0 overflow-hidden"
                     >
                       <span
                         className={cn(
-                          "flex w-full items-center gap-1 rounded px-1.5 py-1 text-[10px] font-medium",
+                          "flex w-full min-w-0 items-center gap-1 overflow-hidden rounded px-1.5 py-1 text-[10px] font-medium",
                           subscriptionCategoryStyle(renewal.category)
                         )}
                       >
@@ -87,7 +87,9 @@ export function SubscriptionRenewalMonth({
                           websiteUrl={renewal.websiteUrl}
                           className="size-4 rounded-sm bg-transparent text-[9px]"
                         />
-                        <span className="truncate">{renewal.name}</span>
+                        <span className="min-w-0 flex-1 truncate">
+                          {renewal.name}
+                        </span>
                       </span>
                     </SubscriptionPreview>
                   ))}

@@ -94,6 +94,38 @@
   "dashboard_upcoming_activity": "Upcoming activity",
   "dashboard_upcoming_activity_description": "Commitments and expected payments across every module in the selected range.",
   "dashboard_view_calendar": "View calendar",
+  "dashboard_calendar_nav": "Upcoming activity",
+  "dashboard_calendar_title": "Upcoming activity calendar",
+  "dashboard_calendar_description": "Plan income, commitments, and spending across every module.",
+  "dashboard_calendar_currency_description": "Choose an account currency before planning upcoming activity.",
+  "dashboard_calendar_loading": "Loading upcoming activity calendar",
+  "dashboard_calendar_back": "Back to dashboard",
+  "dashboard_calendar_activity_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} activity",
+        "countPlural=other": "{count} activities"
+      }
+    }
+  ],
+  "dashboard_calendar_outgoing_count": [
+    {
+      "declarations": ["input count", "local countPlural = count: plural"],
+      "selectors": ["countPlural"],
+      "match": {
+        "countPlural=one": "{count} outgoing",
+        "countPlural=other": "{count} outgoing"
+      }
+    }
+  ],
+  "dashboard_calendar_net": "{amount} net",
+  "dashboard_calendar_month_net": "{month} net",
+  "dashboard_calendar_no_activity": "No financial activity is scheduled this month.",
+  "dashboard_calendar_module_key": "Module key",
+  "dashboard_calendar_looking_ahead": "Looking ahead",
+  "dashboard_calendar_next_activity": "{module} · scheduled for {date}.",
   "dashboard_activity_date": "Date",
   "dashboard_activity_item": "Item",
   "dashboard_activity_module": "Module",

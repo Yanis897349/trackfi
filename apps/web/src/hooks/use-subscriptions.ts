@@ -94,6 +94,7 @@ export function useSubscriptionManager(options?: {
       queryClient.invalidateQueries({ queryKey: ["subscriptions"] }),
       queryClient.invalidateQueries({ queryKey: ["subscription-summary"] }),
       queryClient.invalidateQueries({ queryKey: ["subscription-calendar"] }),
+      queryClient.invalidateQueries({ queryKey: ["dashboard-calendar"] }),
     ])
   }
 

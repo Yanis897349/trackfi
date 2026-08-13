@@ -54,6 +54,7 @@ export function useRevenue(currency: string) {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ["revenue-sources"] }),
       queryClient.invalidateQueries({ queryKey: ["revenue-summary"] }),
+      queryClient.invalidateQueries({ queryKey: ["dashboard-calendar"] }),
     ])
   }
 
