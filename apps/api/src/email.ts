@@ -4,7 +4,13 @@ import { getAppOrigin, getAuthBaseUrl } from "./config"
 import * as m from "./paraglide/messages.js"
 import type { Bindings } from "./types"
 
-type EmailKind = "invite" | "reset" | "verification" | "waitlist"
+type EmailKind =
+  | "expense-budget-approaching"
+  | "expense-budget-limit"
+  | "invite"
+  | "reset"
+  | "verification"
+  | "waitlist"
 
 interface SendEmailInput {
   env: Bindings
@@ -42,7 +48,7 @@ function emailButton(label: string, url: string) {
 
 async function sendEmail(input: SendEmailInput) {
   if (!input.env.RESEND_API_KEY) {
-    if (getAuthBaseUrl(input.env).includes("localhost")) return
+    if (getAuthBaseUrl(input.env).includes("localhost")) return { id: null }
     throw new Error("RESEND_API_KEY is not configured")
   }
 
@@ -68,14 +74,63 @@ async function sendEmail(input: SendEmailInput) {
   if (!response.ok) {
     throw new Error(`Resend rejected the email with status ${response.status}`)
   }
+  const result = await response
+    .json<{ id?: unknown }>()
+    .catch(() => ({ id: undefined }))
+  return { id: typeof result.id === "string" ? result.id : null }
 }
 
-export function sendWaitlistConfirmation(
+export function sendExpenseBudgetNotification(
+  env: Bindings,
+  input: {
+    budget: string
+    email: string
+    locale: Locale
+    notificationId: string
+    period: string
+    spent: string
+    threshold: number
+    type: "expense_budget_approaching" | "expense_budget_limit"
+  }
+) {
+  const url = `${getAppOrigin(env)}${input.locale === "fr" ? "/fr" : ""}/dashboard/expenses`
+  const approaching = input.type === "expense_budget_approaching"
+  const values = {
+    budget: input.budget,
+    period: input.period,
+    spent: input.spent,
+    threshold: input.threshold,
+  }
+  const subject = approaching
+    ? m.email_expense_budget_approaching_subject({}, { locale: input.locale })
+    : m.email_expense_budget_limit_subject({}, { locale: input.locale })
+  const title = approaching
+    ? m.email_expense_budget_approaching_title({}, { locale: input.locale })
+    : m.email_expense_budget_limit_title({}, { locale: input.locale })
+  const body = approaching
+    ? m.email_expense_budget_approaching_body(values, {
+        locale: input.locale,
+      })
+    : m.email_expense_budget_limit_body(values, { locale: input.locale })
+  const button = m.email_expense_budget_button({}, { locale: input.locale })
+  return sendEmail({
+    env,
+    locale: input.locale,
+    to: input.email,
+    type: approaching ? "expense-budget-approaching" : "expense-budget-limit",
+    subject,
+    idempotencyKey: `notification/${input.notificationId}/email`,
+    html: `<h1 style="font-size:24px;margin:0 0 12px">${escapeHtml(title)}</h1><p style="font-size:15px;line-height:24px;margin:0 0 24px;color:#525252">${escapeHtml(body)}</p>${emailButton(button, url)}`,
+    text: `${title}\n\n${body}\n\n${button}: ${url}`,
+  })
+}
+
+export async function sendWaitlistConfirmation(
   env: Bindings,
   email: string,
   locale: Locale = "en"
 ) {
-  return sendEmail({
+  await sendEmail({
     env,
     locale,
     to: email,
@@ -87,14 +142,14 @@ export function sendWaitlistConfirmation(
   })
 }
 
-export function sendInvitation(
+export async function sendInvitation(
   env: Bindings,
   email: string,
   token: string,
   locale: Locale = "en"
 ) {
   const url = `${getAppOrigin(env)}/${locale}/register?invite=${encodeURIComponent(token)}`
-  return sendEmail({
+  await sendEmail({
     env,
     locale,
     to: email,
@@ -106,13 +161,13 @@ export function sendInvitation(
   })
 }
 
-export function sendVerificationEmail(
+export async function sendVerificationEmail(
   env: Bindings,
   email: string,
   url: string,
   locale: Locale = "en"
 ) {
-  return sendEmail({
+  await sendEmail({
     env,
     locale,
     to: email,
@@ -123,13 +178,13 @@ export function sendVerificationEmail(
   })
 }
 
-export function sendPasswordReset(
+export async function sendPasswordReset(
   env: Bindings,
   email: string,
   url: string,
   locale: Locale = "en"
 ) {
-  return sendEmail({
+  await sendEmail({
     env,
     locale,
     to: email,

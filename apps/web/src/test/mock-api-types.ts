@@ -10,6 +10,7 @@ export interface MockApiOptions {
   waitlistEntries?: boolean
   waitlistMode: boolean
   localeUpdateFails?: boolean
+  notifications?: Array<Record<string, unknown>>
 }
 
 export interface MockApiRequest {

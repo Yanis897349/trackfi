@@ -8,7 +8,7 @@ async function getSessionUser(context: AppContext): Promise<AuthUser | null> {
     context.executionCtx
   ).api.getSession({ headers: context.req.raw.headers })
   if (!session) return null
-  return session.user as AuthUser
+  return session.user as unknown as AuthUser
 }
 
 export async function requireUser(context: AppContext) {

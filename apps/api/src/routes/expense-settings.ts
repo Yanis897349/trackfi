@@ -7,6 +7,8 @@ import {
   serializeExpenseSettings,
 } from "../expense-database"
 import { expenseSettingsSchema } from "../expense-validation"
+import { enqueueNotificationDeliveries } from "../notification-delivery"
+import { evaluateExpenseBudgetNotifications } from "../notification-evaluation"
 import type { AppEnv } from "../types"
 
 export function registerExpenseSettingsRoutes(app: Hono<AppEnv>) {
@@ -29,6 +31,15 @@ export function registerExpenseSettingsRoutes(app: Hono<AppEnv>) {
       user.id,
       parsed.data
     )
+    const pending = await evaluateExpenseBudgetNotifications(
+      context.env,
+      user.id
+    )
+    if (pending.length) {
+      context.executionCtx.waitUntil(
+        enqueueNotificationDeliveries(context.env, pending)
+      )
+    }
     return context.json({ settings: serializeExpenseSettings(settings) })
   })
 }

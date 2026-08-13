@@ -65,6 +65,10 @@ export function useExpenses() {
       queryClient.invalidateQueries({ queryKey: ["expenses"] }),
       queryClient.invalidateQueries({ queryKey: ["expense-summary"] }),
       queryClient.invalidateQueries({ queryKey: ["expense-settings"] }),
+      queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+      queryClient.invalidateQueries({
+        queryKey: ["notification-unread-count"],
+      }),
     ])
   }
 

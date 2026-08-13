@@ -14,6 +14,7 @@ export {
   revenueSourceFixture,
   sessionFor,
   subscriptionFixture,
+  notificationFixture,
 } from "./mock-fixtures"
 
 export function mockApi({
@@ -25,6 +26,7 @@ export function mockApi({
   expenses = [],
   revenueSources = [],
   subscriptions = [],
+  notifications = [],
   waitlistEntries = false,
   waitlistMode,
   localeUpdateFails = false,
@@ -62,6 +64,7 @@ export function mockApi({
         waitlistEntries,
         waitlistMode,
         currency,
+        notifications,
       })
 
       return Promise.resolve(
@@ -85,8 +88,10 @@ function coreResponse({
   waitlistEntries,
   waitlistMode,
   currency,
+  notifications,
 }: {
   currency: string | null
+  notifications: Array<Record<string, unknown>>
   featureFlags: boolean
   invitation: { email: string; valid: true } | null | undefined
   localeUpdateFails: boolean
@@ -98,6 +103,57 @@ function coreResponse({
 }): MockApiResponse {
   if (url.includes("/api/config")) return { body: { waitlistMode } }
   if (url.includes("/api/auth/get-session")) return { body: session }
+  if (url.includes("/api/notifications/unread-count")) {
+    return {
+      body: {
+        unreadCount: notifications.filter((item) => !item.readAt).length,
+      },
+    }
+  }
+  if (url.includes("/api/notifications/read-all")) {
+    const updatedCount = notifications.filter((item) => !item.readAt).length
+    for (const item of notifications) item.readAt ??= new Date().toISOString()
+    return { body: { updatedCount, unreadCount: 0 } }
+  }
+  if (url.includes("/api/notifications/") && method === "PATCH") {
+    const id = url.split("/api/notifications/")[1]?.split("/")[0]
+    const notification = notifications.find((item) => item.id === id)
+    if (!notification) return { body: { error: "not_found" }, status: 404 }
+    notification.readAt ??= new Date().toISOString()
+    return { body: { notification } }
+  }
+  if (url.includes("/api/notifications")) {
+    const requestUrl = new URL(url)
+    const status = requestUrl.searchParams.get("status") ?? "all"
+    const type = requestUrl.searchParams.get("type") ?? "all"
+    const query = (requestUrl.searchParams.get("q") ?? "").toLowerCase()
+    const page = Number(requestUrl.searchParams.get("page") ?? 1)
+    const pageSize = Number(requestUrl.searchParams.get("pageSize") ?? 6)
+    const filtered = notifications.filter(
+      (item) =>
+        (status === "all" ||
+          (status === "unread" && !item.readAt) ||
+          (status === "read" && Boolean(item.readAt))) &&
+        (type === "all" || item.type === type) &&
+        (!query ||
+          String(item.title).toLowerCase().includes(query) ||
+          String(item.description).toLowerCase().includes(query))
+    )
+    const offset = (page - 1) * pageSize
+    return {
+      body: {
+        notifications: filtered.slice(offset, offset + pageSize),
+        page,
+        pageSize,
+        total: filtered.length,
+        summary: {
+          total: notifications.length,
+          unread: notifications.filter((item) => !item.readAt).length,
+          thisWeek: notifications.length,
+        },
+      },
+    }
+  }
   if (url.includes("/api/auth/update-user") && localeUpdateFails) {
     return { body: { message: "Unable to update user" }, status: 500 }
   }

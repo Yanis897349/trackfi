@@ -1,9 +1,11 @@
 import type { Context } from "hono"
 import type { Locale } from "@trackfi/localization"
+import type { NotificationDeliveryMessage } from "./notification-types"
 
 export interface Bindings {
   DB: D1Database
   EXPENSE_RECEIPTS: R2Bucket
+  NOTIFICATION_EMAIL_QUEUE: Queue<NotificationDeliveryMessage>
   WAITLIST_RATE_LIMITER: RateLimit
   ADMIN_EMAILS?: string
   APP_ORIGIN?: string

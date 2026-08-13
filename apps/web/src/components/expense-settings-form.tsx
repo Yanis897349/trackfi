@@ -1,13 +1,7 @@
 import { useState, type FormEvent } from "react"
-import { BellIcon } from "lucide-react"
 
 import { DateOnlyPicker } from "@trackfi/ui/components/date-only-picker"
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@trackfi/ui/components/field"
+import { Field, FieldError, FieldLabel } from "@trackfi/ui/components/field"
 import { Switch } from "@trackfi/ui/components/switch"
 
 import { currencySymbol } from "../lib/currency"
@@ -185,9 +179,6 @@ export function ExpenseSettingsForm({
             onChange={setLimitThreshold}
           />
         </div>
-        <FieldDescription className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-[11px]">
-          <BellIcon className="size-3.5" /> {m.expenses_notifications_later()}
-        </FieldDescription>
       </section>
       {(validation || error) && <FieldError>{validation || error}</FieldError>}
     </form>

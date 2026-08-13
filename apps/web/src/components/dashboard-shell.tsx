@@ -30,6 +30,7 @@ import { authClient, type CurrentUser } from "../lib/api"
 import { m } from "../lib/i18n"
 import { modules } from "../modules"
 import { LanguageSelector } from "./language-selector"
+import { NotificationInbox } from "./notification-inbox"
 
 function titleForPath(pathname: string) {
   const titles: Record<string, string> = {
@@ -40,6 +41,7 @@ function titleForPath(pathname: string) {
     "/dashboard/subscriptions": m.nav_subscriptions(),
     "/dashboard/expenses": m.nav_expenses(),
     "/dashboard/revenue": m.nav_revenue(),
+    "/dashboard/notifications": m.notifications(),
     "/dashboard/subscriptions/calendar": m.nav_renewal_calendar(),
   }
   return titles[pathname] ?? m.nav_dashboard()
@@ -195,7 +197,10 @@ export function DashboardShell({
           <SidebarTrigger className="-ml-1" />
           <div className="h-4 w-px bg-border" />
           <h1 className="text-sm font-medium">{title}</h1>
-          <LanguageSelector className="ml-auto" user={user} />
+          <div className="ml-auto flex items-start gap-2">
+            <NotificationInbox />
+            <LanguageSelector user={user} />
+          </div>
         </header>
         <div className="flex flex-1 flex-col p-4 md:p-6">{children}</div>
       </SidebarInset>
