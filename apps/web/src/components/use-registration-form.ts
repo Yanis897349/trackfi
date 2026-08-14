@@ -1,5 +1,6 @@
 import { useCallback, useState, type FormEvent } from "react"
 
+import { useVerificationEmailResend } from "../hooks/use-verification-email-resend"
 import { authClient } from "../lib/api"
 import { getLocale, localizeHref, m } from "../lib/i18n"
 import type { RegistrationInvitation } from "./registration-types"
@@ -14,6 +15,7 @@ export function useRegistrationForm(invitation: RegistrationInvitation) {
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const verificationResend = useVerificationEmailResend(email)
   const handleToken = useCallback(
     (token: string) => setTurnstileToken(token),
     []
@@ -69,14 +71,28 @@ export function useRegistrationForm(invitation: RegistrationInvitation) {
     }
   }
 
+  function changeEmail() {
+    setSubmitted(false)
+    setPassword("")
+    setConfirmation("")
+    setTurnstileToken("")
+    setTurnstileResetKey((current) => current + 1)
+    verificationResend.reset()
+  }
+
   return {
     confirmation,
+    changeEmail,
     email,
     error,
     handleSubmit,
     handleToken,
     name,
     password,
+    resendFeedback: verificationResend.feedback,
+    resendFeedbackTone: verificationResend.feedbackTone,
+    resendVerification: verificationResend.resend,
+    resending: verificationResend.isPending,
     setConfirmation,
     setEmail,
     setName,

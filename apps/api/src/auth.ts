@@ -30,6 +30,7 @@ export function createAuth(
       minPasswordLength: 8,
       maxPasswordLength: 128,
       requireEmailVerification: true,
+      resetPasswordTokenExpiresIn: 30 * 60,
       sendResetPassword: ({ user, url }) => {
         const promise = sendPasswordReset(
           env,
@@ -45,6 +46,7 @@ export function createAuth(
       },
     },
     emailVerification: {
+      expiresIn: 30 * 60,
       sendOnSignUp: true,
       sendOnSignIn: true,
       autoSignInAfterVerification: false,

@@ -1,7 +1,6 @@
-import { Link } from "@tanstack/react-router"
-
 import { m } from "../lib/i18n"
-import { AuthShell, FormMessage } from "./auth-shell"
+import { AuthEmailSent } from "./auth-email-sent"
+import { AuthShell } from "./auth-shell"
 import { RegistrationFields } from "./registration-fields"
 import type { RegistrationInvitation } from "./registration-types"
 import { useRegistrationForm } from "./use-registration-form"
@@ -13,30 +12,33 @@ export function RegisterForm({
 }) {
   const model = useRegistrationForm(invitation)
 
+  if (model.submitted) {
+    return (
+      <AuthEmailSent
+        email={model.email}
+        description={m.auth_check_inbox_description()}
+        statusTitle={m.auth_verification_email_sent()}
+        secondaryActionLabel={
+          model.resending
+            ? m.auth_resending_verification()
+            : m.auth_resend_verification()
+        }
+        secondaryActionPending={model.resending}
+        onSecondaryAction={model.resendVerification}
+        onChangeEmail={invitation.gated ? undefined : model.changeEmail}
+        feedback={model.resendFeedback}
+        feedbackTone={model.resendFeedbackTone}
+      />
+    )
+  }
+
   return (
     <AuthShell
-      eyebrow={model.submitted ? undefined : m.auth_register_eyebrow()}
-      title={
-        model.submitted ? m.auth_check_inbox_title() : m.auth_register_title()
-      }
-      description={
-        model.submitted
-          ? m.auth_check_inbox_description()
-          : m.auth_register_description()
-      }
+      eyebrow={m.auth_register_eyebrow()}
+      title={m.auth_register_title()}
+      description={m.auth_register_description()}
     >
-      {model.submitted ? (
-        <div className="space-y-4 rounded-lg border border-[#dcfce7] bg-[#f0fdf4] p-4 text-center">
-          <FormMessage tone="success">
-            {m.auth_verification_sent({ email: model.email })}
-          </FormMessage>
-          <Link to="/login" className="text-sm underline underline-offset-4">
-            {m.auth_return_sign_in()}
-          </Link>
-        </div>
-      ) : (
-        <RegistrationFields invitation={invitation} model={model} />
-      )}
+      <RegistrationFields invitation={invitation} model={model} />
     </AuthShell>
   )
 }

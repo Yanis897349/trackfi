@@ -1,5 +1,7 @@
 import type { ReactNode } from "react"
 
+import { cn } from "@trackfi/ui/lib/utils"
+
 import { m } from "../lib/i18n"
 import { TrackfiBrand } from "./trackfi-brand"
 
@@ -11,13 +13,19 @@ export const authPrimaryButtonClassName =
 
 export function AuthShell({
   children,
+  contentClassName,
   description,
   eyebrow,
+  footer,
+  leading,
   title,
 }: {
   children: ReactNode
+  contentClassName?: string | undefined
   description: string
   eyebrow?: string | undefined
+  footer?: ReactNode
+  leading?: ReactNode
   title: string
 }) {
   const benefits = [
@@ -77,29 +85,37 @@ export function AuthShell({
             <TrackfiBrand compact plainMark />
           </header>
           <div className="flex flex-1 items-center justify-center py-10">
-            <div className="w-full max-w-[430px]">
-              <div className="mb-7 space-y-2.5">
-                {eyebrow && (
-                  <p className="flex items-center gap-2 font-mono text-[11px] font-medium tracking-[0.1em] text-[#71717a] uppercase">
-                    <span
-                      aria-hidden="true"
-                      className="text-[13px] text-[#2563eb]"
-                    >
-                      +
-                    </span>
-                    {eyebrow}
+            <div className={cn("w-full max-w-[430px]", contentClassName)}>
+              <div className={cn("mb-7 space-y-2.5", leading && "space-y-7")}>
+                {leading}
+                <div className="space-y-2.5">
+                  {eyebrow && (
+                    <p className="flex items-center gap-2 font-mono text-[11px] font-medium tracking-[0.1em] text-[#71717a] uppercase">
+                      <span
+                        aria-hidden="true"
+                        className="text-[13px] text-[#2563eb]"
+                      >
+                        +
+                      </span>
+                      {eyebrow}
+                    </p>
+                  )}
+                  <h1 className="text-[34px] leading-tight font-semibold tracking-[-0.025em]">
+                    {title}
+                  </h1>
+                  <p className="text-[15px] leading-[1.45] text-[#71717a]">
+                    {description}
                   </p>
-                )}
-                <h1 className="text-[34px] leading-tight font-semibold tracking-[-0.025em]">
-                  {title}
-                </h1>
-                <p className="text-[15px] leading-[1.45] text-[#71717a]">
-                  {description}
-                </p>
+                </div>
               </div>
               {children}
             </div>
           </div>
+          {footer && (
+            <footer className="pb-2 text-center text-xs text-[#71717a] sm:pb-0">
+              {footer}
+            </footer>
+          )}
         </section>
       </div>
     </main>

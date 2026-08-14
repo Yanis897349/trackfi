@@ -15,7 +15,9 @@ import {
   authInputClassName,
   authPrimaryButtonClassName,
 } from "../components/auth-shell"
+import { AuthEmailSent } from "../components/auth-email-sent"
 import { TurnstileWidget } from "../components/turnstile-widget"
+import { useVerificationEmailResend } from "../hooks/use-verification-email-resend"
 import { authClient } from "../lib/api"
 import { getLocale, localizeHref, m, setLocale } from "../lib/i18n"
 
@@ -29,6 +31,8 @@ function LoginRoute() {
   const [turnstileResetKey, setTurnstileResetKey] = useState(0)
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [verificationSent, setVerificationSent] = useState(false)
+  const verificationResend = useVerificationEmailResend(email)
   const handleToken = useCallback(
     (token: string) => setTurnstileToken(token),
     []
@@ -58,11 +62,11 @@ function LoginRoute() {
         }
       )
       if (result.error) {
-        setError(
-          result.error.status === 403
-            ? m.auth_verify_before_login()
-            : m.auth_invalid_credentials()
-        )
+        if (result.error.status === 403) {
+          setVerificationSent(true)
+          return
+        }
+        setError(m.auth_invalid_credentials())
         return
       }
       const accountLocale = (
@@ -83,6 +87,31 @@ function LoginRoute() {
       setTurnstileToken("")
       setTurnstileResetKey((current) => current + 1)
     }
+  }
+
+  if (verificationSent) {
+    return (
+      <AuthEmailSent
+        email={email}
+        description={m.auth_check_inbox_description()}
+        statusTitle={m.auth_verification_email_sent()}
+        secondaryActionLabel={
+          verificationResend.isPending
+            ? m.auth_resending_verification()
+            : m.auth_resend_verification()
+        }
+        secondaryActionPending={verificationResend.isPending}
+        onSecondaryAction={verificationResend.resend}
+        onChangeEmail={() => {
+          setEmail("")
+          setPassword("")
+          setVerificationSent(false)
+          verificationResend.reset()
+        }}
+        feedback={verificationResend.feedback}
+        feedbackTone={verificationResend.feedbackTone}
+      />
+    )
   }
 
   return (
