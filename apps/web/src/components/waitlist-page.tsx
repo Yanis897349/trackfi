@@ -1,10 +1,5 @@
 import { useCallback, useState, type FormEvent } from "react"
-import {
-  ArrowRightIcon,
-  CheckIcon,
-  PlusIcon,
-  ShieldCheckIcon,
-} from "lucide-react"
+import { ArrowRightIcon, CheckIcon, PlusIcon } from "lucide-react"
 
 import { Button, buttonVariants } from "@trackfi/ui/components/button"
 import { Field, FieldError, FieldLabel } from "@trackfi/ui/components/field"
@@ -164,15 +159,9 @@ export function WaitlistPage() {
                       resetKey={turnstileResetKey}
                     />
                   </div>
-                  <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#71717a]">
-                    <p>{m.waitlist_privacy_proof()}</p>
-                    {turnstileToken && (
-                      <p className="flex items-center gap-1.5 font-medium text-[#a1a1aa]">
-                        <ShieldCheckIcon className="size-3.5 text-emerald-500" />
-                        {m.waitlist_human_verified()}
-                      </p>
-                    )}
-                  </div>
+                  <p className="mt-3 text-xs text-[#71717a]">
+                    {m.waitlist_privacy_proof()}
+                  </p>
                 </form>
               )}
             </div>
