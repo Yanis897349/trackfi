@@ -12,7 +12,12 @@ import { Input } from "@trackfi/ui/components/input"
 
 import { authClient } from "../lib/api"
 import { getLocale, localizeHref, m } from "../lib/i18n"
-import { AuthShell, FormMessage } from "./auth-shell"
+import {
+  AuthShell,
+  FormMessage,
+  authInputClassName,
+  authPrimaryButtonClassName,
+} from "./auth-shell"
 import { TurnstileWidget } from "./turnstile-widget"
 
 export interface RegistrationInvitation {
@@ -92,6 +97,7 @@ export function RegisterForm({
 
   return (
     <AuthShell
+      eyebrow={submitted ? undefined : m.auth_register_eyebrow()}
       title={submitted ? m.auth_check_inbox_title() : m.auth_register_title()}
       description={
         submitted
@@ -100,7 +106,7 @@ export function RegisterForm({
       }
     >
       {submitted ? (
-        <div className="space-y-4 text-center">
+        <div className="space-y-4 rounded-lg border border-[#dcfce7] bg-[#f0fdf4] p-4 text-center">
           <FormMessage tone="success">
             {m.auth_verification_sent({ email })}
           </FormMessage>
@@ -110,7 +116,7 @@ export function RegisterForm({
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
-          <FieldGroup>
+          <FieldGroup className="gap-4">
             <Field>
               <FieldLabel htmlFor="register-name">
                 {m.auth_full_name()}
@@ -118,9 +124,11 @@ export function RegisterForm({
               <Input
                 id="register-name"
                 autoComplete="name"
+                placeholder={m.auth_name_placeholder()}
                 required
                 maxLength={100}
                 value={name}
+                className={authInputClassName}
                 onChange={(event) => setName(event.target.value)}
               />
             </Field>
@@ -130,9 +138,11 @@ export function RegisterForm({
                 id="register-email"
                 type="email"
                 autoComplete="email"
+                placeholder={m.auth_email_placeholder()}
                 required
                 readOnly={invitation.gated}
                 value={email}
+                className={authInputClassName}
                 onChange={(event) => setEmail(event.target.value)}
               />
             </Field>
@@ -144,10 +154,12 @@ export function RegisterForm({
                 id="register-password"
                 type="password"
                 autoComplete="new-password"
+                placeholder={m.auth_password_placeholder()}
                 required
                 minLength={8}
                 maxLength={128}
                 value={password}
+                className={authInputClassName}
                 onChange={(event) => setPassword(event.target.value)}
               />
             </Field>
@@ -159,10 +171,12 @@ export function RegisterForm({
                 id="register-confirmation"
                 type="password"
                 autoComplete="new-password"
+                placeholder={m.auth_confirmation_placeholder()}
                 required
                 minLength={8}
                 maxLength={128}
                 value={confirmation}
+                className={authInputClassName}
                 onChange={(event) => setConfirmation(event.target.value)}
               />
             </Field>
@@ -173,7 +187,12 @@ export function RegisterForm({
                 resetKey={turnstileResetKey}
               />
             </div>
-            <Button type="submit" size="lg" disabled={submitting}>
+            <Button
+              type="submit"
+              size="lg"
+              disabled={submitting}
+              className={authPrimaryButtonClassName}
+            >
               {submitting ? m.auth_creating_account() : m.auth_create_account()}
             </Button>
             <p className="text-center text-sm text-muted-foreground">

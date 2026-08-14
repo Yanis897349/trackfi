@@ -25,7 +25,7 @@ describe("localized URLs and formatting", () => {
 
   it("uses explicit French copy and locale formatting", () => {
     overwriteGetLocale(() => "fr")
-    expect(m.auth_login_title()).toBe("Ravi de vous revoir")
+    expect(m.auth_login_title()).toBe("Se connecter à Trackfi")
     expect(formatDateOnly("2026-08-12")).toMatch(/août/)
     expect(formatCompactMoney(125_000, "EUR")).toContain("€")
   })
