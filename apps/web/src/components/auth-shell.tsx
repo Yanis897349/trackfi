@@ -65,8 +65,7 @@ export function AuthShell({
             </ul>
           </div>
 
-          <div className="flex items-center justify-between gap-6 text-xs text-[#71717a]">
-            <p>{m.auth_brand_security()}</p>
+          <div className="flex items-center justify-end text-xs text-[#71717a]">
             <p className="font-mono text-[10px] tracking-[0.1em] text-[#52525b] uppercase">
               + Trackfi / 2026
             </p>
