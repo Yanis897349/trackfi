@@ -10,7 +10,12 @@ import {
 } from "@trackfi/ui/components/field"
 import { Input } from "@trackfi/ui/components/input"
 
-import { AuthShell, FormMessage } from "../components/auth-shell"
+import {
+  AuthShell,
+  authInputClassName,
+  authPrimaryButtonClassName,
+} from "../components/auth-shell"
+import { AuthEmailSent } from "../components/auth-email-sent"
 import { TurnstileWidget } from "../components/turnstile-widget"
 import { authClient } from "../lib/api"
 import { localizeHref, m } from "../lib/i18n"
@@ -65,51 +70,65 @@ function ForgotPasswordRoute() {
     }
   }
 
+  if (submitted) {
+    return (
+      <AuthEmailSent
+        email={email}
+        description={m.auth_reset_check_inbox_description()}
+        statusTitle={m.auth_reset_email_sent()}
+        secondaryActionLabel={m.auth_back_to_reset_form()}
+        onSecondaryAction={() => setSubmitted(false)}
+        onChangeEmail={() => {
+          setEmail("")
+          setSubmitted(false)
+        }}
+      />
+    )
+  }
+
   return (
     <AuthShell
       title={m.auth_reset_request_title()}
       description={m.auth_reset_request_description()}
     >
-      {submitted ? (
-        <div className="space-y-4 text-center">
-          <FormMessage tone="success">{m.auth_reset_sent()}</FormMessage>
-          <Link to="/login" className="text-sm underline underline-offset-4">
-            {m.auth_return_sign_in()}
+      <form onSubmit={handleSubmit}>
+        <FieldGroup className="gap-4">
+          <Field>
+            <FieldLabel htmlFor="forgot-email">{m.auth_email()}</FieldLabel>
+            <Input
+              id="forgot-email"
+              type="email"
+              autoComplete="email"
+              placeholder={m.auth_email_placeholder()}
+              required
+              value={email}
+              className={authInputClassName}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </Field>
+          {error && <FieldError>{error}</FieldError>}
+          <div className="flex justify-center">
+            <TurnstileWidget
+              onTokenChange={handleToken}
+              resetKey={turnstileResetKey}
+            />
+          </div>
+          <Button
+            type="submit"
+            size="lg"
+            disabled={submitting}
+            className={authPrimaryButtonClassName}
+          >
+            {submitting ? m.auth_sending() : m.auth_send_reset()}
+          </Button>
+          <Link
+            to="/login"
+            className="text-center text-sm text-muted-foreground hover:text-foreground hover:underline"
+          >
+            {m.auth_back_sign_in()}
           </Link>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="forgot-email">{m.auth_email()}</FieldLabel>
-              <Input
-                id="forgot-email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </Field>
-            {error && <FieldError>{error}</FieldError>}
-            <div className="flex justify-center">
-              <TurnstileWidget
-                onTokenChange={handleToken}
-                resetKey={turnstileResetKey}
-              />
-            </div>
-            <Button type="submit" size="lg" disabled={submitting}>
-              {submitting ? m.auth_sending() : m.auth_send_reset()}
-            </Button>
-            <Link
-              to="/login"
-              className="text-center text-sm text-muted-foreground hover:text-foreground hover:underline"
-            >
-              {m.auth_back_sign_in()}
-            </Link>
-          </FieldGroup>
-        </form>
-      )}
+        </FieldGroup>
+      </form>
     </AuthShell>
   )
 }

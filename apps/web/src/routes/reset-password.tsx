@@ -11,7 +11,12 @@ import {
 } from "@trackfi/ui/components/field"
 import { Input } from "@trackfi/ui/components/input"
 
-import { AuthShell, FormMessage } from "../components/auth-shell"
+import {
+  AuthShell,
+  FormMessage,
+  authInputClassName,
+  authPrimaryButtonClassName,
+} from "../components/auth-shell"
 import { authClient } from "../lib/api"
 import { m } from "../lib/i18n"
 
@@ -64,7 +69,7 @@ function ResetPasswordRoute() {
       description={m.auth_reset_description()}
     >
       {submitted ? (
-        <div className="space-y-4 text-center">
+        <div className="space-y-4 rounded-lg border border-[#dcfce7] bg-[#f0fdf4] p-4 text-center">
           <FormMessage tone="success">{m.auth_password_updated()}</FormMessage>
           <Link to="/login" className="text-sm underline underline-offset-4">
             {m.auth_sign_in()}
@@ -72,7 +77,7 @@ function ResetPasswordRoute() {
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
-          <FieldGroup>
+          <FieldGroup className="gap-4">
             <Field>
               <FieldLabel htmlFor="reset-password">
                 {m.auth_new_password()}
@@ -81,10 +86,12 @@ function ResetPasswordRoute() {
                 id="reset-password"
                 type="password"
                 autoComplete="new-password"
+                placeholder={m.auth_password_placeholder()}
                 required
                 minLength={8}
                 maxLength={128}
                 value={password}
+                className={authInputClassName}
                 onChange={(event) => setPassword(event.target.value)}
               />
             </Field>
@@ -96,15 +103,22 @@ function ResetPasswordRoute() {
                 id="reset-confirmation"
                 type="password"
                 autoComplete="new-password"
+                placeholder={m.auth_confirmation_placeholder()}
                 required
                 minLength={8}
                 maxLength={128}
                 value={confirmation}
+                className={authInputClassName}
                 onChange={(event) => setConfirmation(event.target.value)}
               />
             </Field>
             {displayedError && <FieldError>{displayedError}</FieldError>}
-            <Button type="submit" size="lg" disabled={submitting || !token}>
+            <Button
+              type="submit"
+              size="lg"
+              disabled={submitting || !token}
+              className={authPrimaryButtonClassName}
+            >
               {submitting ? m.auth_updating() : m.auth_update_password()}
             </Button>
           </FieldGroup>

@@ -1,135 +1,68 @@
-import { useCallback, useState, type FormEvent } from "react"
-import { ArrowRightIcon, CheckIcon } from "lucide-react"
+import { PlusIcon } from "lucide-react"
 
-import { Button } from "@trackfi/ui/components/button"
-import { Field, FieldError, FieldLabel } from "@trackfi/ui/components/field"
-import { Input } from "@trackfi/ui/components/input"
+import { buttonVariants } from "@trackfi/ui/components/button"
+import { cn } from "@trackfi/ui/lib/utils"
 
-import { apiFetch } from "../lib/api"
-import { humanizeError } from "../lib/errors"
-import { getLocale, localizeHref, m } from "../lib/i18n"
-import { LanguageSelector } from "./language-selector"
-import { TurnstileWidget } from "./turnstile-widget"
+import { localizeHref, m } from "../lib/i18n"
+import { TrackfiBrand } from "./trackfi-brand"
+import { WaitlistPromise } from "./waitlist-promise"
+import { WaitlistProductPreview } from "./waitlist-product-preview"
+import { WaitlistSignup, waitlistButtonClassName } from "./waitlist-signup"
 
 export function WaitlistPage() {
-  const [email, setEmail] = useState("")
-  const [turnstileToken, setTurnstileToken] = useState("")
-  const [turnstileResetKey, setTurnstileResetKey] = useState(0)
-  const [error, setError] = useState("")
-  const [submitting, setSubmitting] = useState(false)
-  const [submitted, setSubmitted] = useState(false)
-  const handleToken = useCallback(
-    (token: string) => setTurnstileToken(token),
-    []
-  )
-
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError("")
-    if (!event.currentTarget.reportValidity()) return
-    if (!turnstileToken) {
-      setError(m.auth_complete_security_check())
-      return
-    }
-
-    setSubmitting(true)
-    try {
-      await apiFetch("/api/waitlist", {
-        method: "POST",
-        headers: { "X-Turnstile-Token": turnstileToken },
-        body: JSON.stringify({ email, locale: getLocale() }),
-      })
-      setSubmitted(true)
-    } catch (cause) {
-      setError(humanizeError(cause))
-    } finally {
-      setSubmitting(false)
-      setTurnstileToken("")
-      setTurnstileResetKey((current) => current + 1)
-    }
-  }
-
   return (
-    <main className="relative flex min-h-svh overflow-hidden bg-background">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklch,var(--foreground)_7%,transparent),transparent_42%)]" />
-      <section className="relative mx-auto flex w-full max-w-6xl flex-col justify-between px-6 py-8 md:px-10 md:py-10">
-        <div className="flex items-center justify-between gap-4">
-          <p className="text-sm font-semibold tracking-tight">Trackfi</p>
-          <LanguageSelector />
-        </div>
-        <div className="max-w-2xl py-20">
-          <p className="mb-5 text-sm font-medium text-muted-foreground">
-            {m.waitlist_eyebrow()}
-          </p>
-          <h1 className="max-w-xl text-4xl leading-[1.05] font-semibold tracking-[-0.04em] text-balance sm:text-6xl">
-            {m.waitlist_title()}
-          </h1>
-          <p className="mt-6 max-w-lg text-base leading-7 text-pretty text-muted-foreground sm:text-lg">
-            {m.waitlist_description()}
-          </p>
+    <main className="min-h-svh bg-[#f8f8f7] p-4 text-[#111318]">
+      <div className="mx-auto flex w-full max-w-[1408px] flex-col gap-4">
+        <nav className="flex h-16 items-center justify-between gap-5 px-2 sm:px-7">
+          <TrackfiBrand />
+          <div className="flex items-center gap-3">
+            <a
+              href={localizeHref("/login")}
+              className="text-[13px] font-semibold hover:text-[#1d4ed8]"
+            >
+              {m.auth_sign_in()}
+            </a>
+            <a
+              href="#waitlist-conversion"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                waitlistButtonClassName,
+                "hidden sm:inline-flex"
+              )}
+            >
+              <PlusIcon />
+              {m.waitlist_join_short()}
+            </a>
+          </div>
+        </nav>
 
-          {submitted ? (
-            <div className="mt-9 flex max-w-md items-start gap-3 rounded-lg border bg-card p-4">
-              <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <CheckIcon className="size-3.5" />
-              </span>
-              <div>
-                <p className="text-sm font-medium">
-                  {m.waitlist_success_title()}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {m.waitlist_success_description()}
-                </p>
-              </div>
+        <section className="grid gap-12 rounded-2xl bg-[#111318] px-6 py-10 text-white sm:px-10 sm:py-12 lg:min-h-[650px] lg:grid-cols-[minmax(0,610px)_minmax(0,1fr)] lg:gap-10 lg:px-14 lg:py-[52px]">
+          <div className="flex min-w-0 flex-col justify-between gap-16">
+            <div className="space-y-5">
+              <p className="flex items-center gap-2.5 font-mono text-[10px] font-semibold tracking-[0.12em] text-[#a1a1aa] uppercase">
+                <span aria-hidden="true" className="text-base text-[#60a5fa]">
+                  +
+                </span>
+                {m.waitlist_eyebrow()}
+              </p>
+              <h1 className="max-w-[610px] text-[52px] leading-[0.96] font-semibold tracking-[-0.04em] text-balance sm:text-[64px] lg:max-w-[530px] xl:text-[76px]">
+                {m.waitlist_title()}
+              </h1>
+              <p className="max-w-[530px] text-base leading-7 text-[#a1a1aa] sm:text-lg">
+                {m.waitlist_description()}
+              </p>
             </div>
-          ) : (
-            <form className="mt-9 max-w-md" onSubmit={handleSubmit}>
-              <Field data-invalid={Boolean(error) || undefined}>
-                <FieldLabel htmlFor="waitlist-email">
-                  {m.auth_email()}
-                </FieldLabel>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Input
-                    id="waitlist-email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    maxLength={320}
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(event) => setEmail(event.target.value)}
-                    className="h-10 flex-1"
-                  />
-                  <Button
-                    type="submit"
-                    size="lg"
-                    disabled={submitting}
-                    className="h-10"
-                  >
-                    {submitting ? m.waitlist_joining() : m.waitlist_join()}
-                    {!submitting && <ArrowRightIcon />}
-                  </Button>
-                </div>
-                {error && <FieldError>{error}</FieldError>}
-              </Field>
-              <TurnstileWidget
-                onTokenChange={handleToken}
-                resetKey={turnstileResetKey}
-              />
-            </form>
-          )}
-        </div>
-        <div className="flex items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>{m.waitlist_footer()}</p>
-          <a
-            href={localizeHref("/login")}
-            className="hover:text-foreground hover:underline"
-          >
-            {m.waitlist_invited_sign_in()}
-          </a>
-        </div>
-      </section>
+
+            <WaitlistSignup />
+          </div>
+
+          <div className="hidden min-w-0 items-center md:flex">
+            <WaitlistProductPreview />
+          </div>
+        </section>
+
+        <WaitlistPromise />
+      </div>
     </main>
   )
 }
