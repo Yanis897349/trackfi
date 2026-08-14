@@ -214,7 +214,7 @@
   "auth_reset_request_failed": "Impossible de lancer la réinitialisation. Veuillez réessayer.",
   "auth_reset_sent": "Consultez votre boîte de réception pour la prochaine étape.",
   "auth_reset_check_inbox_description": "Si un compte existe pour cette adresse, un lien sécurisé de réinitialisation est en route.",
-  "auth_send_another_reset": "Envoyer un autre lien",
+  "auth_back_to_reset_form": "Revenir au formulaire de réinitialisation",
   "auth_send_reset": "Envoyer le lien",
   "auth_sending": "Envoi…",
   "auth_back_sign_in": "Revenir à la connexion",

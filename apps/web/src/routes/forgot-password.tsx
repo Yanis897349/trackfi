@@ -76,7 +76,7 @@ function ForgotPasswordRoute() {
         email={email}
         description={m.auth_reset_check_inbox_description()}
         statusTitle={m.auth_reset_email_sent()}
-        secondaryActionLabel={m.auth_send_another_reset()}
+        secondaryActionLabel={m.auth_back_to_reset_form()}
         onSecondaryAction={() => setSubmitted(false)}
         onChangeEmail={() => {
           setEmail("")

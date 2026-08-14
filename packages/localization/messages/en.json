@@ -214,7 +214,7 @@
   "auth_reset_request_failed": "We couldn’t start the reset. Please try again.",
   "auth_reset_sent": "Check your inbox for the next step.",
   "auth_reset_check_inbox_description": "If an account exists for this address, a secure reset link is on its way.",
-  "auth_send_another_reset": "Send another reset link",
+  "auth_back_to_reset_form": "Back to reset form",
   "auth_send_reset": "Send reset link",
   "auth_sending": "Sending…",
   "auth_back_sign_in": "Back to sign in",
